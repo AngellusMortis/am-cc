@@ -19,7 +19,7 @@ jobs:
 
     - name: Generate Manifest
       run: |-
-        cd ./src
+        cd ./core
         bash $GITHUB_WORKSPACE/.bin/manifest.sh
 
     - name: Commit Changes
