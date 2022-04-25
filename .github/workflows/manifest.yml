@@ -19,13 +19,13 @@ jobs:
 
     - name: Generate Manifest
       run: |-
-        cd ./core
+        cd $GITHUB_WORKSPACE/core
         bash $GITHUB_WORKSPACE/.bin/manifest.sh
 
     - name: Commit Changes
       run: |-
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git add $GITHUB_WORKSPACE/src/manifest.json
+        git add $GITHUB_WORKSPACE/core/manifest.json
         git commit -m "Generate new manifest"
         git push
