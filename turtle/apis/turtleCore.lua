@@ -1,7 +1,16 @@
-local turtleCore = {}
+local v = require("cc.expect")
+
+local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
+ghu.initModulePaths()
+
 local pathfind = require("pathfind")
 
+local turtleCore = {}
+
 turtleCore.hasRequiredFuel = function(count)
+    v.expect(1, count, "number")
+    v.range(count, 1)
+
     local level = turtle.getFuelLevel()
     if level == "unlimited" then
         return true
@@ -41,6 +50,9 @@ turtleCore.emptyInventoryAndReturn = function()
 end
 
 turtleCore.refuel = function(count)
+    v.expect(1, count, "number")
+    v.range(count, 1)
+
     while count > turtle.getFuelLevel() do
         if not turtle.suckDown() then
             return false
@@ -55,6 +67,9 @@ turtleCore.goRefuel = function(count, empty)
     if empty == nil then
         empty = true
     end
+    v.expect(1, count, "number")
+    v.expect(2, empty, "boolean")
+    v.range(count, 1)
 
     if turtleCore.hasRequiredFuel(count) then
         return
@@ -92,6 +107,7 @@ turtleCore.digForward = function(count)
     if count == nil then
         count = 1
     end
+    v.expect(1, count, "number")
 
     for i = 1, count, 1 do
         if turtle.detect() then
@@ -112,6 +128,7 @@ turtleCore.digDown = function(count)
     if count == nil then
         count = 1
     end
+    v.expect(1, count, "number")
 
     for i = 1, count, 1 do
         if turtle.detectDown() then
@@ -132,6 +149,7 @@ turtleCore.digUp = function(count)
     if count == nil then
         count = 1
     end
+    v.expect(1, count, "number")
 
     for i = 1, count, 1 do
         if turtle.detectUp() then

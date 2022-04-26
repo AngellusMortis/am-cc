@@ -1,6 +1,6 @@
-local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
+local basePath = settings.get("ghu.base")
+local ghu = require(basePath .. "core/apis/ghu")
 ghu.initModulePaths()
-
 local pathfind = require("pathfind")
 local quarry = require("quarryLib")
 

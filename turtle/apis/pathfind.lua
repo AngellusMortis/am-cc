@@ -1,3 +1,7 @@
+local v = require("cc.expect")
+
+local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
+
 local pathfind = {}
 
 pathfind.c = {}
@@ -28,11 +32,12 @@ settings.define(pathfind.s.nodes.name, pathfind.s.nodes)
 settings.define(pathfind.s.returnNodes.name, pathfind.s.returnNodes)
 
 pathfind.getPosition = function()
-    local pos = settings.get(pathfind.s.position.name)
-    return {x=pos.x, y=pos.y, z=pos.z, dir=pos.dir}
+    return ghu.copy(settings.get(pathfind.s.position.name))
 end
 
 pathfind.setPosition = function(pos)
+    v.expect(1, pos, "table")
+
     settings.set(pathfind.s.position.name, pos)
     settings.save()
 end
@@ -53,8 +58,7 @@ pathfind.addNode = function()
     settings.save()
 end
 
-pathfind.addReturnNode = function(pos)
-    local pos = pathfind.getPosition()
+pathfind.addReturnNode = function()
     local nodes = pathfind.getReturnNodes()
     nodes[#nodes + 1] = pos
     settings.set(pathfind.s.returnNodes.name, nodes)
@@ -96,6 +100,8 @@ pathfind.resetPosition = function()
 end
 
 pathfind.formatPosition = function(pos)
+    v.expect(1, pos, "table")
+
     return string.format("(%d, %d, %d) dir: %d", pos.x, pos.y, pos.z, pos.dir)
 end
 
@@ -191,6 +197,7 @@ local function goForward(count)
     if count == nil then
         count = 1
     end
+    v.expect(1, count, "number")
 
     local success = false
     while count > 0 do
@@ -206,6 +213,7 @@ local function goBack(count)
     if count == nil then
         count = 1
     end
+    v.expect(1, count, "number")
 
     local success = false
     while count > 0 do
@@ -221,6 +229,7 @@ local function goUp(count)
     if count == nil then
         count = 1
     end
+    v.expect(1, count, "number")
 
     local success = false
     while count > 0 do
@@ -236,6 +245,7 @@ local function goDown(count)
     if count == nil then
         count = 1
     end
+    v.expect(1, count, "number")
 
     local success = false
     while count > 0 do
@@ -251,6 +261,7 @@ pathfind.go = function(count)
     if count == nil then
         count = 1
     end
+    v.expect(1, count, "number")
 
     if count > 0 then
         return goForward(count)
@@ -263,6 +274,7 @@ pathfind.goVert = function(count)
     if count == nil then
         count = 1
     end
+    v.expect(1, count, "number")
 
     if count > 0 then
         return goUp(count)
@@ -276,6 +288,8 @@ pathfind.turnTo = function(dir)
     if dir == nil then
         dir = pathfind.c.FORWARD
     end
+    v.expect(1, dir, "number")
+    v.range(dir, 1, 4)
 
     local pos = pathfind.getPosition()
     if preferLeft[pos.dir] == dir then
@@ -296,6 +310,13 @@ pathfind.goTo = function(x, z, y, dir)
     local startPos = pathfind.getPosition()
     if y == nil then
         y = startPos.y
+    end
+    v.expect(1, x, "number")
+    v.expect(2, z, "number")
+    v.expect(3, y, "number")
+    if dir ~= nil then
+        v.expect(4, dir, "number")
+        v.range(dir, 1, 4)
     end
 
     local success = true
