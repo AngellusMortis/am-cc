@@ -1,0 +1,8 @@
+wrapper around turtleCore
+
+ex:
+"tc empty" will have the turtle return to origin and empty inventory
+"tc refuel 10" will have the turtle return to origin add at least 10 fuel
+"tc dig" will have the turtle dig and move 1 block forward
+"tc digUp 3" will have the turtle dig and move 3 blocks up
+"tc digDown 5" will have the turtle dig and move 5 blocks down

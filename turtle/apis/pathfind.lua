@@ -56,6 +56,8 @@ pathfind.addNode = function()
     nodes[#nodes + 1] = pos
     settings.set(pathfind.s.nodes.name, nodes)
     settings.save()
+
+    return pos
 end
 
 pathfind.addReturnNode = function()
@@ -63,6 +65,8 @@ pathfind.addReturnNode = function()
     nodes[#nodes + 1] = pos
     settings.set(pathfind.s.returnNodes.name, nodes)
     settings.save()
+
+    return pos
 end
 
 pathfind.getLastNode = function()
@@ -85,24 +89,10 @@ pathfind.resetReturnNodes = function()
     settings.save()
 end
 
-pathfind.formatNodes = function()
-    local nodes = pathfind.getNodes()
-    local value = string.format("%d Nodes: {", #nodes)
-    for i, node in ipairs(nodes) do
-        value = string.format("%s %d: %s,", value, i, pathfind.formatPosition(node))
-    end
-    return string.format("%s }", value)
-end
-
 pathfind.resetPosition = function()
     pathfind.setPosition({x=0, y=0, z=0, dir=pathfind.c.FORWARD})
     pathfind.resetNodes()
-end
-
-pathfind.formatPosition = function(pos)
-    v.expect(1, pos, "table")
-
-    return string.format("(%d, %d, %d) dir: %d", pos.x, pos.y, pos.z, pos.dir)
+    pathfind.resetReturnNodes()
 end
 
 pathfind.forward = function()
@@ -363,6 +353,9 @@ end
 
 pathfind.goToPreviousNode = function()
     local nodes = pathfind.getNodes()
+    if #nodes == 0 then
+        return false, {}
+    end
     local pos = nodes[#nodes]
 
     local success = pathfind.goTo(pos.x, pos.z, pos.y, pos.dir)
@@ -421,6 +414,28 @@ pathfind.goToReturn = function()
     end
     pathfind.resetReturnNodes()
     return true
+end
+
+pathfind.dirFromString = function(dir)
+    if dir == nil then
+        return nil
+    end
+
+    if dir == "left" then
+        dir = pathfind.c.LEFT
+    elseif dir == "right" then
+        dir = pathfind.c.RIGHT
+    elseif dir == "forward" then
+        dir = pathfind.c.FORWARD
+    elseif dir == "back" then
+        dir = pathfind.c.BACK
+    else
+        dir = tonumber(dir)
+    end
+    v.expect(1, dir, "number")
+    v.range(dir, 1, 4)
+
+    return dir
 end
 
 return pathfind

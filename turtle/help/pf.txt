@@ -1,0 +1,15 @@
+wrapper around pathfind API
+
+ex:
+"pf pos" will print out the turtle's current position
+"pf nodes" will print out the current saved nodes
+"pf returnNodes" will print out the current saved return nodes
+"pf save" will save the current position as a node
+"pf saveReturn" will save the current position as a return node
+"pf reset" will clear all pathfind data and set current position as origin
+"pf go 3" will move the turtle forward 3 blocks
+"pf go -5" will move the turle backwards 5 blocks
+"pf goVert 1" will move the turtle up 1 block
+"pf turn back" will rotate the turtle to the backwards position (based on origin)
+"pf goTo origin" will move the turtle to the origin point
+"pf goToPos 3 1 -2 back" will move the turtle to 3 blocks to the right, 1 block forward and 2 blocks down and then face backwards (all relative to origin)
