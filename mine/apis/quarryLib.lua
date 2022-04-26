@@ -178,7 +178,7 @@ end
 
 quarry.canResume = function()
     local progress = getProgress()
-    return setting.get(quarry.s.autoResume.name) and not progress.finished
+    return settings.get(quarry.s.autoResume.name) and not progress.finished
 end
 
 quarry.setJob = function(left, forward, levels)

@@ -41,6 +41,7 @@ turtleCore.emptyInventory = function()
 end
 
 turtleCore.emptyInventoryAndReturn = function()
+    pathfind.addNode()
     turtleCore.emptyInventory()
     print("Returning...")
     while not pathfind.goToReturn() do
