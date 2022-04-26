@@ -1,0 +1,9 @@
+digs out a cubic shape. Turtle's location is the top right corner
+
+ex:
+"quarry" will dig out a 16x16 area directly in front of the turtle
+"quarry 16 8 4 will dig out a 16 blocks to the left, 8 blocks forward and 4 blocks (current + 3) down stating with the block in front of turtle
+
+notes:
+block below the turtle is expected to be an inventory with fuel
+block to the left of the turtle is expected to be a dump inventory
