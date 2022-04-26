@@ -1,0 +1,5 @@
+{
+  "programs/turtle/quarry.lua": "b2175b438568b453b4a5c5d5d4367825f574bbd2de90fcda4b77f1bcfcbc0dc5",
+  "apis/quarryLib.lua": "c2c9962660cbe0aa41ff5c90d26d42b5be7f74eb75761e3adba95af5eed19587",
+  "autorun/quarryResume.lua": "8320816c395589a65fab26c16870eb2bd0bf92d60b950a279b2df6faa3080652"
+}
