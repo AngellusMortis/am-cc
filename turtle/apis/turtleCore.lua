@@ -21,7 +21,6 @@ end
 
 turtleCore.emptyInventory = function()
     print("Returning to origin...")
-    sleep(5)
     while not pathfind.goToOrigin() do
         print("Could not return to origin. Retrying...")
         sleep(5)
@@ -42,10 +41,8 @@ turtleCore.emptyInventory = function()
 end
 
 turtleCore.emptyInventoryAndReturn = function()
-    sleep(5)
     turtleCore.emptyInventory()
     print("Returning...")
-    sleep(5)
     while not pathfind.goToReturn() do
         print("Could not go back to return. Retrying...")
         sleep(5)
