@@ -1,4 +1,4 @@
 {
-  "apis/turtleCore.lua": "085ffaf0536747b9bb92dc3d83523fbe9ec95dddb31483626fc81531bf62c6aa",
-  "apis/pathfind.lua": "355c05206f0a2a5865dcea1b4e1d6e00f3e31832fd33b17ec4085304704132fe"
+  "apis/turtleCore.lua": "2f169e2a0670da65336573b6a6ee5e9791ccda12d1d9a23f369d4857c324a3c7",
+  "apis/pathfind.lua": "d2d23a5990690fb18bd95ae8561b1bfbe62908c727fb987e537961c3ce1885af"
 }
