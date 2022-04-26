@@ -10,6 +10,8 @@ local state = {
     completed = 0
 }
 
+local progress = { total = 0, level = 0 }
+
 local function calulateRefuel()
     local fuelPerLevel = state.left * state.forward + (state.left * 2) + (state.forward * 2)
     local requiredFuel = fuelPerLevel
@@ -28,9 +30,15 @@ local function calulateRefuel()
 end
 
 local function digLevel()
+    local progressOneLevel = 1 / state.levels
     pathfind.turnTo(pathfind.c.FORWARD)
 
-    print(string.format(".Start level %d of %d", state.completed + 1, state.levels))
+    progress.level = 0
+    print(string.format(
+        ".Start level %d of %d (%d%%, %d%%)",
+        state.completed + 1, state.levels,
+        progress.level * 100, progress.total * 100
+    ))
     local pos = pathfind.getPosition()
     if pos.x == 0 and pos.z == 0 then
         turtleCore.digForward()
@@ -40,7 +48,14 @@ local function digLevel()
     end
 
     for row = 1, state.left, 1 do
-        print(string.format("..Start row %d of %d", row, state.left))
+        progress.level = (row - 1) / state.left
+        progress.total = state.completed / state.levels + progressOneLevel * progress.level
+
+        print(string.format(
+            "..Start row %d of %d (%d%%, %d%%)",
+            row, state.left,
+            progress.level * 100, progress.total * 100
+        ))
         turtleCore.digForward(state.forward - 1)
 
         if row < state.left then
@@ -53,12 +68,19 @@ local function digLevel()
                 pathfind.turnTo(pathfind.c.BACK)
             end
         end
+        progress.level = row / state.left
+        progress.total = state.completed / state.levels + progressOneLevel * progress.level
     end
-    print("..Return to start")
+    print(string.format(
+        "..Return to start (%d%%, %d%%)",
+        progress.level * 100, progress.total * 100
+    ))
     if not pathfind.goTo(0, 1) then
         error("Could not return to start")
     end
     state.completed = state.completed + 1
+    progress.level = 1
+    progress.total = state.completed / state.levels
 end
 
 local function main(left, forward, levels)
