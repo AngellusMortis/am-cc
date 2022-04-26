@@ -61,6 +61,7 @@ pathfind.addNode = function()
 end
 
 pathfind.addReturnNode = function()
+    local pos = pathfind.getPosition()
     local nodes = pathfind.getReturnNodes()
     nodes[#nodes + 1] = pos
     settings.set(pathfind.s.returnNodes.name, nodes)
@@ -338,7 +339,7 @@ pathfind.goTo = function(x, z, y, dir)
     end
 
     if not success then
-        pos = pathfind.getPosition()
+        local pos = pathfind.getPosition()
         if startPos.x == pos.x and startPos.y == pos.y and startPos.z == pos.z then
             return false
         end
@@ -387,6 +388,8 @@ pathfind.goToOrigin = function()
     pathfind.addReturnNode()
 
     local nodes = pathfind.getNodes()
+    local success = true
+    local pos = pathfind.getPosition()
     while #nodes > 0 do
         success, pos = pathfind.goToPreviousNode()
         if not success then
@@ -404,6 +407,8 @@ pathfind.goToReturn = function()
     pathfind.addNode()
 
     local nodes = pathfind.getReturnNodes()
+    local success = true
+    local pos = pathfind.getPosition()
     while #nodes > 0 do
         success, pos = pathfind.goToPreviousReturnNode()
         if not success then
