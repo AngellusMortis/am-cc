@@ -35,7 +35,7 @@ quarry.s.autoResume = {
 }
 quarry.s.offsetPos = {
     name = "quarry.offsetPos",
-    default = nil,
+    default = false,
 }
 
 settings.define(quarry.s.job.name, quarry.s.job)
@@ -165,6 +165,15 @@ local function finishJob()
     setProgress(progress)
 end
 
+local function goToOffset()
+    local offset = settings.get(quarry.s.offsetPos.name)
+    if offset then
+        setStatus("Going to Offset")
+        pathfind.goTo(offset.x, offset.z, offset.y, offset.dir)
+        pathfind.addNode()
+    end
+end
+
 local function digLevel()
     local job = getJob()
     local progressOneLevel = 1 / job.levels
@@ -173,20 +182,12 @@ local function digLevel()
     startLevel()
     local pos = pathfind.getPosition()
     if pos.x == 0 and pos.z == 0 then
+        goToOffset()
         turtleCore.digForward()
     end
-    pathfind.resetNodes()
-    pathfind.addNode()
-
-    local offset = settings.get(quarry.s.offsetPos.name)
-    if offset ~= nil then
-        setStatus("Going to Offset")
-        pathfind.goTo(offset.x, offset.z, offset.y, offset.dir)
-        pathfind.back()
-        pathfind.addNode()
-        pathfind.forward()
-        pathfind.addNode()
-    end
+    pos = pathfind.getPosition()
+    local startX = pos.x
+    local startZ = pos.z
 
     local progress = getProgress()
     if progress.completedLevels > 0 then
@@ -220,8 +221,9 @@ local function digLevel()
         "..Return to start (%d%%, %d%%)",
         progress.level * 100, progress.total * 100
     ))
-    if not pathfind.goTo(0, 1) then
-        error("Could not return to start")
+    while not pathfind.goTo(startX, startZ) do
+        turtleCore.error("Cannot Return to Start")
+        sleep(3)
     end
     completeLevel()
 end
@@ -238,7 +240,7 @@ quarry.setOffset = function(x, z, y, dir)
 end
 
 quarry.clearOffset = function()
-    settings.set(quarry.s.offsetPos.name, nil)
+    settings.set(quarry.s.offsetPos.name, false)
     settings.save()
 end
 
