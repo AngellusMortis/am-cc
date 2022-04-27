@@ -225,7 +225,10 @@ quarry.setJob = function(left, forward, levels)
         levelProgress = levelProgress,
     })
     settings.save()
-    setProgress(ghu.copy(quarry.s.progress.default))
+
+    local progress = ghu.copy(quarry.s.progress.default)
+    progress.finished = false
+    setProgress(progress)
 end
 
 local runLoop = function()
