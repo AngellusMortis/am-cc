@@ -3,6 +3,7 @@ local v = require("cc.expect")
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
+local log = require("log").log
 local pathfind = require("pathfind")
 
 local turtleCore = {}
@@ -20,19 +21,19 @@ turtleCore.hasRequiredFuel = function(count)
 end
 
 turtleCore.emptyInventory = function()
-    print("Returning to origin...")
+    log("Returning to origin...")
     while not pathfind.goToOrigin() do
-        print("Could not return to origin. Retrying...")
+        log("Could not return to origin. Retrying...")
         sleep(5)
     end
 
     pathfind.turnTo(pathfind.c.LEFT)
-    print("Emptying inventory...")
+    log("Emptying inventory...")
     for i = 1, 16, 1 do
         if turtle.getItemCount(i) > 0 then
             turtle.select(i)
             while not turtle.drop() do
-                print("Destination inventory full. Retrying...")
+                log("Destination inventory full. Retrying...")
             end
         end
     end
@@ -42,9 +43,9 @@ end
 
 turtleCore.emptyInventoryAndReturn = function()
     turtleCore.emptyInventory()
-    print("Returning...")
+    log("Returning...")
     while not pathfind.goToReturn() do
-        print("Could not go back to return. Retrying...")
+        log("Could not go back to return. Retrying...")
         sleep(5)
     end
 end
@@ -79,9 +80,9 @@ turtleCore.goRefuel = function(count, empty)
         turtleCore.emptyInventory()
     end
     local needed = count - turtle.getFuelLevel()
-    print(string.format("Refueling (%d)...", count))
+    log(string.format("Refueling (%d)...", count))
     while not turtleCore.refuel(count) do
-        print(string.format("Waiting for %d fuel...", needed))
+        log(string.format("Waiting for %d fuel...", needed))
         sleep(5)
 
         needed = count - turtle.getFuelLevel()

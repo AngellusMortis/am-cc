@@ -3,6 +3,8 @@ local v = require("cc.expect")
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
+local log = require("log")
+local ui = require("buttonH").terminal
 local pathfind = require("pathfind")
 local turtleCore = require("turtleCore")
 
@@ -40,14 +42,48 @@ local function getProgress()
     return ghu.copy(settings.get(quarry.s.progress.name))
 end
 
+local function getJob()
+    return settings.get(quarry.s.job.name)
+end
+
+local function printProgress()
+    if settings.get(log.s.print.name) then
+        return
+    end
+
+    local job = getJob()
+    local progress = getProgress()
+    local width, height = term.getSize()
+
+    term.clear()
+    term.setCursorPos(1, 1)
+    term.setCursorBlink(false)
+    print(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
+
+    term.setCursorPos(1, 3)
+    print(string.format("Total Progress %d%% (%d of %d)", progress.total * 100, progress.completedLevels + 1, job.levels))
+    ui.bar(
+        2, 5, width-1, 1, progress.total, 1,
+        "lightGray", "green", "gray",
+        false, false, "", true, true, false
+    )
+
+    term.setCursorPos(1, 7)
+    print(string.format("Level Progress %d%% (%d of %d)", progress.level * 100, progress.currentRow, job.left))
+    ui.bar(
+        2, 9, width-1, 1, progress.level, 1,
+        "lightGray", "green", "gray",
+        false, false, "", true, true, false
+    )
+
+    term.setCursorPos(1, height)
+end
+
 local function setProgress(progress)
     v.expect(1, progress, "table")
 
     settings.set(quarry.s.progress.name, progress)
-end
-
-local function getJob()
-    return settings.get(quarry.s.job.name)
+    printProgress()
 end
 
 local function calulateRefuel(left, forward, levels)
@@ -86,7 +122,7 @@ local function startRow(rowNum)
     progress.total = progress.completedLevels / job.levels + job.levelProgress * progress.level
     setProgress(progress)
 
-    print(string.format(
+    log.log(string.format(
         "..Start row %d of %d (%d%%, %d%%)",
         progress.currentRow, job.left,
         progress.level * 100, progress.total * 100
@@ -109,7 +145,7 @@ local function startLevel()
     progress.level = 0
     setProgress(progress)
 
-    print(string.format(
+    log.log(string.format(
         ".Start level %d of %d (%d%%, %d%%)",
         progress.completedLevels + 1, job.levels,
         progress.level * 100, progress.total * 100
@@ -166,7 +202,7 @@ local function digLevel()
     end
 
     progress = getProgress()
-    print(string.format(
+    log.log(string.format(
         "..Return to start (%d%%, %d%%)",
         progress.level * 100, progress.total * 100
     ))
@@ -209,9 +245,9 @@ quarry.runJob = function(resume)
     term.clear()
     term.setCursorPos(1, 1)
     if resume then
-        print(string.format("Resume Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
+        log.log(string.format("Resume Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
     else
-        print(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
+        log.log(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
     end
 
     turtleCore.emptyInventory()
@@ -225,6 +261,8 @@ quarry.runJob = function(resume)
     end
     finishJob()
     turtleCore.emptyInventory()
+    term.setCursorBlink(true)
+    log.setPrint(true)
 end
 
 return quarry
