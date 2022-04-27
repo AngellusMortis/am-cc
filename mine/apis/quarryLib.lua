@@ -228,7 +228,7 @@ local function digLevel()
         "..Return to start (%d%%, %d%%)",
         progress.level * 100, progress.total * 100
     ))
-    while not pathfind.goTo(startX, startZ) do
+    while not pathfind.goTo(startPos.x, startPos.z) do
         turtleCore.error("Cannot Return to Start")
         sleep(3)
     end

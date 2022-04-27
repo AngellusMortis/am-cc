@@ -97,7 +97,9 @@ local function getDisplay(name, outputMap, computerMap)
         return output
     end
 
+    local count = 0
     for outputName, output in pairs(getAllMonitors()) do
+        count = count + 1
         local existing = computerMap[outputName]
         if existing == nil then
             addOutput(name, outputName)
@@ -105,6 +107,10 @@ local function getDisplay(name, outputMap, computerMap)
             computerMap[outputName] = name
             return output
         end
+    end
+
+    if count == 0 then
+        return term
     end
 
     return nil
@@ -149,7 +155,7 @@ local function main(name, outputName)
         output.clear()
         output.setCursorPos(1, 1)
         output.setTextColor(colors.white)
-        output.write(string.format("Waiting for event from %s...", name))
+        output.write(string.format("Wait for %s...", name))
     end
 
     if terminalFree then
