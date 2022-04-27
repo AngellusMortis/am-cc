@@ -27,7 +27,7 @@ end
 shell.setCompletionFunction(
     shellBase .. "programs/turtle/pf.lua",
     completion.build(
-        { completion.choice, { "pos", "nodes ", "returnNodes", "save", "saveReturn", "reset", "go ", "goVert ", "turn ", "goTo ", "goToPos " }, false},
+        { completion.choice, { "pos", "nodes ", "returnnodes", "save", "savereturn", "reset", "go ", "govert ", "turn ", "turnleft", "turnright", "goto ", "gotopos " }, false},
         compGoTo,
         nil,
         nil,

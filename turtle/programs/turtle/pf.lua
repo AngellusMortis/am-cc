@@ -8,7 +8,7 @@ local pathfind = require("pathfind")
 
 local function printUsage(op)
     local programName = arg[0] or fs.getName(shell.getRunningProgram())
-    local usage = " <pos|nodes|returnNodes|save|saveReturn|reset|go|goVert|turn|goTo|goToPos> [args] ..."
+    local usage = " <pos|nodes|returnNodes|save|saveReturn|reset|go|goVert|turn|turnLeft|turnRight|goTo|goToPos> [args] ..."
 
     if op == "pos" then
         usage = " pos"
@@ -28,6 +28,10 @@ local function printUsage(op)
         usage = " goVert <count>"
     elseif op == "turn" then
         usage = " turn <dir>"
+    elseif op == "turnLeft" then
+        usage = " turnLeft"
+    elseif op == "turnRight" then
+        usage = " turnRight"
     elseif op == "goTo" then
         usage = " goTo <origin|return|node|returnNode>"
     elseif op == "goToPos" then
@@ -38,19 +42,21 @@ local function printUsage(op)
 end
 
 local function main(op, arg1, arg2, arg3, arg4)
+    op = string.lower(op)
+
     if op == "pos" then
         pp.pretty_print(pathfind.getPosition())
     elseif op == "nodes" then
         pp.pretty_print(pathfind.getNodes())
-    elseif op == "returnNodes" then
+    elseif op == "returnnodes" then
         pp.pretty_print(pathfind.getReturnNodes())
     elseif op == "save" then
         pp.pretty_print(pathfind.addNode())
-    elseif op == "saveReturn" then
+    elseif op == "savereturn" then
         pp.pretty_print(pathfind.addReturnNode())
     elseif op == "reset" then
         pathfind.resetPosition()
-    elseif op == "go" or op == "goVert" then
+    elseif op == "go" or op == "govert" then
         if arg1 == nil then
             arg1 = 1
         end
@@ -69,19 +75,24 @@ local function main(op, arg1, arg2, arg3, arg4)
 
         local dir = pathfind.dirFromString(arg1)
         pp.pretty_print(pathfind.turnTo(dir))
-    elseif op == "goTo" then
+    elseif op == "turnleft" then
+        pp.pretty_print(pathfind.turnLeft())
+    elseif op == "turnright" then
+        pp.pretty_print(pathfind.turnRight())
+    elseif op == "goto" then
+        arg1 = string.lower(arg1)
         if arg1 == "origin" then
             pp.pretty_print(pathfind.goToOrigin())
         elseif arg1 == "return" then
             pp.pretty_print(pathfind.goToReturn())
         elseif arg1 == "node" then
             pp.pretty_print({pathfind.goToPreviousNode()})
-        elseif arg1 == "returnNode" then
+        elseif arg1 == "returnnode" then
             pp.pretty_print({pathfind.goToPreviousReturnNode()})
         else
             printUsage(op)
         end
-    elseif op == "goToPos" then
+    elseif op == "gotopos" then
         if arg1 == nil then
             arg1 = 0
         end

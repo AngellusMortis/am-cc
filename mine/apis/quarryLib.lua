@@ -33,10 +33,15 @@ quarry.s.autoResume = {
     default = true,
     type = "boolean"
 }
+quarry.s.offsetPos = {
+    name = "quarry.offsetPos",
+    default = nil,
+}
 
 settings.define(quarry.s.job.name, quarry.s.job)
 settings.define(quarry.s.progress.name, quarry.s.progress)
 settings.define(quarry.s.autoResume.name, quarry.s.autoResume)
+settings.define(quarry.s.offsetPos.name, quarry.s.offsetPos)
 
 local function getProgress()
     return ghu.copy(settings.get(quarry.s.progress.name))
@@ -170,6 +175,18 @@ local function digLevel()
     if pos.x == 0 and pos.z == 0 then
         turtleCore.digForward()
     end
+    pathfind.resetNodes()
+    pathfind.addNode()
+
+    local offset = settings.get(quarry.s.offsetPos.name)
+    if offset ~= nil then
+        setStatus("Going to Offset")
+        pathfind.goTo(offset.x, offset.z, offset.y, offset.dir)
+        pathfind.back()
+        pathfind.addNode()
+        pathfind.forward()
+        pathfind.addNode()
+    end
 
     local progress = getProgress()
     if progress.completedLevels > 0 then
@@ -181,13 +198,18 @@ local function digLevel()
         turtleCore.digForward(job.forward - 1)
 
         if row < job.left then
-            pathfind.turnTo(pathfind.c.LEFT)
+            local turnRight = row % 2 == 0
+            if turnRight then
+                pathfind.turnRight()
+            else
+                pathfind.turnLeft()
+            end
             turtleCore.digForward()
 
-            if row % 2 == 0 then
-                pathfind.turnTo(pathfind.c.FORWARD)
+            if turnRight then
+                pathfind.turnRight()
             else
-                pathfind.turnTo(pathfind.c.BACK)
+                pathfind.turnLeft()
             end
         end
         completeRow()
@@ -202,6 +224,22 @@ local function digLevel()
         error("Could not return to start")
     end
     completeLevel()
+end
+
+quarry.setOffset = function(x, z, y, dir)
+    v.expect(1, x, "number")
+    v.expect(2, y, "number")
+    v.expect(3, z, "number")
+    v.expect(4, dir, "number")
+    v.range(dir, 1, 4)
+
+    settings.set(quarry.s.offsetPos.name, {x=x, y=y, z=z, dir=dir})
+    settings.save()
+end
+
+quarry.clearOffset = function()
+    settings.set(quarry.s.offsetPos.name, nil)
+    settings.save()
 end
 
 quarry.canResume = function()
@@ -265,7 +303,12 @@ local eventLoop = function()
             if subEvent == eventLib.e.pathfind_pos then
                 fireProgressEvent(data[3])
             elseif subEvent == eventLib.e.pathfind_goToReturn then
-                setStatus("Resuming")
+                if data[5] == nil then
+                    setStatus("Resuming")
+                else
+                    local progress = getProgress()
+                    setStatus(string.format("Digging Row %d", progress.currentRow))
+                end
             end
         elseif event == eventLib.e.progress then
             if not settings.get(log.s.print.name) then

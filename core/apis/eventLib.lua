@@ -113,7 +113,7 @@ local function bar(output, x, y, current, total, length, height, background, fil
     end
 end
 
-local printQuarryProgress = function(job, progress, pos, name, output)
+eventLib.printQuarryProgress = function(job, progress, pos, name, output)
     if output == nil then
         output = term
     end
@@ -184,7 +184,7 @@ eventLib.printProgress = function(event, name, output)
 
     local progressType = event[2]
     if progressType == eventLib.e.progress_quarry then
-        printQuarryProgress(event[3], event[4], event[5], name, output)
+        eventLib.printQuarryProgress(event[3], event[4], event[5], name, output)
     end
 end
 
