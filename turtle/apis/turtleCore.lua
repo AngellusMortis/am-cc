@@ -41,10 +41,7 @@ turtleCore.emptyInventory = function()
     for i = 1, 16, 1 do
         if turtle.getItemCount(i) > 0 then
             turtle.select(i)
-            while not turtle.drop() do
-                turtleCore.error("Failed to Insert Item")
-                sleep(5)
-            end
+            turtleCore.insert(nil, nil, "Missing Drop Chest")
         end
     end
     pathfind.turnTo(pathfind.c.FORWARD)
@@ -64,13 +61,15 @@ turtleCore.refuel = function(count)
     v.expect(1, count, "number")
     v.range(count, 1)
 
+    local needed = count - turtle.getFuelLevel()
+    local chestMsg = "Missing Refuel Chest Below"
     while count > turtle.getFuelLevel() do
-        if not turtle.suckDown() then
-            return false
-        end
+        turtleCore.pullDown(nil, string.format("Need %d More Fuel", needed), chestMsg)
         turtle.refuel()
+
+        needed = count - turtle.getFuelLevel()
     end
-    turtle.dropDown()
+    turtleCore.dropDown()
     return true
 end
 
@@ -91,12 +90,7 @@ turtleCore.goRefuel = function(count, empty)
     end
     local needed = count - turtle.getFuelLevel()
     log(string.format("Refueling (%d)...", count))
-    while not turtleCore.refuel(count) do
-        turtleCore.error(string.format("Need %d More Fuel", needed))
-        sleep(5)
-
-        needed = count - turtle.getFuelLevel()
-    end
+    turtleCore.refuel(count)
 end
 
 turtleCore.emptySlots = function()
@@ -126,6 +120,10 @@ turtleCore.digForward = function(count)
             if not turtleCore.hasRoom() then
                 turtleCore.emptyInventoryAndReturn()
             end
+            while turtleCore.isChest() do
+                turtleCore.error("Cannot Dig Chest")
+                sleep(5)
+            end
             while not turtle.dig() do
                 turtleCore.error("Cannot Dig Block")
                 sleep(1)
@@ -149,6 +147,10 @@ turtleCore.digDown = function(count)
         if turtle.detect() then
             if not turtleCore.hasRoom() then
                 turtleCore.emptyInventoryAndReturn()
+            end
+            while turtleCore.isChestDown() do
+                turtleCore.error("Cannot Dig Chest Down")
+                sleep(5)
             end
             while not turtle.digDown() do
                 turtleCore.error("Cannot Dig Block Down")
@@ -174,6 +176,10 @@ turtleCore.digUp = function(count)
             if not turtleCore.hasRoom() then
                 turtleCore.emptyInventoryAndReturn()
             end
+            while turtleCore.isChestUp() do
+                turtleCore.error("Cannot Dig Chest Up")
+                sleep(5)
+            end
             while not turtle.digUp() do
                 turtleCore.error("Cannot Dig Block Up")
                 sleep(1)
@@ -183,6 +189,147 @@ turtleCore.digUp = function(count)
             turtleCore.error("Cannot Move Up")
             sleep(1)
         end
+    end
+end
+
+turtleCore.isChest = function()
+    local success, data = turtle.inspect()
+    if not success then
+        return false
+    end
+
+    return data.tags["forge:chests"]
+end
+
+turtleCore.isChestDown = function()
+    local success, data = turtle.inspectDown()
+    if not success then
+        return false
+    end
+
+    return data.tags["forge:chests"]
+end
+
+turtleCore.isChestUp = function()
+    local success, data = turtle.inspectUp()
+    if not success then
+        return false
+    end
+
+    return data.tags["forge:chests"]
+end
+
+turtleCore.insert = function(count, msg, chestMsg)
+    if msg == nil then
+        msg = "Failed to Insert Item"
+    end
+    if chestMsg == nil then
+        chestMsg = "No Chest For Insert"
+    end
+
+    while not turtleCore.isChest() do
+        turtleCore.error(chestMsg)
+        sleep(5)
+    end
+
+    while not turtle.drop(count) do
+        turtleCore.error(msg)
+        sleep(5)
+    end
+end
+
+turtleCore.insertDown = function(count, msg, chestMsg)
+    if msg == nil then
+        msg = "Failed to Insert Item Below"
+    end
+    if chestMsg == nil then
+        chestMsg = "No Chest For Insert Below"
+    end
+
+    while not turtleCore.isChestDown() do
+        turtleCore.error(chestMsg)
+        sleep(5)
+    end
+
+    while not turtle.dropDown(count) do
+        turtleCore.error(msg)
+        sleep(5)
+    end
+end
+
+turtleCore.insertUp = function(count, msg, chestMsg)
+    if msg == nil then
+        msg = "Failed to Insert Item Above"
+    end
+    if chestMsg == nil then
+        chestMsg = "No Chest For Insert Above"
+    end
+
+    while not turtleCore.isChestUp() do
+        turtleCore.error(chestMsg)
+        sleep(5)
+    end
+
+    while not turtle.dropUp(count) do
+        turtleCore.error(msg)
+        sleep(5)
+    end
+end
+
+turtleCore.pull = function(count, msg, chestMsg)
+    if msg == nil then
+        msg = "Failed to Pull Item"
+    end
+    if chestMsg == nil then
+        chestMsg = "No Chest For Pull"
+    end
+
+    while not turtleCore.isChest() do
+        turtleCore.error(chestMsg)
+        sleep(5)
+    end
+
+    while not turtle.suck(count) do
+        turtleCore.error(msg)
+        sleep(5)
+    end
+end
+
+turtleCore.pullDown = function(count, msg, chestMsg)
+    if msg == nil then
+        msg = "Failed to Pull Below"
+    end
+    if chestMsg == nil then
+        chestMsg = "No Chest For Pull Below"
+    end
+
+    while not turtleCore.isChestDown() do
+        turtleCore.error(chestMsg)
+        sleep(5)
+    end
+
+    while not turtle.suckDown(count) do
+        turtleCore.error(msg)
+        sleep(5)
+    end
+end
+
+turtleCore.pullUp = function(count, msg, chestMsg)
+    if msg == nil then
+        msg = "Failed to Pull Above"
+    end
+    if chestMsg == nil then
+        chestMsg = "No Chest For Pull Above"
+    end
+
+    while not turtleCore.isChestUp() do
+        turtleCore.error(chestMsg)
+        sleep(5)
+    end
+
+    while not turtle.suckUp(count) do
+        turtleCore.error(msg)
+        sleep(5)
     end
 end
 
