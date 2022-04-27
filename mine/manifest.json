@@ -1,6 +1,6 @@
 {
   "programs/turtle/quarry.lua": "ffbf8be36f8f321a56be45e1190babe0388a82fe9f00a37ddc50fa1e9cc6100e",
-  "apis/quarryLib.lua": "811173f81ffacb8eee4005eb17a1f860ae0a73478d1e32d8c7df1e0fd6c70286",
+  "apis/quarryLib.lua": "98cf733a8367fe08d5f1f6d22a90e9183cff7e6e693b4a1a10be5b574682b33a",
   "autorun/completions.lua": "8583992dede25a2334ad02529a0cc3be8fd6487df6919de5a3523fb5ee8f9ab4",
   "autorun/quarryResume.lua": "ced20dad3a9da6fd649cd2f55a0dcad45cebcacdcef61cfe02450e24d65d4830"
 }
