@@ -4,8 +4,7 @@ local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
 local log = require("log")
-local text = require("text")
-local ui = require("buttonH").terminal
+local eventLib = require("eventLib")
 local pathfind = require("pathfind")
 local turtleCore = require("turtleCore")
 
@@ -47,52 +46,22 @@ local function getJob()
     return settings.get(quarry.s.job.name)
 end
 
-local function printProgress(pos)
-    if settings.get(log.s.print.name) then
-        return
-    end
+local function fireProgressEvent(pos)
     if pos == nil then
         pos = pathfind.getPosition()
     end
 
     local job = getJob()
     local progress = getProgress()
-    local width, height = term.getSize()
-
-    term.clear()
-    term.setCursorPos(1, 1)
-    term.setCursorBlink(false)
-    text.center(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
-
-    term.setCursorPos(1, 3)
-    term.write(string.format("Total Progress %d%% (%d of %d)", progress.total * 100, progress.completedLevels + 1, job.levels))
-    ui.bar(
-        2, 5, width-1, 1, progress.total, 1,
-        "lightGray", "green", "gray",
-        false, false, "", true, true, false
-    )
-
-    term.setCursorPos(1, 7)
-    term.write(string.format("Level Progress %d%% (%d of %d)", progress.level * 100, progress.currentRow, job.left))
-    ui.bar(
-        2, 9, width-1, 1, progress.level, 1,
-        "lightGray", "green", "gray",
-        false, false, "", true, true, false
-    )
-
-    term.setCursorPos(1, 11)
-    text.center(progress.status)
-
-    term.setCursorPos(1, height)
-    text.center(string.format("pos (%d, %d) e: %d, d: %d", pos.x, pos.z, pos.y, pos.dir))
-    term.setCursorPos(1, height)
+    eventLib.broadcastProgressQuarry(job, progress, pos)
 end
 
 local function setProgress(progress)
     v.expect(1, progress, "table")
 
     settings.set(quarry.s.progress.name, progress)
-    printProgress()
+    settings.save()
+    fireProgressEvent()
 end
 
 local function setStatus(status)
@@ -255,6 +224,7 @@ quarry.setJob = function(left, forward, levels)
         refuelTarget = refuelTarget, refuelLevel = refuelLevel,
         levelProgress = levelProgress,
     })
+    settings.save()
     setProgress(ghu.copy(quarry.s.progress.default))
 end
 
@@ -280,13 +250,17 @@ local eventLoop = function()
         local event = data[1]
 
         if event == "pathfind_pos" then
-            printProgress(event[1])
+            fireProgressEvent(event[1])
         elseif event == "tc_refuel" then
             setStatus("Refueling")
         elseif event == "tc_empty" then
             setStatus("Emptying Inventory")
         elseif event == "pathfind_goToReturn" and event[3] == nil then
             setStatus("Resuming")
+        elseif event == eventLib.e.progress then
+            if not settings.get(log.s.print.name) then
+                eventLib.printProgress(data)
+            end
         end
     end
 end
