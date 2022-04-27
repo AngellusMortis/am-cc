@@ -4,6 +4,7 @@ local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
 local log = require("log")
+local text = require("text")
 local ui = require("buttonH").terminal
 local pathfind = require("pathfind")
 local turtleCore = require("turtleCore")
@@ -24,7 +25,7 @@ quarry.s.progress = {
     default = {
         total = 0, level = 0,
         completedLevels = 0, currentRow = 1,
-        finished = true
+        finished = true, status = "",
     },
     type = "table"
 }
@@ -46,9 +47,12 @@ local function getJob()
     return settings.get(quarry.s.job.name)
 end
 
-local function printProgress()
+local function printProgress(pos)
     if settings.get(log.s.print.name) then
         return
+    end
+    if pos == nil then
+        pos = pathfind.getPosition()
     end
 
     local job = getJob()
@@ -58,10 +62,10 @@ local function printProgress()
     term.clear()
     term.setCursorPos(1, 1)
     term.setCursorBlink(false)
-    print(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
+    text.center(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
 
     term.setCursorPos(1, 3)
-    print(string.format("Total Progress %d%% (%d of %d)", progress.total * 100, progress.completedLevels + 1, job.levels))
+    term.write(string.format("Total Progress %d%% (%d of %d)", progress.total * 100, progress.completedLevels + 1, job.levels))
     ui.bar(
         2, 5, width-1, 1, progress.total, 1,
         "lightGray", "green", "gray",
@@ -69,13 +73,18 @@ local function printProgress()
     )
 
     term.setCursorPos(1, 7)
-    print(string.format("Level Progress %d%% (%d of %d)", progress.level * 100, progress.currentRow, job.left))
+    term.write(string.format("Level Progress %d%% (%d of %d)", progress.level * 100, progress.currentRow, job.left))
     ui.bar(
         2, 9, width-1, 1, progress.level, 1,
         "lightGray", "green", "gray",
         false, false, "", true, true, false
     )
 
+    term.setCursorPos(1, 11)
+    text.center(progress.status)
+
+    term.setCursorPos(1, height)
+    text.center(string.format("pos (%d, %d) e: %d, d: %d", pos.x, pos.z, pos.y, pos.dir))
     term.setCursorPos(1, height)
 end
 
@@ -84,6 +93,15 @@ local function setProgress(progress)
 
     settings.set(quarry.s.progress.name, progress)
     printProgress()
+end
+
+local function setStatus(status)
+    v.expect(1, status, "string")
+
+    local progress = getProgress()
+    progress.status = status
+
+    setProgress(progress)
 end
 
 local function calulateRefuel(left, forward, levels)
@@ -120,6 +138,7 @@ local function startRow(rowNum)
     progress.currentRow = rowNum
     progress.level = (progress.currentRow - 1) / job.left
     progress.total = progress.completedLevels / job.levels + job.levelProgress * progress.level
+    progress.status = string.format("Digging Row %d", progress.currentRow)
     setProgress(progress)
 
     log.log(string.format(
@@ -135,6 +154,7 @@ local function completeRow()
 
     progress.level = progress.currentRow / job.left
     progress.total = progress.completedLevels / job.levels + job.levelProgress * progress.level
+    progress.status = string.format("Completing Row %d", progress.currentRow)
     setProgress(progress)
 end
 
@@ -143,6 +163,7 @@ local function startLevel()
     local job = getJob()
 
     progress.level = 0
+    progress.status = string.format("Starting Level %d", progress.completedLevels + 1)
     setProgress(progress)
 
     log.log(string.format(
@@ -159,12 +180,14 @@ local function completeLevel()
     progress.completedLevels = progress.completedLevels + 1
     progress.level = 1
     progress.total = progress.completedLevels / job.levels
+    progress.status = string.format("Completing Level %d", progress.completedLevels - 1)
     setProgress(progress)
 end
 
 local function finishJob()
     local progress = getProgress()
     progress.finished = true
+    progress.status = "Finishing Job"
     setProgress(progress)
 end
 
@@ -235,6 +258,39 @@ quarry.setJob = function(left, forward, levels)
     setProgress(ghu.copy(quarry.s.progress.default))
 end
 
+local runLoop = function()
+    local job = getJob()
+
+    turtleCore.emptyInventory()
+    local progress = getProgress()
+    while progress.completedLevels < job.levels do
+        if progress.completedLevels % job.refuelLevel == 0 then
+            turtleCore.goRefuel(job.refuelLevel, progress.completedLevels ~= 0)
+        end
+        digLevel()
+        progress = getProgress()
+    end
+    finishJob()
+    turtleCore.emptyInventory()
+end
+
+local eventLoop = function()
+    while true do
+        local data = {os.pullEvent()}
+        local event = data[1]
+
+        if event == "pathfind_pos" then
+            printProgress(event[1])
+        elseif event == "tc_refuel" then
+            setStatus("Refueling")
+        elseif event == "tc_empty" then
+            setStatus("Emptying Inventory")
+        elseif event == "pathfind_goToReturn" and event[3] == nil then
+            setStatus("Resuming")
+        end
+    end
+end
+
 quarry.runJob = function(resume)
     if resume == nil then
         resume = false
@@ -250,17 +306,7 @@ quarry.runJob = function(resume)
         log.log(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
     end
 
-    turtleCore.emptyInventory()
-    local progress = getProgress()
-    while progress.completedLevels < job.levels do
-        if progress.completedLevels % job.refuelLevel == 0 then
-            turtleCore.goRefuel(job.refuelLevel, progress.completedLevels ~= 0)
-        end
-        digLevel()
-        progress = getProgress()
-    end
-    finishJob()
-    turtleCore.emptyInventory()
+    parallel.waitForAny(runLoop, eventLoop)
     term.setCursorBlink(true)
     log.setPrint(true)
 end

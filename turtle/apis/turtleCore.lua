@@ -21,6 +21,7 @@ turtleCore.hasRequiredFuel = function(count)
 end
 
 turtleCore.emptyInventory = function()
+    os.queueEvent("tc_empty")
     log("Returning to origin...")
     while not pathfind.goToOrigin() do
         log("Could not return to origin. Retrying...")
@@ -71,6 +72,7 @@ turtleCore.goRefuel = function(count, empty)
     v.expect(1, count, "number")
     v.expect(2, empty, "boolean")
     v.range(count, 1)
+    os.queueEvent("tc_refuel", count, empty)
 
     if turtleCore.hasRequiredFuel(count) then
         return
@@ -109,6 +111,7 @@ turtleCore.digForward = function(count)
         count = 1
     end
     v.expect(1, count, "number")
+    os.queueEvent("tc_dig", 1, count)
 
     for i = 1, count, 1 do
         if turtle.detect() then
@@ -130,6 +133,7 @@ turtleCore.digDown = function(count)
         count = 1
     end
     v.expect(1, count, "number")
+    os.queueEvent("tc_dig", 2, count)
 
     for i = 1, count, 1 do
         if turtle.detectDown() then
@@ -151,6 +155,7 @@ turtleCore.digUp = function(count)
         count = 1
     end
     v.expect(1, count, "number")
+    os.queueEvent("tc_dig", 3, count)
 
     for i = 1, count, 1 do
         if turtle.detectUp() then
