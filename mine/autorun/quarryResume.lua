@@ -6,7 +6,6 @@ local quarry = require("quarryLib")
 
 local function main()
     if quarry.canResume() then
-        turtleCore.emptyInventory()
         quarry.runJob(true)
     end
 end

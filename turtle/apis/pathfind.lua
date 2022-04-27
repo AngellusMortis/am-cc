@@ -1,6 +1,9 @@
 local v = require("cc.expect")
 
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
+ghu.initModulePaths()
+
+local eventLib = require("eventLib")
 
 local pathfind = {}
 
@@ -40,7 +43,7 @@ pathfind.setPosition = function(pos)
 
     settings.set(pathfind.s.position.name, pos)
     settings.save()
-    os.queueEvent("pathfind_pos", pos)
+    eventLib.b.pathfindPos(pos)
 end
 
 pathfind.getNodes = function()
@@ -58,7 +61,7 @@ pathfind.addNode = function()
     settings.set(pathfind.s.nodes.name, nodes)
     settings.save()
 
-    os.queueEvent("pathfind_node", pos, false)
+    eventLib.b.pathfindNode(pos, false)
     return pos
 end
 
@@ -69,7 +72,7 @@ pathfind.addReturnNode = function()
     settings.set(pathfind.s.returnNodes.name, nodes)
     settings.save()
 
-    os.queueEvent("pathfind_node", pos, true)
+    eventLib.b.pathfindNode(pos, true)
     return pos
 end
 
@@ -86,20 +89,20 @@ end
 pathfind.resetNodes = function()
     settings.set(pathfind.s.nodes.name, {})
     settings.save()
-    os.queueEvent("pathfind_resetNodes", false)
+    eventLib.b.pathfindResetNodes(false)
 end
 
 pathfind.resetReturnNodes = function()
     settings.set(pathfind.s.returnNodes.name, {})
     settings.save()
-    os.queueEvent("pathfind_resetNodes", true)
+    eventLib.b.pathfindResetNodes(true)
 end
 
 pathfind.resetPosition = function()
     pathfind.setPosition({x=0, y=0, z=0, dir=pathfind.c.FORWARD})
     pathfind.resetNodes()
     pathfind.resetReturnNodes()
-    os.queueEvent("pathfind_reset")
+    eventLib.b.pathfindResetNodes()
 end
 
 pathfind.forward = function()
@@ -288,7 +291,7 @@ pathfind.turnTo = function(dir)
     v.expect(1, dir, "number")
     v.range(dir, 1, 4)
 
-    os.queueEvent("pathfind_turn", dir, nil)
+    eventLib.b.pathfindTurn(dir, nil)
     local pos = pathfind.getPosition()
     if preferLeft[pos.dir] == dir then
         return pathfind.turnLeft()
@@ -298,12 +301,12 @@ pathfind.turnTo = function(dir)
     while pos.dir ~= dir do
         success = pathfind.turnRight()
         if not success then
-            os.queueEvent("pathfind_turn", dir, false)
+            eventLib.b.pathfindTurn(dir, false)
             return false
         end
         pos = pathfind.getPosition()
     end
-    os.queueEvent("pathfind_turn", dir, true)
+    eventLib.b.pathfindTurn(dir, true)
     return true
 end
 
@@ -320,7 +323,7 @@ pathfind.goTo = function(x, z, y, dir)
         v.range(dir, 1, 4)
     end
     local destPos = {x=x, y=y, z=z, dir=dir}
-    os.queueEvent("pathfind_goTo", destPos, startPos, nil)
+    eventLib.b.pathfindGoTo(destPos, startPos, nil)
 
     local success = true
     local xDiff = -(startPos.x - x)
@@ -353,7 +356,7 @@ pathfind.goTo = function(x, z, y, dir)
     if not success then
         local pos = pathfind.getPosition()
         if startPos.x == pos.x and startPos.y == pos.y and startPos.z == pos.z then
-            os.queueEvent("pathfind_goTo", destPos, startPos, false)
+            eventLib.b.pathfindGoTo(destPos, startPos, false)
             return false
         end
         return pathfind.goTo(x, z, y, dir)
@@ -362,7 +365,7 @@ pathfind.goTo = function(x, z, y, dir)
     if success and dir ~= nil then
         pathfind.turnTo(dir)
     end
-    os.queueEvent("pathfind_goTo", destPos, startPos, success)
+    eventLib.b.pathfindGoTo(destPos, startPos, success)
     return success
 end
 
@@ -399,7 +402,7 @@ end
 
 pathfind.goToOrigin = function()
     local startPos = pathfind.getPosition()
-    os.queueEvent("pathfind_goToOrigin", startPos, nil)
+    eventLib.b.pathfindGoToOrigin(startPos, nil)
     pathfind.resetReturnNodes()
     pathfind.addReturnNode()
 
@@ -409,7 +412,7 @@ pathfind.goToOrigin = function()
     while #nodes > 0 do
         success, pos = pathfind.goToPreviousNode()
         if not success then
-            os.queueEvent("pathfind_goToOrigin", startPos, false)
+            eventLib.b.pathfindGoToOrigin(startPos, false)
             return false
         end
         pathfind.addReturnNode()
@@ -417,7 +420,7 @@ pathfind.goToOrigin = function()
     end
     pathfind.resetNodes()
     local success = pathfind.goTo(0, 0, 0, pathfind.c.FORWARD)
-    os.queueEvent("pathfind_goToOrigin", startPos, success)
+    eventLib.b.pathfindGoToOrigin(startPos, success)
     return success
 end
 
@@ -429,9 +432,9 @@ pathfind.goToReturn = function()
     end
 
     local startPos = pathfind.getPosition()
-    os.queueEvent("pathfind_goToReturn", destPos, startPos, nil)
+    eventLib.b.pathfindGoToReturn(destPos, startPos, nil)
     if destPost == nil then
-        os.queueEvent("pathfind_goToReturn", destPos, startPos, false)
+        eventLib.b.pathfindGoToReturn(destPos, startPos, false)
     end
 
     pathfind.resetNodes()
@@ -442,14 +445,14 @@ pathfind.goToReturn = function()
     while #nodes > 0 do
         success, pos = pathfind.goToPreviousReturnNode()
         if not success then
-            os.queueEvent("pathfind_goToReturn", destPos, startPos, false)
+            eventLib.b.pathfindGoToReturn(destPos, startPos, false)
             return false
         end
         pathfind.addNode()
         nodes = pathfind.getReturnNodes()
     end
     pathfind.resetReturnNodes()
-    os.queueEvent("pathfind_goToReturn", destPos, startPos, true)
+    eventLib.b.pathfindGoToReturn(destPos, startPos, true)
     return true
 end
 

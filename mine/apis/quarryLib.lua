@@ -53,7 +53,7 @@ local function fireProgressEvent(pos)
 
     local job = getJob()
     local progress = getProgress()
-    eventLib.broadcastProgressQuarry(job, progress, pos)
+    eventLib.b.progressQuarry(job, progress, pos)
 end
 
 local function setProgress(progress)
@@ -251,15 +251,22 @@ local eventLoop = function()
     while true do
         local data = {os.pullEvent()}
         local event = data[1]
+        local subEvent = data[2]
 
-        if event == "pathfind_pos" then
-            fireProgressEvent(event[1])
-        elseif event == "tc_refuel" then
-            setStatus("Refueling")
-        elseif event == "tc_empty" then
-            setStatus("Emptying Inventory")
-        elseif event == "pathfind_goToReturn" and event[3] == nil then
-            setStatus("Resuming")
+        if event == eventLib.e.turtle then
+            if subEvent == eventLib.e.turtle_empty then
+                setStatus("Emptying Inventory")
+            elseif subEvent == eventLib.e.turtle_refuel then
+                setStatus("Refueling")
+            elseif subEvent == eventLib.e.turtle_error then
+                setStatus(string.format("Error:%s", data[3]))
+            end
+        elseif event == eventLib.e.pathfind then
+            if subEvent == eventLib.e.pathfind_pos then
+                fireProgressEvent(data[3])
+            elseif subEvent == eventLib.e.pathfind_goToReturn then
+                setStatus("Resuming")
+            end
         elseif event == eventLib.e.progress then
             if not settings.get(log.s.print.name) then
                 eventLib.printProgress(data)
@@ -279,6 +286,10 @@ quarry.runJob = function(resume)
     term.setCursorPos(1, 1)
     if resume then
         log.log(string.format("Resume Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
+        setStatus("Resuming")
+        if not settings.get(log.s.print.name) then
+            eventLib.printQuarryProgress(job, getProgress(), pathfind.getPosition(), eventLib.getName())
+        end
     else
         log.log(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
     end

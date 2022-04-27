@@ -5,6 +5,7 @@ ghu.initModulePaths()
 
 local log = require("log").log
 local pathfind = require("pathfind")
+local eventLib = require("eventLib")
 
 local turtleCore = {}
 
@@ -20,11 +21,18 @@ turtleCore.hasRequiredFuel = function(count)
     return level > count
 end
 
+turtleCore.error = function(msg)
+    v.expect(1, msg, "string")
+
+    log(string.format("%s. Retrying...", msg))
+    eventLib.b.turtleError(msg)
+end
+
 turtleCore.emptyInventory = function()
-    os.queueEvent("tc_empty")
+    eventLib.b.turtleEmpty()
     log("Returning to origin...")
     while not pathfind.goToOrigin() do
-        log("Could not return to origin. Retrying...")
+        turtleCore.error("Cannot Return to Origin")
         sleep(5)
     end
 
@@ -34,7 +42,8 @@ turtleCore.emptyInventory = function()
         if turtle.getItemCount(i) > 0 then
             turtle.select(i)
             while not turtle.drop() do
-                log("Destination inventory full. Retrying...")
+                turtleCore.error("Failed to Insert Item")
+                sleep(5)
             end
         end
     end
@@ -46,7 +55,7 @@ turtleCore.emptyInventoryAndReturn = function()
     turtleCore.emptyInventory()
     log("Returning...")
     while not pathfind.goToReturn() do
-        log("Could not go back to return. Retrying...")
+        turtleCore.error("Cannot Return to Return")
         sleep(5)
     end
 end
@@ -72,8 +81,7 @@ turtleCore.goRefuel = function(count, empty)
     v.expect(1, count, "number")
     v.expect(2, empty, "boolean")
     v.range(count, 1)
-    os.queueEvent("tc_refuel", count, empty)
-
+    eventLib.b.turtleRefuel(count, empty)
     if turtleCore.hasRequiredFuel(count) then
         return
     end
@@ -84,7 +92,7 @@ turtleCore.goRefuel = function(count, empty)
     local needed = count - turtle.getFuelLevel()
     log(string.format("Refueling (%d)...", count))
     while not turtleCore.refuel(count) do
-        log(string.format("Waiting for %d fuel...", needed))
+        turtleCore.error(string.format("Need %d More Fuel", needed))
         sleep(5)
 
         needed = count - turtle.getFuelLevel()
@@ -111,19 +119,21 @@ turtleCore.digForward = function(count)
         count = 1
     end
     v.expect(1, count, "number")
-    os.queueEvent("tc_dig", 1, count)
+    eventLib.b.turtleDigForward(count)
 
     for i = 1, count, 1 do
         if turtle.detect() then
             if not turtleCore.hasRoom() then
                 turtleCore.emptyInventoryAndReturn()
             end
-            if not turtle.dig() then
-                error("Could not dig block")
+            while not turtle.dig() do
+                turtleCore.error("Cannot Dig Block")
+                sleep(1)
             end
         end
-        if not pathfind.forward() then
-            error("Could not move turtle")
+        while not pathfind.forward() do
+            turtleCore.error("Cannot Move")
+            sleep(1)
         end
     end
 end
@@ -133,19 +143,21 @@ turtleCore.digDown = function(count)
         count = 1
     end
     v.expect(1, count, "number")
-    os.queueEvent("tc_dig", 2, count)
+    eventLib.b.turtleDigDown(count)
 
     for i = 1, count, 1 do
-        if turtle.detectDown() then
+        if turtle.detect() then
             if not turtleCore.hasRoom() then
                 turtleCore.emptyInventoryAndReturn()
             end
-            if not turtle.digDown() then
-                error("Could not dig block")
+            while not turtle.digDown() do
+                turtleCore.error("Cannot Dig Block Down")
+                sleep(1)
             end
         end
-        if not pathfind.down() then
-            error("Could not move turtle")
+        while not pathfind.down() do
+            turtleCore.error("Cannot Move Down")
+            sleep(1)
         end
     end
 end
@@ -155,19 +167,21 @@ turtleCore.digUp = function(count)
         count = 1
     end
     v.expect(1, count, "number")
-    os.queueEvent("tc_dig", 3, count)
+    eventLib.b.turtleDigUp(count)
 
     for i = 1, count, 1 do
-        if turtle.detectUp() then
+        if turtle.detect() then
             if not turtleCore.hasRoom() then
                 turtleCore.emptyInventoryAndReturn()
             end
-            if not turtle.digUp() then
-                error("Could not dig block")
+            while not turtle.digUp() do
+                turtleCore.error("Cannot Dig Block Up")
+                sleep(1)
             end
         end
-        if not pathfind.up() then
-            error("Could not move turtle")
+        while not pathfind.up() do
+            turtleCore.error("Cannot Move Up")
+            sleep(1)
         end
     end
 end

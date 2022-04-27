@@ -1,49 +1,165 @@
 local v = require("cc.expect")
+local pp = require("cc.pretty")
 
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
 local eventLib = require("eventLib")
 
-local function getWiredModems()
-    return { peripheral.find("modem", function(name, modem)
-        return not modem.isWireless()
-    end) }
-end
-local function getMonitor(name)
-    v.expect(1, name, "string")
-    local modems = getWiredModems()
+s = {}
+s.outputMap = {
+    name = "progress.outputMap",
+    default = {},
+    type = "table"
+}
+settings.define(s.outputMap.name, s.outputMap)
 
-    for i = 1, #modems, 1 do
-        if modems[i].hasTypeRemote(name, "monitor") then
-            return peripheral.wrap(name)
+local autoDiscoverDisplay = true
+local terminalFree = true
+
+local function getAllMonitors()
+    local monitors = {}
+    for _, name in ipairs(peripheral.getNames()) do
+        if peripheral.getType(name) == "monitor" then
+            monitors[name] = peripheral.wrap(name)
         end
     end
 
-    error(string.format("Could not find montior at %s", name))
+    return monitors
 end
 
-local function main(name, output)
-    if output == nil then
-        output = term
-    else
-        output = getMonitor(output)
+local function getMonitor(outputName)
+    if outputName == nil or outputName == "term" then
+        return term, "term"
     end
-    v.expect(1, name, "string")
-    v.expect(2, output, "table")
+    v.expect(1, outputName, "string")
+    local monitors = getAllMonitors()
+    local output = monitors[outputName]
 
+    if output == nil then
+        error(string.format("Could not find montior at %s", outputName))
+    end
+    return output, outputName
+end
+
+local function saveOutputMap(outputMap)
+    v.expect(1, outputMap, "table")
+    local outputNameMap = {}
+    for name, output in pairs(outputMap) do
+        local outputName = peripheral.getName(output)
+        outputNameMap[name] = outputName
+    end
+    settings.set(s.outputMap.name, outputNameMap)
+    settings.save()
+end
+
+local function addOutput(name, outputName)
+    v.expect(1, name, "string")
+    v.expect(2, outputName, "string")
+
+    local outputNameMap = settings.get(s.outputMap.name)
+    outputNameMap[name] = outputName
+    settings.set(s.outputMap.name, outputNameMap)
+    settings.save()
+
+    if terminalFree then
+        print(string.format("Adding %s as output for %s...", outputName, name))
+    end
+end
+
+local function getOutputMap()
+    local outputNameMap = settings.get(s.outputMap.name)
+    local outputMap = {}
+    local computerMap = {}
+
+    for name, outputName in pairs(outputNameMap) do
+        local output = getMonitor(outputName)
+        if output ~= nil then
+            outputMap[name] = output
+            computerMap[outputName] = name
+        end
+    end
+
+    saveOutputMap(outputMap)
+    return outputMap, computerMap
+end
+
+local function getDisplay(name, outputMap, computerMap)
+    v.expect(1, name, "string")
+    if outputMap == nil or computerMap == nil then
+        outputMap, computerMap = getOutputMap()
+    end
+    v.expect(2, outputMap, "table")
+    v.expect(3, computerMap, "table")
+
+    local output = outputMap[name]
+    if output ~= nil or not autoDiscoverDisplay then
+        return output
+    end
+
+    for outputName, output in pairs(getAllMonitors()) do
+        local existing = computerMap[outputName]
+        if existing == nil then
+            addOutput(name, outputName)
+            outputMap[name] = output
+            computerMap[outputName] = name
+            return output
+        end
+    end
+
+    return nil
+end
+
+local function initTerm(computerMap)
+    if computerMap["term"] ~= nil then
+        terminalFree = false
+    else
+        term.clear()
+        term.setCursorPos(1, 1)
+        term.setTextColor(colors.white)
+    end
+end
+
+local function main(name, outputName)
+    local outputMap = {}
+    local computerMap = {}
+    if name ~= nil then
+        output, outputName = getMonitor(outputName)
+        v.expect(1, name, "string")
+        v.expect(2, output, "table")
+
+        autoDiscoverDisplay = false
+        outputMap[name] = output
+        computerMap[outputName] = name
+    else
+        outputMap, computerMap = getOutputMap()
+    end
+
+    initTerm(computerMap)
     eventLib.initNetwork()
     if not eventLib.online then
         error("Could not find modem")
     end
 
-    output.clear()
-    output.setCursorPos(1, 1)
-    output.write("Waiting for event...")
+    for name, output in pairs(outputMap) do
+        if terminalFree then
+            local outputName = peripheral.getName(output)
+            print(string.format("Using %s output for %s", outputName, name))
+        end
+        output.clear()
+        output.setCursorPos(1, 1)
+        output.setTextColor(colors.white)
+        output.write(string.format("Waiting for event from %s...", name))
+    end
+
+    if terminalFree then
+        print("Listening for progress events...")
+    end
 
     while true do
         local id, data = rednet.receive()
-        if data.name == name then
+        local output = getDisplay(data.name, outputMap, computerMap)
+        if output ~= nil then
             eventLib.printProgress(data.event, data.name, output)
         end
     end
