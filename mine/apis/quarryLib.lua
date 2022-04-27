@@ -174,9 +174,18 @@ local function goToOffset()
     end
 end
 
+local function getStartPos()
+    local offset = settings.get(quarry.s.offsetPos.name)
+    if offset then
+        return offset
+    end
+    return {x=0, y=0, z=1, dir=pathfind.c.FORWARD}
+end
+
 local function digLevel()
     local job = getJob()
     local progressOneLevel = 1 / job.levels
+    local startPos = getStartPos()
     pathfind.turnTo(pathfind.c.FORWARD)
 
     startLevel()
@@ -185,13 +194,11 @@ local function digLevel()
         goToOffset()
         turtleCore.digForward()
     end
-    pos = pathfind.getPosition()
-    local startX = pos.x
-    local startZ = pos.z
 
     local progress = getProgress()
+    local levelsDown = pos.y - startPos.y
     if progress.completedLevels > 0 then
-        turtleCore.digDown(progress.completedLevels + pos.y)
+        turtleCore.digDown(progress.completedLevels + levelsDown)
     end
 
     for row = 1, job.left, 1 do

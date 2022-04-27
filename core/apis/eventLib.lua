@@ -131,26 +131,38 @@ eventLib.printQuarryProgress = function(job, progress, pos, name, output)
     output.clear()
     output.setCursorPos(1, 1)
     output.setCursorBlink(false)
-    local title = string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels)
     if name ~= nil then
         if eventLib.online then
-            title = string.format("[%s] %s", name, title)
+            output.setTextColor(colors.blue)
         else
-            title = string.format("|%s| %s", name, title)
+            output.setTextColor(colors.white)
         end
+        text.center(name)
+        output.setCursorPos(1, 2)
     end
+    local title = string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels)
+    local line = ""
+
     output.setTextColor(colors.white)
     text.center(title, output)
 
     local currentLevel = math.min(progress.completedLevels + 1, job.levels)
     output.setCursorPos(1, 3)
     output.setTextColor(colors.white)
-    output.write(string.format("Total Progress %d%% (%d of %d)", progress.total * 100, currentLevel, job.levels))
+    line = string.format("Total Progress %d%% (%d of %d)", progress.total * 100, currentLevel, job.levels)
+    if width < 30 then
+        line = string.format("Total %d%% (%d of %d)", progress.total * 100, currentLevel, job.levels)
+    end
+    output.write(line)
     bar(output, 2, 5, progress.total)
 
     output.setCursorPos(1, 7)
     output.setTextColor(colors.white)
-    output.write(string.format("Level Progress %d%% (%d of %d)", progress.level * 100, progress.currentRow, job.left))
+    line = string.format("Level Progress %d%% (%d of %d)", progress.level * 100, progress.currentRow, job.left)
+    if width < 30 then
+        line = string.format("Level %d%% (%d of %d)", progress.total * 100, currentLevel, job.levels)
+    end
+    output.write(line)
     bar(output, 2, 9, progress.level)
 
     output.setCursorPos(1, 11)
@@ -167,10 +179,11 @@ eventLib.printQuarryProgress = function(job, progress, pos, name, output)
 
     output.setCursorPos(1, height)
     output.setTextColor(colors.white)
-    text.center(
-        string.format("pos (%d, %d) e: %d, d: %d", pos.x, pos.z, pos.y, pos.dir),
-        output
-    )
+    line = string.format("pos (%d, %d) e: %d, d: %d", pos.x, pos.z, pos.y, pos.dir)
+    if width < 30 then
+        line = string.format("(%d,%d) e:%d, d:%d", pos.x, pos.z, pos.y, pos.dir)
+    end
+    text.center(line, output)
     output.setCursorPos(1, height)
 end
 
