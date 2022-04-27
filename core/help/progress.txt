@@ -1,0 +1,6 @@
+montiors progress of remote computers
+
+Requires a wireless modem and optionally a monitor
+
+ex:
+"progress Quarry monitor_0" will monitor a computer named "Quarry" on "monitor_0"
