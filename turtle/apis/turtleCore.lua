@@ -11,13 +11,15 @@ local turtleCore = {}
 local moveDirForward = 1
 local moveDirDown = 2
 local moveDirUp = 3
-
-local fillBlocks = {
-    "minecraft:cobblestone",
-    "minecraft:dirt",
-    "minecraft:andesite",
-    "minecraft:diorite",
-    "minecraft:granite",
+local chestTags = {
+    "forge:chests",
+    "forge:barrels",
+}
+-- any block matching the following rules are already included
+-- * has tag `forge:ores`
+-- * name contains `_ore`
+-- * name contains `raw_` and `_block`
+local extraOreBlock = {
 }
 
 local function dirStr(moveDir)
@@ -30,36 +32,6 @@ local function dirStr(moveDir)
         return " Down"
     else
         return " Up"
-    end
-end
-
-local function isSourceBlock(data)
-    return data[1] and data[2].state.level == 0
-end
-
-local function isFillBlock(block)
-    sleep(1)
-    if block == nil then
-        return false
-    end
-    for _, blockName in ipairs(fillBlocks) do
-        if blockName == block.name then
-            return true
-        end
-    end
-    return false
-end
-
-local function selectFill()
-    while true do
-        for i = 1, 16, 1 do
-            if isFillBlock(turtle.getItemDetail(i)) then
-                turtle.select(i)
-                return
-            end
-        end
-        turtleCore.error("Need Fill Block")
-        sleep(5)
     end
 end
 
@@ -180,7 +152,83 @@ local function isChestDir(moveDir)
         return false
     end
 
-    return data.tags["forge:chests"]
+    for _, tag in ipairs(chestTags) do
+        if data.tags[tag] ~= nil then
+            return true
+        end
+    end
+    return false
+end
+
+local isSourceBlockDir = function(moveDir)
+    local success = false
+    local data = nil
+    if moveDir == moveDirForward then
+        if not turtle.detect() then
+            success, data = turtle.inspect()
+        end
+    elseif moveDir == moveDirDown then
+        if not turtle.detectDown() then
+            success, data = turtle.inspectDown()
+        end
+    elseif not turtle.detectUp() then
+        success, data = turtle.inspectUp()
+    end
+    if not success then
+        return false
+    end
+    return success and data.state.level == 0
+end
+
+turtleCore.isSourceBlock = function()
+    return isSourceBlockDir(moveDirForward)
+end
+
+turtleCore.isSourceBlockDown = function()
+    return isSourceBlockDir(moveDirDown)
+end
+
+turtleCore.isSourceBlockUp = function()
+    return isSourceBlockDir(moveDirUp)
+end
+
+local isOreBlockDir = function(moveDir)
+    local success = false
+    local data = nil
+    if moveDir == moveDirForward then
+        success, data = turtle.inspect()
+    elseif moveDir == moveDirDown then
+        success, data = turtle.inspectDown()
+    elseif not turtle.detectUp() then
+        success, data = turtle.inspectUp()
+    end
+    if not success then
+        return false
+    elseif data.tags["forge:ores"] ~= nil or string.find(data.name, "_ore") then
+        return true
+    elseif string.find(data.name, "raw_") and string.find(data.name, "_block") then
+        return true
+    else
+        for _, name in ipairs(extraOreBlock) do
+            if name == data.name then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+turtleCore.isOreBlock = function()
+    return isOreBlockDir(moveDirForward)
+end
+
+turtleCore.isOreBlockDown = function()
+    return isOreBlockDir(moveDirDown)
+end
+
+turtleCore.isOreBlockUp = function()
+    return isOreBlockDir(moveDirUp)
 end
 
 turtleCore.hasRequiredFuel = function(count)
@@ -212,14 +260,19 @@ turtleCore.emptyInventory = function()
 
     pathfind.turnTo(pathfind.c.LEFT)
     log("Emptying inventory...")
-    for i = 1, 16, 1 do
+    for i = 2, 16, 1 do
         if turtle.getItemCount(i) > 0 then
             turtle.select(i)
             turtleCore.insert(nil, nil, "Missing Drop Chest")
         end
     end
-    pathfind.turnTo(pathfind.c.FORWARD)
+
+    eventLib.b.turtleGetFill()
     turtle.select(1)
+    pathfind.turnTo(pathfind.c.RIGHT)
+    turtleCore.pull(turtle.getItemSpace(), "Failed to Pull Fill Block", "Missing Fill Chest")
+
+    pathfind.turnTo(pathfind.c.FORWARD)
 end
 
 turtleCore.emptyInventoryAndReturn = function()
@@ -237,13 +290,14 @@ turtleCore.refuel = function(count)
 
     local needed = count - turtle.getFuelLevel()
     local chestMsg = "Missing Refuel Chest Above"
+    turtle.select(2)
     while count > turtle.getFuelLevel() do
         turtleCore.pullUp(nil, string.format("Need %d More Fuel", needed), chestMsg)
         turtle.refuel()
-
         needed = count - turtle.getFuelLevel()
     end
     turtle.dropUp()
+    turtle.select(1)
     return true
 end
 
@@ -282,22 +336,32 @@ turtleCore.hasRoom = function()
     return turtleCore.emptySlots() >= 4
 end
 
-local function fillDir(moveDir)
-    selectFill()
-    placeDir(moveDir)
+local function fillDir(moveDir, replaceOre)
+    if replaceOre == nil then
+        replaceOre = false
+    end
     turtle.select(1)
+    if turtle.getItemCount() == 0 then
+        print("Slot count:", turtle.getItemCount())
+        turtleCore.emptyInventoryAndReturn()
+    end
+
+    if replaceOre and isOreBlockDir(moveDir) then
+        digDir(moveDir)
+    end
+    placeDir(moveDir)
 end
 
-turtleCore.fillForward = function()
-    fillDir(moveDirForward)
+turtleCore.fillForward = function(replaceOre)
+    fillDir(moveDirForward, replaceOre)
 end
 
-turtleCore.fillDown = function()
-    fillDir(moveDirDown)
+turtleCore.fillDown = function(replaceOre)
+    fillDir(moveDirDown, replaceOre)
 end
 
-turtleCore.fillUp = function()
-    fillDir(moveDirUp)
+turtleCore.fillUp = function(replaceOre)
+    fillDir(moveDirUp, replaceOre)
 end
 
 local function digMoveDir(moveDir, count)
@@ -334,7 +398,7 @@ local function digMoveDir(moveDir, count)
                     error = true
                     sleep(1)
                 end
-            elseif isSourceBlock({inspectDir(moveDir)}) then
+            elseif isSourceBlockDir(moveDir) then
                 error = true
                 if hasFilled then
                     turtleCore.error("Cannot Remove Source Block" .. dirStr(moveDir))

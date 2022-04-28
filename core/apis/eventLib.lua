@@ -12,6 +12,7 @@ eventLib.e.progress = "am_progress"
 eventLib.e.progress_quarry = "quarry"
 eventLib.e.turtle = "am_turtle"
 eventLib.e.turtle_empty = "empty"
+eventLib.e.turtle_getFill = "getFill"
 eventLib.e.turtle_refuel = "refuel"
 eventLib.e.turtle_dig = "dig"
 eventLib.e.turtle_dig_forward = 1
@@ -304,6 +305,10 @@ end
 
 eventLib.b.turtleEmpty = function()
     eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_empty})
+end
+
+eventLib.b.turtleGetFill = function()
+    eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_getFill})
 end
 
 eventLib.b.turtleRefuel = function(count, empty)

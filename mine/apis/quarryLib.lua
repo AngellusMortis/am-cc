@@ -179,7 +179,43 @@ local function goToOffset()
     end
 end
 
-local function digLevel()
+local function digAndFill(count, fillLeft, fillRight, isLast)
+    if count == nil then
+        count = 1
+    end
+    if fillLeft == nil then
+        fillLeft = false
+    end
+    if fillRight == nil then
+        fillRight = false
+    end
+    if isLast == nil then
+        isLast = false
+    end
+    v.expect(1, count, "number")
+    v.expect(2, fillLeft, "boolean")
+    v.expect(3, fillRight, "boolean")
+    v.expect(4, isLast, "boolean")
+
+    for i = 1, count, 1 do
+        turtleCore.digForward()
+        if not turtle.detectDown() and (isLast or turtleCore.isSourceBlockDown()) then
+            turtleCore.fillDown(true)
+        end
+        if fillLeft then
+            pathfind.turnLeft()
+            turtleCore.fillForward(true)
+            pathfind.turnRight()
+        end
+        if fillRight then
+            pathfind.turnRight()
+            turtleCore.fillForward(true)
+            pathfind.turnLeft()
+        end
+    end
+end
+
+local function digLevel(firstLevel, lastLevel)
     local job = getJob()
     local progressOneLevel = 1 / job.levels
     pathfind.turnTo(startPos.dir)
@@ -188,7 +224,7 @@ local function digLevel()
     local pos = pathfind.getPosition()
     if pos.x == 0 and pos.z == 0 and pos.y == 0 then
         goToOffset()
-        turtleCore.digForward()
+        digAndFill(1, job.left == 1, true)
         pos = pathfind.getPosition()
         startPos = ghu.copy(pos)
     end
@@ -199,23 +235,47 @@ local function digLevel()
         turtleCore.digDown(progress.completedLevels + levelsDown)
     end
 
-    for row = 1, job.left, 1 do
-        startRow(row)
-        turtleCore.digForward(job.forward - 1)
+    pathfind.turnRight()
+    turtleCore.fillForward(true)
+    if not firstLevel then
+        pathfind.turnRight()
+        turtleCore.fillForward(true)
+        pathfind.turnLeft()
+    end
+    pathfind.turnLeft()
+    if lastLevel then
+        turtleCore.fillDown(true)
+    end
 
+    for row = 1, job.left, 1 do
+        local isEvenRow = row % 2 == 0
+        local isLastRow = row == job.left
+
+        startRow(row)
+        local fillLeft = isLastRow and not isEvenRow
+        local fillRight = row == 1 or (isLastRow and isEvenRow)
+        digAndFill(job.forward - 1, fillLeft, fillRight, lastLevel)
+
+        -- fill end block
+        turtleCore.fillForward(true)
         if row < job.left then
-            local turnRight = row % 2 == 0
-            if turnRight then
+            if isEvenRow then
                 pathfind.turnRight()
             else
                 pathfind.turnLeft()
             end
-            turtleCore.digForward()
-
-            if turnRight then
+            digAndFill(1, isEvenRow, not isEvenRow)
+            if (row + 1) == job.left then
+                turtleCore.fillForward(true)
+            end
+            if isEvenRow then
                 pathfind.turnRight()
             else
                 pathfind.turnLeft()
+            end
+
+            if lastLevel then
+                turtleCore.fillDown(true)
             end
         end
         completeRow()
@@ -285,7 +345,7 @@ local runLoop = function()
         if progress.completedLevels % job.refuelLevel == 0 then
             turtleCore.goRefuel(job.refuelTarget, progress.completedLevels ~= 0)
         end
-        digLevel()
+        digLevel(progress.completedLevels == 0, (progress.completedLevels + 1) == job.levels)
         progress = getProgress()
     end
     finishJob()
@@ -301,6 +361,8 @@ local eventLoop = function()
         if event == eventLib.e.turtle then
             if subEvent == eventLib.e.turtle_empty then
                 setStatus("Emptying Inventory")
+            elseif subEvent == eventLib.e.turtle_getFill then
+                setStatus("Getting Fill Block")
             elseif subEvent == eventLib.e.turtle_refuel then
                 setStatus("Refueling")
             elseif subEvent == eventLib.e.turtle_error then
