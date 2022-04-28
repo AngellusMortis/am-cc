@@ -1,5 +1,5 @@
 {
-  "apis/turtleCore.lua": "f3cd520e388ce020ef931618cb43ea59eb99ba7bc91c9e46dc4f7855d521510d",
+  "apis/turtleCore.lua": "e7df039b8d37e9501299b859e569d8a3685849a676877a6c59a7b4e51ba50a4a",
   "apis/pathfind.lua": "f70be95c18529bd775b39ea28550c4e4e933b951ea115e8802a9f4e7c63fc3de",
   "autorun/completions.lua": "f9a70259d7ad3861f4cde46dcce2844a558156c92eb4cfd0514ca6efd5499c13",
   "programs/turtle/pf.lua": "c815a658c0e4631182856206a48452110bf101f04c1e505bd50bce23078f985a",
