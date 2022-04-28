@@ -160,7 +160,7 @@ eventLib.printQuarryProgress = function(job, progress, pos, name, output)
     output.setTextColor(colors.white)
     line = string.format("Level Progress %d%% (%d of %d)", progress.level * 100, progress.currentRow, job.left)
     if width < 30 then
-        line = string.format("Level %d%% (%d of %d)", progress.total * 100, currentLevel, job.levels)
+        line = string.format("Level %d%% (%d of %d)", progress.level * 100, progress.currentRow, job.left)
     end
     output.write(line)
     bar(output, 2, 9, progress.level)

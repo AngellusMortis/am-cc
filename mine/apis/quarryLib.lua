@@ -283,7 +283,6 @@ local runLoop = function()
     local progress = getProgress()
     while progress.completedLevels < job.levels do
         if progress.completedLevels % job.refuelLevel == 0 then
-            print(job.refuelLevel)
             turtleCore.goRefuel(job.refuelTarget, progress.completedLevels ~= 0)
         end
         digLevel()
