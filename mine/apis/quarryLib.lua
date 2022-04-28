@@ -171,7 +171,10 @@ local function goToOffset()
     local offset = settings.get(quarry.s.offsetPos.name)
     if offset then
         setStatus("Going to Offset")
-        pathfind.goTo(offset.x, offset.z, offset.y, offset.dir)
+        while not pathfind.goTo(offset.x, offset.z, offset.y, offset.dir) do
+            turtleCore.error("Cannot Goto Offset")
+            sleep(3)
+        end
         pathfind.addNode()
     end
 end
@@ -280,7 +283,8 @@ local runLoop = function()
     local progress = getProgress()
     while progress.completedLevels < job.levels do
         if progress.completedLevels % job.refuelLevel == 0 then
-            turtleCore.goRefuel(job.refuelLevel, progress.completedLevels ~= 0)
+            print(job.refuelLevel)
+            turtleCore.goRefuel(job.refuelTarget, progress.completedLevels ~= 0)
         end
         digLevel()
         progress = getProgress()
