@@ -106,11 +106,10 @@ local function dropDir(moveDir, count)
 end
 
 local function suckDir(moveDir, count)
-    if count == nil then
-        count = 1
-    end
     v.expect(1, moveDir, "number")
-    v.expect(2, count, "number")
+    if count ~= nil then
+        v.expect(2, count, "number")
+    end
     v.range(moveDir, 1, 3)
 
     if moveDir == moveDirForward then
