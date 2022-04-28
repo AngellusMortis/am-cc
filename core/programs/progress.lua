@@ -6,7 +6,7 @@ ghu.initModulePaths()
 
 local eventLib = require("eventLib")
 
-s = {}
+local s = {}
 s.outputMap = {
     name = "progress.outputMap",
     default = {},
