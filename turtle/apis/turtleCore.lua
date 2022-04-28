@@ -38,15 +38,21 @@ local function isSourceBlock(data)
 end
 
 local function isFillBlock(block)
+    sleep(1)
     if block == nil then
         return false
     end
+    for _, blockName in ipairs(fillBlocks) do
+        if blockName == block.name then
+            return true
+        end
+    end
+    return false
 end
 
 local function selectFill()
     while true do
         for i = 1, 16, 1 do
-            local item = turtle.getItemDetail(i)
             if isFillBlock(turtle.getItemDetail(i)) then
                 turtle.select(i)
                 return
@@ -84,11 +90,10 @@ local function placeDir(moveDir)
 end
 
 local function dropDir(moveDir, count)
-    if count == nil then
-        count = 1
-    end
     v.expect(1, moveDir, "number")
-    v.expect(2, count, "number")
+    if count ~= nil then
+        v.expect(2, count, "number")
+    end
     v.range(moveDir, 1, 3)
 
     if moveDir == moveDirForward then
@@ -325,7 +330,12 @@ local function digMoveDir(moveDir, count)
                     turtleCore.error("Cannot Dig Block" .. dirStr(moveDir))
                     sleep(1)
                 end
-            elseif isSourceBlock(inspectDir(moveDir)) then
+
+                if not error and hasFilled then
+                    error = true
+                    sleep(1)
+                end
+            elseif isSourceBlock({inspectDir(moveDir)}) then
                 error = true
                 if hasFilled then
                     turtleCore.error("Cannot Remove Source Block" .. dirStr(moveDir))
