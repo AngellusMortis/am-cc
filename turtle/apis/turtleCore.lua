@@ -116,22 +116,34 @@ turtleCore.digForward = function(count)
     eventLib.b.turtleDigForward(count)
 
     for i = 1, count, 1 do
-        if turtle.detect() then
-            if not turtleCore.hasRoom() then
-                turtleCore.emptyInventoryAndReturn()
+        success = false
+        while not success do
+            local error = false
+            if turtle.detect() then
+                if not turtleCore.hasRoom() then
+                    error = true
+                    turtleCore.emptyInventoryAndReturn()
+                end
+                if not error and turtleCore.isChest() then
+                    error = true
+                    turtleCore.error("Cannot Dig Chest")
+                    sleep(5)
+                end
+                if not error and not turtle.dig() then
+                    error = true
+                    turtleCore.error("Cannot Dig Block")
+                    sleep(1)
+                end
             end
-            while turtleCore.isChest() do
-                turtleCore.error("Cannot Dig Chest")
-                sleep(5)
-            end
-            while not turtle.dig() do
-                turtleCore.error("Cannot Dig Block")
+            if not error and not pathfind.forward() then
+                error = true
+                turtleCore.error("Cannot Move")
                 sleep(1)
             end
-        end
-        while not pathfind.forward() do
-            turtleCore.error("Cannot Move")
-            sleep(1)
+
+            if not error then
+                success = true
+            end
         end
     end
 end
@@ -144,22 +156,34 @@ turtleCore.digDown = function(count)
     eventLib.b.turtleDigDown(count)
 
     for i = 1, count, 1 do
-        if turtle.detect() then
-            if not turtleCore.hasRoom() then
-                turtleCore.emptyInventoryAndReturn()
+        success = false
+        while not success do
+            local error = false
+            if turtle.detectDown() then
+                if not turtleCore.hasRoom() then
+                    error = true
+                    turtleCore.emptyInventoryAndReturn()
+                end
+                if not error and turtleCore.isChestDown() then
+                    error = true
+                    turtleCore.error("Cannot Dig Chest Below")
+                    sleep(5)
+                end
+                if not error and not turtle.digDown() then
+                    error = true
+                    turtleCore.error("Cannot Dig Block Below")
+                    sleep(1)
+                end
             end
-            while turtleCore.isChestDown() do
-                turtleCore.error("Cannot Dig Chest Down")
-                sleep(5)
-            end
-            while not turtle.digDown() do
-                turtleCore.error("Cannot Dig Block Down")
+            if not error and not pathfind.down() then
+                error = true
+                turtleCore.error("Cannot Move Down")
                 sleep(1)
             end
-        end
-        while not pathfind.down() do
-            turtleCore.error("Cannot Move Down")
-            sleep(1)
+
+            if not error then
+                success = true
+            end
         end
     end
 end
@@ -172,22 +196,34 @@ turtleCore.digUp = function(count)
     eventLib.b.turtleDigUp(count)
 
     for i = 1, count, 1 do
-        if turtle.detect() then
-            if not turtleCore.hasRoom() then
-                turtleCore.emptyInventoryAndReturn()
+        success = false
+        while not success do
+            local error = false
+            if turtle.detectUp() then
+                if not turtleCore.hasRoom() then
+                    error = true
+                    turtleCore.emptyInventoryAndReturn()
+                end
+                if not error and turtleCore.isChestUp() then
+                    error = true
+                    turtleCore.error("Cannot Dig Chest Above")
+                    sleep(5)
+                end
+                if not error and not turtle.digUp() then
+                    error = true
+                    turtleCore.error("Cannot Dig Block Above")
+                    sleep(1)
+                end
             end
-            while turtleCore.isChestUp() do
-                turtleCore.error("Cannot Dig Chest Up")
-                sleep(5)
-            end
-            while not turtle.digUp() do
-                turtleCore.error("Cannot Dig Block Up")
+            if not error and not pathfind.up() then
+                error = true
+                turtleCore.error("Cannot Move Up")
                 sleep(1)
             end
-        end
-        while not pathfind.up() do
-            turtleCore.error("Cannot Move Up")
-            sleep(1)
+
+            if not error then
+                success = true
+            end
         end
     end
 end

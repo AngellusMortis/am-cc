@@ -14,11 +14,12 @@ shell.setCompletionFunction(
 
 local directions = { "left", "right", "forward", "back" }
 local compGoTo = function(shell, text, previous)
-    if previous[2] ~= "goTo" and previous[2] ~= "turn" then
+    local op = string.lower(previous[2])
+    if op ~= "goto" and op ~= "turn" then
         return nil
     end
 
-    if previous[2] == "turn" then
+    if op == "turn" then
         return completion.choice(shell, text, previous, directions, false)
     end
 

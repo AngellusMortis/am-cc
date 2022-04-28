@@ -16,32 +16,12 @@ settings.define(s.outputMap.name, s.outputMap)
 
 local autoDiscoverDisplay = true
 local terminalFree = true
-local minSize = {width=13, height=7}
-local baseSize = {width=25, height=13}
 
 local function getAllMonitors()
     local monitors = {}
     for _, name in ipairs(peripheral.getNames()) do
         if peripheral.getType(name) == "monitor" then
-            local monitor = peripheral.wrap(name)
-            monitor.clear()
-            monitor.setCursorPos(1, 1)
-            monitor.setTextScale(1.0)
-            local width, height = monitor.getSize()
-            if width > minSize.width and height > minSize.height then
-                if width < baseSize.width or height < baseSize.height then
-                    monitor.setTextScale(0.5)
-                elseif width >= (baseSize.width * 5) and height >= (baseSize.height * 5) then
-                    monitor.setTextScale(5.0)
-                elseif width >= (baseSize.width * 4) and height >= (baseSize.height * 4) then
-                    monitor.setTextScale(4.0)
-                elseif width >= (baseSize.width * 3) and height >= (baseSize.height * 3) then
-                    monitor.setTextScale(3.0)
-                elseif width >= (baseSize.width * 2) and height >= (baseSize.height * 2) then
-                    monitor.setTextScale(2.0)
-                end
-                monitors[name] = monitor
-            end
+            monitors[name] = peripheral.wrap(name)
         end
     end
 

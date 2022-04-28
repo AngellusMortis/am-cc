@@ -126,7 +126,7 @@ eventLib.printQuarryProgress = function(job, progress, pos, name, output)
     v.expect(5, output, "table")
 
     eventLib.initNetwork()
-    local width, height = output.getSize()
+    local width, height = term.getSize()
 
     output.clear()
     output.setCursorPos(1, 1)
@@ -137,7 +137,7 @@ eventLib.printQuarryProgress = function(job, progress, pos, name, output)
         else
             output.setTextColor(colors.white)
         end
-        text.center(name, output)
+        text.center(name)
         output.setCursorPos(1, 2)
     end
     local title = string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels)

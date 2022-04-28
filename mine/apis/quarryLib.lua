@@ -43,6 +43,8 @@ settings.define(quarry.s.progress.name, quarry.s.progress)
 settings.define(quarry.s.autoResume.name, quarry.s.autoResume)
 settings.define(quarry.s.offsetPos.name, quarry.s.offsetPos)
 
+local startPos = {x=0, y=0, z=1, dir=pathfind.c.FORWARD}
+
 local function getProgress()
     return ghu.copy(settings.get(quarry.s.progress.name))
 end
@@ -174,25 +176,18 @@ local function goToOffset()
     end
 end
 
-local function getStartPos()
-    local offset = settings.get(quarry.s.offsetPos.name)
-    if offset then
-        return offset
-    end
-    return {x=0, y=0, z=1, dir=pathfind.c.FORWARD}
-end
-
 local function digLevel()
     local job = getJob()
     local progressOneLevel = 1 / job.levels
-    local startPos = getStartPos()
-    pathfind.turnTo(pathfind.c.FORWARD)
+    pathfind.turnTo(startPos.dir)
 
     startLevel()
     local pos = pathfind.getPosition()
-    if pos.x == 0 and pos.z == 0 then
+    if pos.x == 0 and pos.z == 0 and pos.y == 0 then
         goToOffset()
         turtleCore.digForward()
+        pos = pathfind.getPosition()
+        startPos = ghu.copy(pos)
     end
 
     local progress = getProgress()
@@ -228,7 +223,7 @@ local function digLevel()
         "..Return to start (%d%%, %d%%)",
         progress.level * 100, progress.total * 100
     ))
-    while not pathfind.goTo(startPos.x, startPos.z) do
+    while not pathfind.goTo(startPos.x, startPos.z, nil, startPos.dir) do
         turtleCore.error("Cannot Return to Start")
         sleep(3)
     end
