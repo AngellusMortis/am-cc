@@ -22,8 +22,8 @@ quarry.s.job = {
 quarry.s.progress = {
     name = "quarry.progress",
     default = {
-        total = 0, level = 0,
-        completedLevels = 0, currentRow = 1,
+        totalPercent = 0, levelPercent = 0,
+        completedLevels = 0, completedRows = 0,
         finished = true, status = "",
     },
     type = "table"
@@ -112,16 +112,16 @@ local function startRow(rowNum)
     local progress = getProgress()
     local job = getJob()
 
-    progress.currentRow = rowNum
-    progress.level = (progress.currentRow - 1) / job.left
-    progress.total = progress.completedLevels / job.levels + job.levelProgress * progress.level
-    progress.status = string.format("Digging Row %d", progress.currentRow)
+    progress.completedRows = rowNum - 1
+    progress.levelPercent = progress.completedRows / job.left
+    progress.totalPercent = progress.completedLevels / job.levels + job.levelProgress * progress.levelPercent
+    progress.status = string.format("Digging Row %d", rowNum)
     setProgress(progress)
 
     log.log(string.format(
         "..Start row %d of %d (%d%%, %d%%)",
-        progress.currentRow, job.left,
-        progress.level * 100, progress.total * 100
+        rowNum, job.left,
+        progress.levelPercent * 100, progress.totalPercent * 100
     ))
 end
 
@@ -129,9 +129,10 @@ local function completeRow()
     local progress = getProgress()
     local job = getJob()
 
-    progress.level = progress.currentRow / job.left
-    progress.total = progress.completedLevels / job.levels + job.levelProgress * progress.level
-    progress.status = string.format("Completing Row %d", progress.currentRow)
+    progress.completedRows = progress.completedRows + 1
+    progress.levelPercent = progress.completedRows / job.left
+    progress.totalPercent = progress.completedLevels / job.levels + job.levelProgress * progress.levelPercent
+    progress.status = string.format("Completed Row %d", progress.completedRows)
     setProgress(progress)
 end
 
@@ -139,14 +140,14 @@ local function startLevel()
     local progress = getProgress()
     local job = getJob()
 
-    progress.level = 0
+    progress.levelPercent = 0
     progress.status = string.format("Starting Level %d", progress.completedLevels + 1)
     setProgress(progress)
 
     log.log(string.format(
         ".Start level %d of %d (%d%%, %d%%)",
         progress.completedLevels + 1, job.levels,
-        progress.level * 100, progress.total * 100
+        progress.levelPercent * 100, progress.totalPercent * 100
     ))
 end
 
@@ -155,8 +156,8 @@ local function completeLevel()
     local job = getJob()
 
     progress.completedLevels = progress.completedLevels + 1
-    progress.level = 1
-    progress.total = progress.completedLevels / job.levels
+    progress.levelPercent = 1
+    progress.totalPercent = progress.completedLevels / job.levels
     progress.status = string.format("Completing Level %d", progress.completedLevels - 1)
     setProgress(progress)
 end
@@ -285,7 +286,7 @@ local function digLevel(firstLevel, lastLevel)
     progress = getProgress()
     log.log(string.format(
         "..Return to start (%d%%, %d%%)",
-        progress.level * 100, progress.total * 100
+        progress.levelPercent * 100, progress.totalPercent * 100
     ))
     while not pathfind.goTo(startPos.x, startPos.z, nil, startPos.dir) do
         turtleCore.error("Cannot Return to Start")
@@ -386,7 +387,12 @@ local eventLoop = function()
                     setStatus("Resuming")
                 else
                     local progress = getProgress()
-                    setStatus(string.format("Digging Row %d", progress.currentRow))
+                    local job = getJob()
+                    if progress.completedRows == job.left then
+                        setStatus(string.format("Completed Row %d", progress.completedRows))
+                    else
+                        setStatus(string.format("Digging Row %d", progress.completedRows + 1))
+                    end
                 end
             end
         elseif event == eventLib.e.progress then

@@ -52,7 +52,7 @@ progressLib.updateStatus = function(output, name, status)
     end
 end
 
-local initQuarryUi = function(uiGroup, name)
+local initQuarryUi = function(uiGroup, job, name)
     uiGroup.reset()
 
     local titleY = 1
@@ -61,9 +61,12 @@ local initQuarryUi = function(uiGroup, name)
         titleY = 2
     end
     uiGroup.add(ui.Text("", ui.a.Center(titleY)), "titleText")
-    uiGroup.add(ui.Bar(4), "totalBar")
-    uiGroup.add(ui.Bar(6), "lineBar")
-    uiGroup.add(ui.Text("", ui.a.Center(8)), "statusText")
+    uiGroup.add(ui.Bar(3, "Total"), "totalBar")
+    uiGroup.items.totalBar.showProgress = false
+    uiGroup.items.totalBar.showPercent = false
+    uiGroup.add(ui.Bar(6, "Level"), "lineBar")
+    uiGroup.items.lineBar.total = job.left
+    uiGroup.add(ui.Text("", ui.a.Center(9)), "statusText")
     uiGroup.add(ui.Text("", ui.a.Bottom()), "curPosText")
 end
 
@@ -81,16 +84,11 @@ local updateQuarryUi = function(uiGroup, output, job, progress, pos, name, isOnl
         "Quarry: %d x %d (%d)", job.left, job.forward, job.levels
     )
 
-    local currentLevel = math.min(progress.completedLevels + 1, job.levels)
     uiGroup.items.totalBar.label = string.format(
-        "Total %d%% [%d/%d]", progress.total * 100, currentLevel, job.levels
+        "Total %d%% [%d/%d]", progress.totalPercent * 100, progress.completedLevels, job.levels
     )
-    uiGroup.items.totalBar.current = progress.total
-
-    uiGroup.items.lineBar.label = string.format(
-        "Level %d%% [%d/%d]", progress.level * 100, progress.currentRow, job.left
-    )
-    uiGroup.items.lineBar.current = progress.level
+    uiGroup.items.totalBar.current = progress.totalPercent
+    uiGroup.items.lineBar.current = progress.completedRows
 
     uiGroup.items.statusText.text = progress.status
     local posFmt = "pos (%d, %d) e: %d, d: %d"
@@ -133,7 +131,7 @@ progressLib.quarry = function(output, job, progress, pos, name, isOnline)
 
     local width, height = output.getSize()
     if created then
-        initQuarryUi(uiGroup, name)
+        initQuarryUi(uiGroup, job, name)
     end
     updateQuarryUi(uiGroup, output, job, progress, pos, name, isOnline)
 
