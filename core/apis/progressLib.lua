@@ -3,8 +3,7 @@ local v = require("cc.expect")
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
-local ui = require("ui")
-local text = require("text")
+local ui = require("uiLib")
 
 local progressLib = {}
 local uiGroups = {}

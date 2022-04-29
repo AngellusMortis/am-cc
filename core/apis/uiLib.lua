@@ -3,17 +3,17 @@ local v = require("cc.expect")
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
-local text = require("text")
+local textLib = require("textLib")
 
-local ui = {}
-ui.c = {}
+local uiLib = {}
+uiLib.c = {}
 
 local colorNames = {}
 for name, number in pairs(colors) do
     colorNames[number] = name
 end
 
-ui.isTerm = function(output)
+uiLib.isTerm = function(output)
     v.expect(1, output, "table")
 
     return output.redirect ~= nil
@@ -63,7 +63,7 @@ local function renderGroup(groupObj, output)
     output.setCursorPos(1, height)
 end
 
-ui.Group = function()
+uiLib.Group = function()
     local groupObj = {
         items = {},
         idAuto = 1
@@ -283,7 +283,7 @@ local function renderBar(barObj, output)
     output.setBackgroundColor(oldBackground)
 end
 
-ui.Bar = function(y, label)
+uiLib.Bar = function(y, label)
     v.expect(1, y, "number")
     v.expect(2, label, "string", "nil")
 
@@ -310,14 +310,14 @@ ui.Bar = function(y, label)
     return barObj
 end
 
-ui.a = {}
+uiLib.a = {}
 
 local function centerAnchor(anchorObj, output, msg)
     v.expect(2, output, "table")
     v.expect(3, msg, "string")
 
     local width, _ = output.getSize()
-    local actualMsg, _ = text.getTextColor(msg)
+    local actualMsg, _ = textLib.getTextColor(msg)
 
     return {x=(width - #actualMsg) / 2, y=anchorObj.y}
 end
@@ -331,7 +331,7 @@ local function bottomAnchor(anchorObj, subAnchor, output, msg)
     return subAnchor(anchorObj, output, msg)
 end
 
-ui.a.Center = function(y)
+uiLib.a.Center = function(y)
     v.expect(1, y, "number")
 
     local anchorObj = {y=y}
@@ -346,7 +346,7 @@ local function leftAnchor(anchorObj, output, msg)
     return {x=1, y=anchorObj.y}
 end
 
-ui.a.Bottom = function()
+uiLib.a.Bottom = function()
     local anchorObj = {y=1}
     anchorObj.getPos = function(output, msg)
         return bottomAnchor(anchorObj, centerAnchor, output, msg)
@@ -355,7 +355,7 @@ ui.a.Bottom = function()
     return anchorObj
 end
 
-ui.a.Top = function()
+uiLib.a.Top = function()
     local anchorObj = {y=1}
     anchorObj.getPos = function(output, msg)
         return centerAnchor(anchorObj, output, msg)
@@ -364,7 +364,7 @@ ui.a.Top = function()
     return anchorObj
 end
 
-ui.a.Left = function(y)
+uiLib.a.Left = function(y)
     v.expect(1, y, "number")
 
     local anchorObj = {y=y}
@@ -375,7 +375,7 @@ ui.a.Left = function(y)
     return anchorObj
 end
 
-ui.a.TopLeft = function()
+uiLib.a.TopLeft = function()
     local anchorObj = {y=1}
     anchorObj.getPos = function(output, msg)
         return leftAnchor(anchorObj, output, msg)
@@ -384,7 +384,7 @@ ui.a.TopLeft = function()
     return anchorObj
 end
 
-ui.a.BottomLeft = function()
+uiLib.a.BottomLeft = function()
     local anchorObj = {y=1}
     anchorObj.getPos = function(output, msg)
         return bottomAnchor(anchorObj, leftAnchor, output, msg)
@@ -398,12 +398,12 @@ local function rightAnchor(anchorObj, output, msg)
     v.expect(3, msg, "string")
 
     local width, _ = output.getSize()
-    local actualMsg, _ = text.getTextColor(msg)
+    local actualMsg, _ = textLib.getTextColor(msg)
 
     return {x=(width - #actualMsg), y=anchorObj.y}
 end
 
-ui.a.Right = function(y)
+uiLib.a.Right = function(y)
     v.expect(1, y, "number")
 
     local anchorObj = {y=y}
@@ -414,7 +414,7 @@ ui.a.Right = function(y)
     return anchorObj
 end
 
-ui.a.TopRight = function()
+uiLib.a.TopRight = function()
     local anchorObj = {y=1}
     anchorObj.getPos = function(output, msg)
         return rightAnchor(anchorObj, output, msg)
@@ -423,7 +423,7 @@ ui.a.TopRight = function()
     return anchorObj
 end
 
-ui.a.BottomRight = function()
+uiLib.a.BottomRight = function()
     local anchorObj = {y=1}
     anchorObj.getPos = function(output, msg)
         return bottomAnchor(anchorObj, rightAnchor, output, msg)
@@ -439,7 +439,7 @@ local function absAnchor(anchorObj, output, msg)
     return anchorObj
 end
 
-ui.a.Absolute = function(x, y)
+uiLib.a.Absolute = function(x, y)
     v.expect(1, x, "number")
     v.expect(2, y, "number")
 
@@ -461,7 +461,7 @@ local function renderText(textObj, output)
     local oldBackground = output.getBackgroundColor()
 
     local anchorPos = textObj.anchor.getPos(output, textObj.text)
-    local msg, color = text.getTextColor(textObj.text)
+    local msg, color = textLib.getTextColor(textObj.text)
     if textObj.color ~= nil then
         output.setTextColor(textObj.color)
     elseif color ~= nil then
@@ -478,7 +478,7 @@ local function renderText(textObj, output)
     output.setBackgroundColor(oldBackground)
 end
 
-ui.Text = function(msg, anchor, color, background)
+uiLib.Text = function(msg, anchor, color, background)
     v.expect(1, msg, "string")
     v.expect(2, anchor, "table")
     if anchor.getPos == nil then

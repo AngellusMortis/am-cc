@@ -5,7 +5,6 @@ local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
 local eventLib = require("eventLib")
-local text = require("text")
 local progressLib = require("progressLib")
 
 local s = {}
