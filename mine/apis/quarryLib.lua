@@ -361,12 +361,18 @@ local eventLoop = function()
         if event == eventLib.e.turtle then
             if subEvent == eventLib.e.turtle_empty then
                 setStatus("Emptying Inventory")
+            elseif subEvent == eventLib.e.turtle_completed then
+                setStatus("success:Completed")
+            elseif subEvent == eventLib.e.turtle_halted then
+                setStatus("error:Stopped")
+            elseif subEvent == eventLib.e.turtle_paused then
+                setStatus("warning:Paused")
             elseif subEvent == eventLib.e.turtle_getFill then
                 setStatus("Getting Fill Block")
             elseif subEvent == eventLib.e.turtle_refuel then
                 setStatus("Refueling")
             elseif subEvent == eventLib.e.turtle_error then
-                setStatus(string.format("Error:%s", data[3]))
+                setStatus(string.format("error:%s", data[3]))
             end
         elseif event == eventLib.e.pathfind then
             if subEvent == eventLib.e.pathfind_pos then

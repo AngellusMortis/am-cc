@@ -4,13 +4,16 @@ local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
 local text = require("text")
-local ui = require("buttonH")
+local progressLib = require("progressLib")
 
 local eventLib = {}
 eventLib.e = {}
 eventLib.e.progress = "am_progress"
 eventLib.e.progress_quarry = "quarry"
 eventLib.e.turtle = "am_turtle"
+eventLib.e.turtle_completed = "completed"
+eventLib.e.turtle_halted = "halted"
+eventLib.e.turtle_paused = "paused"
 eventLib.e.turtle_empty = "empty"
 eventLib.e.turtle_getFill = "getFill"
 eventLib.e.turtle_refuel = "refuel"
@@ -59,135 +62,6 @@ eventLib.initNetwork = function()
     initalizedNetwork = true
 end
 
-local function isTerm(output)
-    v.expect(1, output, "table")
-
-    return output.redirect ~= nil
-end
-
-local function bar(output, x, y, current, total, length, height, background, fill, border)
-    local width, _ = output.getSize()
-    if total == nil then
-        total = 1
-    end
-    if length == nil then
-        length = width - 1
-    end
-    if height == nil then
-        height = 1
-    end
-    if background == nil then
-        background = "lightGray"
-    end
-    if fill == nil then
-        fill = "green"
-    end
-    if border == nil then
-        border = "gray"
-    end
-    v.expect(1, output, "table")
-    v.expect(2, x, "number")
-    v.expect(3, y, "number")
-    v.expect(4, current, "number")
-    v.expect(5, total, "number")
-    v.expect(6, length, "number")
-    v.expect(7, height, "number")
-    v.expect(8, background, "string")
-    v.expect(9, fill, "string")
-    v.expect(10, border, "string")
-
-    if isTerm(output) then
-        ui.terminal.bar(
-            x, y, length, height,
-            current, total,
-            background, fill, border,
-            false, false, "", true, true, false
-        )
-    else
-        ui.monitor.bar(
-            peripheral.getName(output),
-            x, y, length, height,
-            current, total,
-            background, fill, border,
-            false, false, "", true, true, false
-        )
-    end
-end
-
-eventLib.printQuarryProgress = function(job, progress, pos, name, output)
-    if output == nil then
-        output = term
-    end
-    v.expect(1, job, "table")
-    v.expect(2, progress, "table")
-    v.expect(3, pos, "table")
-    if name ~= nil then
-        v.expect(4, name, "string")
-    end
-    v.expect(5, output, "table")
-
-    eventLib.initNetwork()
-    local width, height = output.getSize()
-
-    output.clear()
-    output.setCursorPos(1, 1)
-    output.setCursorBlink(false)
-    if name ~= nil then
-        if eventLib.online then
-            output.setTextColor(colors.blue)
-        else
-            output.setTextColor(colors.white)
-        end
-        text.center(name, output)
-        output.setCursorPos(1, 2)
-    end
-    local title = string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels)
-    local line = ""
-
-    output.setTextColor(colors.white)
-    text.center(title, output)
-
-    local currentLevel = math.min(progress.completedLevels + 1, job.levels)
-    output.setCursorPos(1, 3)
-    output.setTextColor(colors.white)
-    line = string.format("Total Progress %d%% (%d of %d)", progress.total * 100, currentLevel, job.levels)
-    if width < 30 then
-        line = string.format("Total %d%% (%d of %d)", progress.total * 100, currentLevel, job.levels)
-    end
-    output.write(line)
-    bar(output, 2, 5, progress.total)
-
-    output.setCursorPos(1, 7)
-    output.setTextColor(colors.white)
-    line = string.format("Level Progress %d%% (%d of %d)", progress.level * 100, progress.currentRow, job.left)
-    if width < 30 then
-        line = string.format("Level %d%% (%d of %d)", progress.level * 100, progress.currentRow, job.left)
-    end
-    output.write(line)
-    bar(output, 2, 9, progress.level)
-
-    output.setCursorPos(1, 11)
-    local status = progress.status
-    local parts = ghu.split(progress.status, ":")
-    output.setTextColor(colors.white)
-    if #parts == 2 then
-        if parts[1] == "Error" then
-            output.setTextColor(colors.red)
-            status = parts[2]
-        end
-    end
-    text.center(status, output)
-
-    output.setCursorPos(1, height)
-    output.setTextColor(colors.white)
-    line = string.format("pos (%d, %d) e: %d, d: %d", pos.x, pos.z, pos.y, pos.dir)
-    if width < 30 then
-        line = string.format("(%d,%d) e:%d, d:%d", pos.x, pos.z, pos.y, pos.dir)
-    end
-    text.center(line, output)
-    output.setCursorPos(1, height)
-end
-
 eventLib.printProgress = function(event, name, output)
     if name == nil then
         name = eventLib.getName()
@@ -198,7 +72,7 @@ eventLib.printProgress = function(event, name, output)
 
     local progressType = event[2]
     if progressType == eventLib.e.progress_quarry then
-        eventLib.printQuarryProgress(event[3], event[4], event[5], name, output)
+        progressLib.quarry(output, event[3], event[4], event[5], name, eventLib.online)
     end
 end
 
@@ -301,6 +175,18 @@ eventLib.b.turtleError = function(msg)
     v.expect(1, msg, "string")
 
     eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_error, msg})
+end
+
+eventLib.b.turtleCompleted = function()
+    eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_completed})
+end
+
+eventLib.b.turtleHalted = function()
+    eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_halted})
+end
+
+eventLib.b.turtlePaused = function()
+    eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_paused})
 end
 
 eventLib.b.turtleEmpty = function()

@@ -6,6 +6,7 @@ ghu.initModulePaths()
 
 local eventLib = require("eventLib")
 local text = require("text")
+local progressLib = require("progressLib")
 
 local s = {}
 s.outputMap = {
@@ -175,10 +176,7 @@ local function heartbeat()
             if now > timeout then
                 local output = getDisplay(name)
                 if output ~= nil then
-                    output.setCursorPos(1, 11)
-                    output.clearLine()
-                    output.setTextColor(colors.red)
-                    text.center("Progress Timeout", output)
+                    progressLib.updateStatus(output, name, "error:Progress Timeout")
                 end
             end
         end

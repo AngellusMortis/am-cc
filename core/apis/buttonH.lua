@@ -797,40 +797,53 @@ function monitor.bar(
             monitor.fill(mon, pos1, (z - 1) - moveval, length - 1, moveval + 1)
         end
         if printval == true then
-            m.setCursorPos(pos1, pos2)
+            m.setCursorPos(pos1 + 1, pos2)
             m.setTextColor(colors[color3])
-            if hor == true then
-                if format then
-                    if ins >= max / 2 then
-                        m.setBackgroundColor(colors[color2])
-                    else
-                        m.setBackgroundColor(colors[color1])
-                    end
+            local fillTo = (ins / max) * length + pos1
+            for i = 1, #text do
+                local c = text:sub(i, i)
+                local x, y = m.getCursorPos()
+                if x <= fillTo then
+                    m.setBackgroundColor(colors[color2])
                 else
-                    if ins >= (max / 2) - (max / height) then
-                        m.setBackgroundColor(colors[color2])
-                    else
-                        m.setBackgroundColor(colors[color1])
-                    end
+                    m.setBackgroundColor(colors[color1])
                 end
-            elseif hor == false then
-                m.setCursorPos(pos1, pos2)
-                m.setTextColor(colors[color3])
-                if hor == true then
-                    if ins >= 1 then
-                        m.setBackgroundColor(colors[color2])
-                    else
-                        m.setBackgroundColor(colors[color1])
-                    end
-                end
+                m.write(c)
             end
-            if format then
-                m.write(ins .. "/" .. max)
-                m.setCursorPos(pos1, pos2 + 1)
-                m.write(text)
-            else
-                m.write(ins .. "/" .. max .. " " .. text)
-            end
+            -- m.setCursorPos(pos1, pos2)
+            -- m.setTextColor(colors[color3])
+            -- if hor == true then
+            --     if format then
+            --         if ins >= max / 2 then
+            --             m.setBackgroundColor(colors[color2])
+            --         else
+            --             m.setBackgroundColor(colors[color1])
+            --         end
+            --     else
+            --         if ins >= (max / 2) - (max / height) then
+            --             m.setBackgroundColor(colors[color2])
+            --         else
+            --             m.setBackgroundColor(colors[color1])
+            --         end
+            --     end
+            -- elseif hor == false then
+            --     m.setCursorPos(pos1, pos2)
+            --     m.setTextColor(colors[color3])
+            --     if hor == true then
+            --         if ins >= 1 then
+            --             m.setBackgroundColor(colors[color2])
+            --         else
+            --             m.setBackgroundColor(colors[color1])
+            --         end
+            --     end
+            -- end
+            -- if format then
+            --     m.write(ins .. "/" .. max)
+            --     m.setCursorPos(pos1, pos2 + 1)
+            --     m.write(text)
+            -- else
+            --     m.write(ins .. "/" .. max .. " " .. text)
+            -- end
             m.setBackgroundColor(oldcol)
             m.setTextColor(oldcol1)
         end
@@ -1671,40 +1684,53 @@ function terminal.bar(
             terminal.fill(pos1, (z - 1) - moveval, length - 1, moveval + 1)
         end
         if printval == true then
-            term.setCursorPos(pos1, pos2)
+            term.setCursorPos(pos1 + 1, pos2)
             term.setTextColor(colors[color3])
-            if hor == true then
-                if format then
-                    if ins >= max / 2 then
-                        term.setBackgroundColor(colors[color2])
-                    else
-                        term.setBackgroundColor(colors[color1])
-                    end
+            local fillTo = (ins / max) * length + pos1
+            for i = 1, #text do
+                local c = text:sub(i, i)
+                local x, y = term.getCursorPos()
+                if x <= fillTo then
+                    term.setBackgroundColor(colors[color2])
                 else
-                    if ins >= (max / 2) - (max / height) then
-                        term.setBackgroundColor(colors[color2])
-                    else
-                        term.setBackgroundColor(colors[color1])
-                    end
+                    term.setBackgroundColor(colors[color1])
                 end
-            elseif hor == false then
-                term.setCursorPos(pos1, pos2)
-                term.setTextColor(colors[color3])
-                if hor == true then
-                    if ins >= 1 then
-                        term.setBackgroundColor(colors[color2])
-                    else
-                        term.setBackgroundColor(colors[color1])
-                    end
-                end
+                term.write(c)
             end
-            if format then
-                term.write(ins .. "/" .. max)
-                term.setCursorPos(pos1, pos2 + 1)
-                term.write(text)
-            else
-                term.write(ins .. "/" .. max .. " " .. text)
-            end
+            -- term.setCursorPos(pos1, pos2)
+            -- term.setTextColor(colors[color3])
+            -- if hor == true then
+            --     if format then
+            --         if ins >= max / 2 then
+            --             term.setBackgroundColor(colors[color2])
+            --         else
+            --             term.setBackgroundColor(colors[color1])
+            --         end
+            --     else
+            --         if ins >= (max / 2) - (max / height) then
+            --             term.setBackgroundColor(colors[color2])
+            --         else
+            --             term.setBackgroundColor(colors[color1])
+            --         end
+            --     end
+            -- elseif hor == false then
+            --     term.setCursorPos(pos1, pos2)
+            --     term.setTextColor(colors[color3])
+            --     if hor == true then
+            --         if ins >= 1 then
+            --             term.setBackgroundColor(colors[color2])
+            --         else
+            --             term.setBackgroundColor(colors[color1])
+            --         end
+            --     end
+            -- end
+            -- if format then
+            --     term.write(ins .. "/" .. max)
+            --     term.setCursorPos(pos1, pos2 + 1)
+            --     term.write(text)
+            -- else
+            --     term.write(ins .. "/" .. max .. " " .. text)
+            -- end
             term.setBackgroundColor(oldcol)
             term.setTextColor(oldcol1)
         end
