@@ -112,6 +112,7 @@ local function getDisplay(name, outputMap, computerMap)
     v.expect(2, outputMap, "table")
     v.expect(3, computerMap, "table")
 
+    name = string.lower(name)
     local output = outputMap[name]
     if output ~= nil or not autoDiscoverDisplay then
         return output
@@ -154,6 +155,7 @@ local function main(name, outputName)
         v.expect(1, name, "string")
         v.expect(2, output, "table")
 
+        name = string.lower(name)
         autoDiscoverDisplay = false
         outputMap[name] = output
         computerMap[outputName] = name
