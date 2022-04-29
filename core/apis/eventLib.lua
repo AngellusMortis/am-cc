@@ -8,9 +8,12 @@ local progressLib = require("progressLib")
 
 local eventLib = {}
 eventLib.e = {}
+eventLib.e.type = "am_eventLib"
 eventLib.e.progress = "am_progress"
 eventLib.e.progress_quarry = "quarry"
 eventLib.e.turtle = "am_turtle"
+eventLib.e.turtle_started = "started"
+eventLib.e.turtle_exited = "exited"
 eventLib.e.turtle_completed = "completed"
 eventLib.e.turtle_halted = "halted"
 eventLib.e.turtle_paused = "paused"
@@ -84,6 +87,7 @@ eventLib.b.raw = function(event)
     eventLib.initNetwork()
     if eventLib.online then
         rednet.broadcast({
+            type = eventLib.e.type,
             name = eventLib.getName(),
             event = event
         })
@@ -177,16 +181,23 @@ eventLib.b.turtleError = function(msg)
     eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_error, msg})
 end
 
+eventLib.b.turtleStarted = function()
+    eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_started})
+end
+
 eventLib.b.turtleCompleted = function()
     eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_completed})
+    eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_exited})
 end
 
 eventLib.b.turtleHalted = function()
     eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_halted})
+    eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_exited})
 end
 
 eventLib.b.turtlePaused = function()
     eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_paused})
+    eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_exited})
 end
 
 eventLib.b.turtleEmpty = function()

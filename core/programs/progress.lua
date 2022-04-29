@@ -160,10 +160,22 @@ end
 local function eventLoop()
     while true do
         local id, data = rednet.receive()
-        local output = getDisplay(data.name)
-        if output ~= nil then
-            eventLib.printProgress(data.event, data.name, output)
-            timeoutMap[data.name] = os.clock() + settings.get(s.timeout.name)
+        if data.type == eventLib.e.type then
+            if data.event[1] == eventLib.e.progress then
+                local output = getDisplay(data.name)
+                if output ~= nil then
+                    eventLib.printProgress(data.event, data.name, output)
+                    if timeoutMap[data.name] ~= -1 then
+                        timeoutMap[data.name] = os.clock() + settings.get(s.timeout.name)
+                    end
+                end
+            elseif data.event[1] == eventLib.e.turtle then
+                if data.event[2] == eventLib.e.turtle_started then
+                    timeoutMap[data.name] = os.clock() + settings.get(s.timeout.name)
+                elseif data.event[2] == eventLib.e.turtle_exited then
+                    timeoutMap[data.name] = -1
+                end
+            end
         end
     end
 end
@@ -173,7 +185,7 @@ local function heartbeat()
         sleep(1)
         local now = os.clock()
         for name, timeout in pairs(timeoutMap) do
-            if now > timeout then
+            if timeout~= -1 and now > timeout then
                 local output = getDisplay(name)
                 if output ~= nil then
                     progressLib.updateStatus(output, name, "error:Progress Timeout")

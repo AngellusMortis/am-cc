@@ -166,7 +166,6 @@ local function finishJob()
     progress.finished = true
     progress.status = "Finishing Job"
     setProgress(progress)
-    eventLib.b.turtleCompleted()
 end
 
 local function goToOffset()
@@ -341,6 +340,7 @@ end
 local runLoop = function()
     local job = getJob()
 
+    eventLib.b.turtleStarted()
     turtleCore.emptyInventory()
     local progress = getProgress()
     while progress.completedLevels < job.levels do
@@ -352,6 +352,7 @@ local runLoop = function()
     end
     finishJob()
     turtleCore.emptyInventory()
+    eventLib.b.turtleCompleted()
 end
 
 local eventLoop = function()
