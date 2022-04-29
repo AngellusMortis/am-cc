@@ -44,6 +44,7 @@ settings.define(quarry.s.autoResume.name, quarry.s.autoResume)
 settings.define(quarry.s.offsetPos.name, quarry.s.offsetPos)
 
 local startPos = {x=0, y=0, z=1, dir=pathfind.c.FORWARD}
+local isCompleted = false
 
 local function getProgress()
     return ghu.copy(settings.get(quarry.s.progress.name))
@@ -165,6 +166,7 @@ local function finishJob()
     progress.finished = true
     progress.status = "Finishing Job"
     setProgress(progress)
+    eventLib.b.turtleCompleted()
 end
 
 local function goToOffset()
@@ -353,7 +355,7 @@ local runLoop = function()
 end
 
 local eventLoop = function()
-    while true do
+    while not isCompleted do
         local data = {os.pullEvent()}
         local event = data[1]
         local subEvent = data[2]
@@ -363,6 +365,7 @@ local eventLoop = function()
                 setStatus("Emptying Inventory")
             elseif subEvent == eventLib.e.turtle_completed then
                 setStatus("success:Completed")
+                isCompleted = true
             elseif subEvent == eventLib.e.turtle_halted then
                 setStatus("error:Stopped")
             elseif subEvent == eventLib.e.turtle_paused then
@@ -412,7 +415,7 @@ quarry.runJob = function(resume)
         log.log(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
     end
 
-    parallel.waitForAny(runLoop, eventLoop)
+    parallel.waitForAll(runLoop, eventLoop)
     term.setCursorBlink(true)
     log.setPrint(true)
 end
