@@ -19,6 +19,9 @@ jobs:
 
     - name: Generate Manifest
       run: |-
+        cd $GITHUB_WORKSPACE/control
+        bash $GITHUB_WORKSPACE/.bin/manifest.sh
+
         cd $GITHUB_WORKSPACE/core
         bash $GITHUB_WORKSPACE/.bin/manifest.sh
 
@@ -32,6 +35,7 @@ jobs:
       run: |-
         git config user.name github-actions
         git config user.email github-actions@github.com
+        git add $GITHUB_WORKSPACE/control/manifest.json
         git add $GITHUB_WORKSPACE/core/manifest.json
         git add $GITHUB_WORKSPACE/mine/manifest.json
         git add $GITHUB_WORKSPACE/turtle/manifest.json
