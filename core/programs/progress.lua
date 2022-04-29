@@ -5,6 +5,7 @@ local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
 local eventLib = require("eventLib")
+local text = require("text")
 
 local s = {}
 s.outputMap = {
@@ -12,12 +13,20 @@ s.outputMap = {
     default = {},
     type = "table"
 }
+s.timeout = {
+    name = "progress.timeout",
+    default = 30,
+    type = "number"
+}
 settings.define(s.outputMap.name, s.outputMap)
+settings.define(s.timeout.name, s.timeout)
 
 local autoDiscoverDisplay = true
 local terminalFree = true
 local minSize = {width=13, height=7}
 local baseSize = {width=25, height=13}
+local timeoutMap = {}
+local eventLoopData = {}
 
 local function getAllMonitors()
     local monitors = {}
@@ -104,16 +113,16 @@ local function getOutputMap()
     return outputMap, computerMap
 end
 
-local function getDisplay(name, outputMap, computerMap)
+local function getDisplay(name)
     v.expect(1, name, "string")
-    if outputMap == nil or computerMap == nil then
-        outputMap, computerMap = getOutputMap()
+    if eventLoopData.outputMap == nil or eventLoopData.computerMap == nil then
+        eventLoopData.outputMap, eventLoopData.computerMap = getOutputMap()
     end
-    v.expect(2, outputMap, "table")
-    v.expect(3, computerMap, "table")
+    v.expect(2, eventLoopData.outputMap, "table")
+    v.expect(3, eventLoopData.computerMap, "table")
 
     name = string.lower(name)
-    local output = outputMap[name]
+    local output = eventLoopData.outputMap[name]
     if output ~= nil or not autoDiscoverDisplay then
         return output
     end
@@ -121,11 +130,11 @@ local function getDisplay(name, outputMap, computerMap)
     local count = 0
     for outputName, output in pairs(getAllMonitors()) do
         count = count + 1
-        local existing = computerMap[outputName]
+        local existing = eventLoopData.computerMap[outputName]
         if existing == nil then
             addOutput(name, outputName)
-            outputMap[name] = output
-            computerMap[outputName] = name
+            eventLoopData.outputMap[name] = output
+            eventLoopData.computerMap[outputName] = name
             return output
         end
     end
@@ -144,6 +153,35 @@ local function initTerm(computerMap)
         term.clear()
         term.setCursorPos(1, 1)
         term.setTextColor(colors.white)
+    end
+end
+
+local function eventLoop()
+    while true do
+        local id, data = rednet.receive()
+        local output = getDisplay(data.name)
+        if output ~= nil then
+            eventLib.printProgress(data.event, data.name, output)
+            timeoutMap[data.name] = os.clock() + settings.get(s.timeout.name)
+        end
+    end
+end
+
+local function heartbeat()
+    while true do
+        sleep(1)
+        local now = os.clock()
+        for name, timeout in pairs(timeoutMap) do
+            if now > timeout then
+                local output = getDisplay(name)
+                if output ~= nil then
+                    output.setCursorPos(1, 11)
+                    output.clearLine()
+                    output.setTextColor(colors.red)
+                    text.center("Progress Timeout", output)
+                end
+            end
+        end
     end
 end
 
@@ -184,13 +222,8 @@ local function main(name, outputName)
         print("Listening for progress events...")
     end
 
-    while true do
-        local id, data = rednet.receive()
-        local output = getDisplay(data.name, outputMap, computerMap)
-        if output ~= nil then
-            eventLib.printProgress(data.event, data.name, output)
-        end
-    end
+    eventLoopData = {outputMap=outputMap, computerMap=computerMap}
+    parallel.waitForAny(eventLoop, heartbeat)
 end
 
 main(arg[1], arg[2])
