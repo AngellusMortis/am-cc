@@ -199,7 +199,7 @@ local isOreBlockDir = function(moveDir)
         success, data = turtle.inspect()
     elseif moveDir == moveDirDown then
         success, data = turtle.inspectDown()
-    elseif not turtle.detectUp() then
+    else
         success, data = turtle.inspectUp()
     end
     if not success then
