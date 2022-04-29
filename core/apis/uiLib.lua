@@ -5,15 +5,15 @@ ghu.initModulePaths()
 
 local textLib = require("textLib")
 
-local uiLib = {}
-uiLib.c = {}
+local ui = {}
+ui.c = {}
 
 local colorNames = {}
 for name, number in pairs(colors) do
     colorNames[number] = name
 end
 
-uiLib.isTerm = function(output)
+ui.isTerm = function(output)
     v.expect(1, output, "table")
 
     return output.redirect ~= nil
@@ -63,7 +63,7 @@ local function renderGroup(groupObj, output)
     output.setCursorPos(1, height)
 end
 
-uiLib.Group = function()
+ui.Group = function()
     local groupObj = {
         items = {},
         idAuto = 1
@@ -283,7 +283,7 @@ local function renderBar(barObj, output)
     output.setBackgroundColor(oldBackground)
 end
 
-uiLib.Bar = function(y, label)
+ui.Bar = function(y, label)
     v.expect(1, y, "number")
     v.expect(2, label, "string", "nil")
 
@@ -310,7 +310,7 @@ uiLib.Bar = function(y, label)
     return barObj
 end
 
-uiLib.a = {}
+ui.a = {}
 
 local function centerAnchor(anchorObj, output, msg)
     v.expect(2, output, "table")
@@ -331,7 +331,7 @@ local function bottomAnchor(anchorObj, subAnchor, output, msg)
     return subAnchor(anchorObj, output, msg)
 end
 
-uiLib.a.Center = function(y)
+ui.a.Center = function(y)
     v.expect(1, y, "number")
 
     local anchorObj = {y=y}
@@ -346,7 +346,7 @@ local function leftAnchor(anchorObj, output, msg)
     return {x=1, y=anchorObj.y}
 end
 
-uiLib.a.Bottom = function()
+ui.a.Bottom = function()
     local anchorObj = {y=1}
     anchorObj.getPos = function(output, msg)
         return bottomAnchor(anchorObj, centerAnchor, output, msg)
@@ -355,7 +355,7 @@ uiLib.a.Bottom = function()
     return anchorObj
 end
 
-uiLib.a.Top = function()
+ui.a.Top = function()
     local anchorObj = {y=1}
     anchorObj.getPos = function(output, msg)
         return centerAnchor(anchorObj, output, msg)
@@ -364,7 +364,7 @@ uiLib.a.Top = function()
     return anchorObj
 end
 
-uiLib.a.Left = function(y)
+ui.a.Left = function(y)
     v.expect(1, y, "number")
 
     local anchorObj = {y=y}
@@ -375,7 +375,7 @@ uiLib.a.Left = function(y)
     return anchorObj
 end
 
-uiLib.a.TopLeft = function()
+ui.a.TopLeft = function()
     local anchorObj = {y=1}
     anchorObj.getPos = function(output, msg)
         return leftAnchor(anchorObj, output, msg)
@@ -384,7 +384,7 @@ uiLib.a.TopLeft = function()
     return anchorObj
 end
 
-uiLib.a.BottomLeft = function()
+ui.a.BottomLeft = function()
     local anchorObj = {y=1}
     anchorObj.getPos = function(output, msg)
         return bottomAnchor(anchorObj, leftAnchor, output, msg)
@@ -403,7 +403,7 @@ local function rightAnchor(anchorObj, output, msg)
     return {x=(width - #actualMsg), y=anchorObj.y}
 end
 
-uiLib.a.Right = function(y)
+ui.a.Right = function(y)
     v.expect(1, y, "number")
 
     local anchorObj = {y=y}
@@ -414,7 +414,7 @@ uiLib.a.Right = function(y)
     return anchorObj
 end
 
-uiLib.a.TopRight = function()
+ui.a.TopRight = function()
     local anchorObj = {y=1}
     anchorObj.getPos = function(output, msg)
         return rightAnchor(anchorObj, output, msg)
@@ -423,7 +423,7 @@ uiLib.a.TopRight = function()
     return anchorObj
 end
 
-uiLib.a.BottomRight = function()
+ui.a.BottomRight = function()
     local anchorObj = {y=1}
     anchorObj.getPos = function(output, msg)
         return bottomAnchor(anchorObj, rightAnchor, output, msg)
@@ -439,7 +439,7 @@ local function absAnchor(anchorObj, output, msg)
     return anchorObj
 end
 
-uiLib.a.Absolute = function(x, y)
+ui.a.Absolute = function(x, y)
     v.expect(1, x, "number")
     v.expect(2, y, "number")
 
@@ -478,7 +478,7 @@ local function renderText(textObj, output)
     output.setBackgroundColor(oldBackground)
 end
 
-uiLib.Text = function(msg, anchor, color, background)
+ui.Text = function(msg, anchor, color, background)
     v.expect(1, msg, "string")
     v.expect(2, anchor, "table")
     if anchor.getPos == nil then
