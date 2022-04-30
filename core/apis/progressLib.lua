@@ -4,6 +4,7 @@ local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
 local ui = require("uiLib")
+local log = require("log")
 
 local progressLib = {}
 local uiGroups = {}
@@ -29,12 +30,20 @@ local function getUIGroup(output, name, create)
     local created = false
     local group = uiGroups[groupName]
     if group == nil and create then
-        group = ui.Group()
+        group = ui.Group(output)
         created = true
         uiGroups[groupName] = group
     end
 
     return group, created
+end
+
+progressLib.handleEvent = function(event, name)
+    for _, group in pairs(uiGroups) do
+        if name == nil or group.name == name then
+            group.handle(event)
+        end
+    end
 end
 
 progressLib.updateStatus = function(output, name, status)
@@ -47,18 +56,23 @@ progressLib.updateStatus = function(output, name, status)
     uiGroup, _ = getUIGroup(output, name, false)
     if uiGroup ~= nil then
         uiGroup.items.statusText.text = status
-        uiGroup.render(output)
+        uiGroup.render()
     end
 end
 
 local initQuarryUi = function(uiGroup, job, name)
     uiGroup.reset()
 
+    local width, _ = uiGroup.output.getSize()
+    local center = math.floor(width / 2)
     local titleY = 1
     if name ~= nil then
         uiGroup.add(ui.Text("", ui.a.Center(1)), "nameText")
         titleY = 2
     end
+    uiGroup.isPaused = false
+    uiGroup.name = name
+
     uiGroup.add(ui.Text("", ui.a.Center(titleY)), "titleText")
     uiGroup.add(ui.Bar(3, "Total"), "totalBar")
     uiGroup.items.totalBar.showProgress = false
@@ -66,7 +80,47 @@ local initQuarryUi = function(uiGroup, job, name)
     uiGroup.add(ui.Bar(6, "Level"), "lineBar")
     uiGroup.items.lineBar.total = job.left
     uiGroup.add(ui.Text("", ui.a.Center(9)), "statusText")
+    uiGroup.add(ui.Button(center - 7, 10, 8, 1, "Stop"), "buttonHalt")
+    uiGroup.items.buttonHalt.fillColor = colors.red
+    uiGroup.items.buttonHalt.onActivate = function(_, output, data)
+        log.log(string.format("Halting %s...", uiGroup.name))
+        require("eventLib").b.turtleRequestHalt(uiGroup.name)
+    end
+    uiGroup.add(ui.Button(center + 2, 10, 9, 1, "Pause"), "buttonPause")
+    uiGroup.items.buttonPause.fillColor = colors.yellow
+    uiGroup.items.buttonPause.onActivate = function(_, output, data)
+        if uiGroup.isPaused then
+            log.log(string.format("Continuing %s...", uiGroup.name))
+            require("eventLib").b.turtleRequestContinue(uiGroup.name)
+        else
+            log.log(string.format("Pausing %s...", uiGroup.name))
+            require("eventLib").b.turtleRequestPause(uiGroup.name)
+        end
+    end
     uiGroup.add(ui.Text("", ui.a.Bottom()), "curPosText")
+
+    origHandle = uiGroup.handle
+    uiGroup.handle = function(event)
+        local eventLib = require("eventLib")
+        if event[1] == eventLib.e.turtle and event[2] == eventLib.e.turtle_paused then
+            uiGroup.isPaused = true
+            uiGroup.items.buttonPause.fillColor = colors.green
+            uiGroup.items.buttonPause.label = "Go"
+            uiGroup.render()
+        elseif event[1] == eventLib.e.turtle and event[2] == eventLib.e.turtle_started then
+            uiGroup.isPaused = false
+            uiGroup.items.buttonHalt.visible = true
+            uiGroup.items.buttonPause.visible = true
+            uiGroup.items.buttonPause.fillColor = colors.yellow
+            uiGroup.items.buttonPause.label = "Pause"
+            uiGroup.render()
+        elseif event[1] == eventLib.e.turtle and (event[2] == eventLib.e.turtle_completed or event[2] == eventLib.e.turtle_halted) then
+            uiGroup.items.buttonHalt.visible = false
+            uiGroup.items.buttonPause.visible = false
+        else
+            origHandle(event)
+        end
+    end
 end
 
 local updateQuarryUi = function(uiGroup, output, job, progress, pos, name, isOnline)
@@ -134,7 +188,7 @@ progressLib.quarry = function(output, job, progress, pos, name, isOnline)
     end
     updateQuarryUi(uiGroup, output, job, progress, pos, name, isOnline)
 
-    uiGroup.render(output)
+    uiGroup.render()
 end
 
 return progressLib

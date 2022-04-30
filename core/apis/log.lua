@@ -32,12 +32,26 @@ log.log = function(msg, pretty)
         end
     end
 
+    if pretty then
+        msg = pp.pretty(msg)
+    end
+
+    local logFilePath = settings.get(log.s.file.name)
+    if logFilePath ~= nil then
+        local logFile = fs.open(logFilePath, "a")
+        if pretty then
+            logFile.writeLine(pp.render(msg))
+        else
+            logFile.writeLine(msg)
+        end
+    end
+
     if not settings.get(log.s.print.name) then
         return
     end
 
     if pretty then
-        pp.pretty_print(msg)
+        pp.write(msg)
     else
         print(msg)
     end

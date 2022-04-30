@@ -19,6 +19,75 @@ ui.isTerm = function(output)
     return output.redirect ~= nil
 end
 
+local function handleEvent(uiObj, event, output)
+    local isGroup = false
+    if uiObj.output ~= nil then
+        isGroup = true
+        output = uiObj.output
+    end
+    v.expect(3, output, "table")
+
+    if not ui.isTerm(output) then
+        if event[2] ~= peripheral.getName(output) then
+            return
+        end
+    end
+
+    if event[1] == "term_resize" or event[1] == "monitor_resize" then
+        uiObj.render(output)
+        return
+    end
+
+    if isGroup then
+        for _, subObj in pairs(uiObj.items) do
+            subObj.handle(event, output)
+        end
+        return
+    end
+
+    local handler = nil
+    local args = {}
+    -- click/touch events
+    if event[1] == "mouse_click" or event[1] == "mouse_up" or event[1] == "monitor_touch" then
+        if event[1] == "mouse_click" then
+            args = {clickType=event[2], x=event[3], y=event[4]}
+            if event[2] == 1 then
+                handler = uiObj.onClick or uiObj.onActivate
+            elseif event[2] == 2 then
+                handler = uiObj.onRightClick or uiObj.onActivate
+            else
+                handler = uiObj.onMiddleClick or uiObj.onActivate
+            end
+        elseif event[1] == "mouse_up" then
+            args = {clickType = event[2], x=event[3], y=event[4]}
+            if event[2] == 1 then
+                handler = uiObj.onMouseUp or uiObj.onDeactivate
+            elseif event[2] == 2 then
+                handler = uiObj.onMouseRightUp or uiObj.onDeactivate
+            else
+                handler = uiObj.onMouseMiddleUp or uiObj.onDeactivate
+            end
+        elseif event[1] == "monitor_touch" then
+            args = {clickType = nil, x=event[3], y=event[4]}
+            handler = uiObj.onTouch or uiObj.onActivate
+        end
+
+        if handler ~= nil then
+            if uiObj.within == nil then
+                handler = nil
+            else
+                if not uiObj.within(args.x, args.y, output) then
+                    handler = nil
+                end
+            end
+        end
+    end
+
+    if handler ~= nil then
+        handler(uiObj, output, args)
+    end
+end
+
 local function addToGroup(groupObj, uiObj, id)
     if id == nil then
         id = "ui" .. tostring(groupObj.idAuto)
@@ -48,25 +117,31 @@ local function resetGroup(groupObj)
     groupObj.items = {}
 end
 
-local function renderGroup(groupObj, output)
-    local _, height = output.getSize()
+local function renderGroup(groupObj)
+    local _, height = groupObj.output.getSize()
 
-    output.clear()
-    output.setCursorPos(1, 1)
-    output.setCursorBlink(false)
-    output.setTextColor(colors.white)
+    groupObj.output.clear()
+    groupObj.output.setCursorPos(1, 1)
+    groupObj.output.setCursorBlink(false)
+    groupObj.output.setTextColor(colors.white)
 
     for _, uiObj in pairs(groupObj.items) do
-        uiObj.render(output)
+        uiObj.render(groupObj.output)
     end
 
-    output.setCursorPos(1, height)
+    groupObj.output.setCursorPos(1, height)
 end
 
-ui.Group = function()
+ui.Group = function(output)
+    if output == nil then
+        output = term
+    end
+
     local groupObj = {
         items = {},
-        idAuto = 1
+        idAuto = 1,
+        output = output,
+        visible = true
     }
     groupObj.add = function(uiObj, id)
         addToGroup(groupObj, uiObj, id)
@@ -77,239 +152,17 @@ ui.Group = function()
     groupObj.reset = function()
         resetGroup(groupObj)
     end
-    groupObj.render = function(output)
-        renderGroup(groupObj, output)
+    groupObj.render = function()
+        renderGroup(groupObj)
+    end
+    groupObj.handle = function(event)
+        handleEvent(groupObj, event)
     end
 
     return groupObj
 end
 
-local function validateBar(barObj, output)
-    local width, height = output.getSize()
-
-    v.field(barObj, "border", "number")
-    v.range(barObj.border, 0, 3)
-
-    v.field(barObj, "x", "number")
-    v.range(barObj.x, 1, width - 2)
-
-    v.field(barObj, "y", "number")
-    if barObj.border == 0 then
-        v.range(barObj.y, 1, height)
-    else
-        v.range(barObj.y, 1, height - 2)
-    end
-
-    v.field(barObj, "current", "number")
-    v.range(barObj.current, 0)
-
-    v.field(barObj, "total", "number")
-    v.range(barObj.total, math.floor(barObj.current))
-
-    v.field(barObj, "label", "string", "nil")
-
-    v.field(barObj, "height", "number")
-    if barObj.border == 0 then
-        v.range(barObj.height, 1, height)
-    else
-        v.range(barObj.height, 1, height - 2)
-    end
-
-    v.field(barObj, "length", "number", "nil")
-    if barObj.length ~= nil then
-        v.range(barObj.length, 3, width)
-    end
-
-    v.field(barObj, "backgroundColor", "number")
-    v.range(barObj.backgroundColor, 1)
-    v.field(barObj, "fillColor", "number")
-    v.range(barObj.fillColor, 1)
-    v.field(barObj, "borderColor", "number")
-    v.range(barObj.borderColor, 1)
-
-    v.field(barObj, "showPercent", "boolean")
-    v.field(barObj, "showProgress", "boolean")
-end
-
-local function renderBorder1(barObj, output, length, oldBackground)
-    -- top
-    output.setCursorPos(barObj.x, barObj.y)
-    output.setTextColor(oldBackground)
-    output.setBackgroundColor(barObj.borderColor)
-    output.write("\159" .. string.rep("\143", length - 2))
-    output.setTextColor(barObj.borderColor)
-    output.setBackgroundColor(oldBackground)
-    output.write("\144")
-
-    for i = 1, barObj.height, 1 do
-        -- left border
-        output.setCursorPos(barObj.x, barObj.y + i)
-        output.setTextColor(oldBackground)
-        output.setBackgroundColor(barObj.borderColor)
-        output.write("\x95")
-
-        -- right border
-        output.setCursorPos(barObj.x + length - 1, barObj.y + i)
-        output.setTextColor(barObj.borderColor)
-        output.setBackgroundColor(oldBackground)
-        output.write("\x95")
-    end
-
-    -- bottom border
-    output.setCursorPos(barObj.x, barObj.y + barObj.height + 1)
-    output.setTextColor(barObj.borderColor)
-    output.setBackgroundColor(oldBackground)
-    output.write("\130" .. string.rep("\131", length - 2) .. "\129")
-end
-
-local function renderBorder2(barObj, output, length, oldBackground)
-    -- top
-    output.setCursorPos(barObj.x, barObj.y)
-    output.setTextColor(oldBackground)
-    output.setBackgroundColor(barObj.borderColor)
-    output.write(string.rep("\x83", length + 1))
-
-    for i = 1, barObj.height, 1 do
-        -- left border
-        output.setCursorPos(barObj.x, barObj.y + 1)
-        output.setTextColor(oldBackground)
-        output.setBackgroundColor(barObj.borderColor)
-        output.write(" ")
-
-        -- right border
-        output.setCursorPos(barObj.x + length - 1, barObj.y + 1)
-        output.setTextColor(oldBackground)
-        output.setBackgroundColor(barObj.borderColor)
-        output.write(" ")
-    end
-
-    -- bottom border
-    output.setCursorPos(barObj.x, barObj.y + barObj.height + 1)
-    output.setTextColor(barObj.borderColor)
-    output.setBackgroundColor(oldBackground)
-    output.write(string.rep("\143", length + 1))
-end
-
-local function renderBorder3(barObj, output, length, oldBackground)
-    output.setBackgroundColor(barObj.borderColor)
-
-    -- top
-    output.setCursorPos(barObj.x, barObj.y)
-    output.setBackgroundColor(barObj.borderColor)
-    output.write(string.rep(" ", length + 1))
-
-    for i = 1, barObj.height, 1 do
-        -- left border
-        output.setCursorPos(barObj.x, barObj.y + i)
-        output.write(" ")
-
-        -- right border
-        output.setCursorPos(barObj.x + length - 1, barObj.y + i)
-        output.write(" ")
-    end
-
-    -- bottom border
-    output.setCursorPos(barObj.x, barObj.y + barObj.height + 1)
-    output.write(string.rep(" ", length + 1))
-end
-
-local function renderBar(barObj, output)
-    if output == nil then
-        output = term
-    end
-    validateBar(barObj, output)
-
-    local width, height = output.getSize()
-    local oldX, oldY = output.getCursorPos()
-    local oldColor = output.getTextColor()
-    local oldBackground = output.getBackgroundColor()
-
-    local length = barObj.length
-    if length == nil then
-        length = width
-    end
-
-    local startOffset = 1
-    local barLength = length - 2
-
-    if barObj.border == 0 then
-        startOffset = 0
-        barLength = length
-    elseif barObj.border == 1 then
-        renderBorder1(barObj, output, length, oldBackground)
-    elseif barObj.border == 2 then
-        renderBorder2(barObj, output, length, oldBackground)
-    else
-        renderBorder3(barObj, output, length, oldBackground)
-    end
-
-    local current = math.min(barObj.current, barObj.total)
-    local percent = current / barObj.total
-    local label = " "
-    if barObj.label ~= nil then
-        label = label .. barObj.label
-    end
-    if barObj.showPercent then
-        label = label .. string.format(" %d%%", percent * 100)
-    end
-    if barObj.showProgress then
-        label = label .. string.format(" [%d/%d]", current, barObj.total)
-    end
-    local fillTo = percent * length
-    local baseX = barObj.x + startOffset
-
-    for x = 0, barLength - 1, 1 do
-        output.setCursorPos(baseX + x, barObj.y + startOffset)
-        if x < fillTo then
-            output.setBackgroundColor(barObj.fillColor)
-        else
-            output.setBackgroundColor(barObj.backgroundColor)
-        end
-        output.write(" ")
-    end
-    for x = 0, #label, 1 do
-        output.setCursorPos(baseX + x, barObj.y + startOffset)
-        output.setTextColor(barObj.textColor)
-        if x < fillTo then
-            output.setBackgroundColor(barObj.fillColor)
-        else
-            output.setBackgroundColor(barObj.backgroundColor)
-        end
-        output.write(label:sub(x + 1, x + 1))
-    end
-
-    output.setCursorPos(oldX, oldY)
-    output.setTextColor(oldColor)
-    output.setBackgroundColor(oldBackground)
-end
-
-ui.Bar = function(y, label)
-    v.expect(1, y, "number")
-    v.expect(2, label, "string", "nil")
-
-    local barObj = {
-        x=1,
-        y=y,
-        current=0,
-        total=1,
-        label=label,
-        height=1,
-        length=nil,
-        backgroundColor=colors.lightGray,
-        fillColor=colors.green,
-        borderColor=colors.gray,
-        textColor=colors.gray,
-        showProgress=true,
-        showPercent=true,
-        border=1,
-    }
-    barObj.render = function(output)
-        renderBar(barObj, output)
-    end
-
-    return barObj
-end
-
+-- #region Text
 ui.a = {}
 
 local function centerAnchor(anchorObj, output, msg)
@@ -471,7 +324,11 @@ local function renderText(textObj, output)
         output.setBackgroundColor(textObj.background)
     end
     output.setCursorPos(anchorPos.x, anchorPos.y)
-    output.write(msg)
+    if textObj.visible then
+        output.write(msg)
+    else
+        output.write(string.rep(" ", #msg))
+    end
 
     output.setCursorPos(oldX, oldY)
     output.setTextColor(oldColor)
@@ -491,12 +348,468 @@ ui.Text = function(msg, anchor, color, background)
         v.expect(4, background, "number")
     end
 
-    local textObj = {text=msg, anchor=anchor, color=color, background=background}
+    local textObj = {text=msg, anchor=anchor, color=color, background=background, visible=true}
     textObj.render = function(output)
         renderText(textObj, output)
     end
+    textObj.handle = function(event, output)
+        handleEvent(textObj, event, output)
+    end
 
     return textObj
+end
+-- #endregion
+
+-- #region Rectangle
+local function validateRect(rectObj, output)
+    local width, height = output.getSize()
+
+    v.field(rectObj, "border", "number")
+    v.range(rectObj.border, 0, 3)
+
+    if rectObj.border > 0 then
+        v.range(height, 3)
+    end
+
+    v.field(rectObj, "x", "number")
+    v.range(rectObj.x, 1, width - 2)
+
+    v.field(rectObj, "y", "number")
+    if rectObj.border == 0 then
+        v.range(rectObj.y, 1, height)
+    else
+        v.range(rectObj.y, 1, height - 2)
+    end
+
+    v.field(rectObj, "height", "number")
+    if rectObj.border == 0 then
+        v.range(rectObj.height, 1, height)
+    else
+        v.range(rectObj.height, 1, height - 2)
+    end
+
+    v.field(rectObj, "length", "number", "nil")
+    if rectObj.length ~= nil then
+        v.range(rectObj.length, 3, width)
+    end
+
+    if rectObj.backgroundColor ~= nil then
+        v.field(rectObj, "backgroundColor", "number")
+        v.range(rectObj.backgroundColor, 1)
+    end
+    if rectObj.fillColor ~= nil then
+        v.field(rectObj, "fillColor", "number")
+        v.range(rectObj.fillColor, 1)
+    end
+    v.field(rectObj, "borderColor", "number")
+    v.range(rectObj.borderColor, 1)
+    if rectObj.textColor ~= nil then
+        v.field(rectObj, "textColor", "number")
+        v.range(rectObj.textColor, 1)
+    end
+end
+
+local function renderBorder1(rectObj, output, length, backgroundColor)
+    local borderColor = rectObj.getBorderColor(output) or backgroundColor
+
+    -- top
+    output.setCursorPos(rectObj.x, rectObj.y)
+    output.setTextColor(backgroundColor)
+    output.setBackgroundColor(borderColor)
+    output.write("\159" .. string.rep("\143", length - 2))
+    output.setTextColor(borderColor)
+    output.setBackgroundColor(backgroundColor)
+    output.write("\144")
+
+    for i = 1, rectObj.height, 1 do
+        -- left border
+        output.setCursorPos(rectObj.x, rectObj.y + i)
+        output.setTextColor(backgroundColor)
+        output.setBackgroundColor(borderColor)
+        output.write("\x95")
+
+        -- right border
+        output.setCursorPos(rectObj.x + length - 1, rectObj.y + i)
+        output.setTextColor(borderColor)
+        output.setBackgroundColor(backgroundColor)
+        output.write("\x95")
+    end
+
+    -- bottom border
+    output.setCursorPos(rectObj.x, rectObj.y + rectObj.height + 1)
+    output.setTextColor(borderColor)
+    output.setBackgroundColor(backgroundColor)
+    output.write("\130" .. string.rep("\131", length - 2) .. "\129")
+end
+
+local function renderBorder2(rectObj, output, length, backgroundColor)
+    local borderColor = rectObj.getBorderColor(output) or backgroundColor
+
+    -- top
+    output.setCursorPos(rectObj.x, rectObj.y)
+    output.setTextColor(backgroundColor)
+    output.setBackgroundColor(borderColor)
+    output.write(string.rep("\x83", length + 1))
+
+    for i = 1, rectObj.height, 1 do
+        -- left border
+        output.setCursorPos(rectObj.x, rectObj.y + 1)
+        output.setTextColor(backgroundColor)
+        output.setBackgroundColor(borderColor)
+        output.write(" ")
+
+        -- right border
+        output.setCursorPos(rectObj.x + length - 1, rectObj.y + 1)
+        output.setTextColor(backgroundColor)
+        output.setBackgroundColor(borderColor)
+        output.write(" ")
+    end
+
+    -- bottom border
+    output.setCursorPos(rectObj.x, rectObj.y + rectObj.height + 1)
+    output.setTextColor(borderColor)
+    output.setBackgroundColor(backgroundColor)
+    output.write(string.rep("\143", length + 1))
+end
+
+local function renderBorder3(rectObj, output, length)
+    local borderColor = rectObj.getBorderColor(output) or backgroundColor
+    output.setBackgroundColor(borderColor)
+
+    -- top
+    output.setCursorPos(rectObj.x, rectObj.y)
+    output.setBackgroundColor(borderColor)
+    output.write(string.rep(" ", length + 1))
+
+    for i = 1, rectObj.height, 1 do
+        -- left border
+        output.setCursorPos(rectObj.x, rectObj.y + i)
+        output.write(" ")
+
+        -- right border
+        output.setCursorPos(rectObj.x + length - 1, rectObj.y + i)
+        output.write(" ")
+    end
+
+    -- bottom border
+    output.setCursorPos(rectObj.x, rectObj.y + rectObj.height + 1)
+    output.write(string.rep(" ", length + 1))
+end
+
+local function renderBox(
+    output, startX, startY,
+    length, height,
+    label,
+    textColor, backgroundColor
+)
+    v.expect(1, output, "table")
+    v.expect(2, startX, "number")
+    v.expect(3, startY, "number")
+    v.expect(4, length, "number")
+    v.expect(5, height, "number")
+    v.expect(6, label, "string", "nil")
+    v.expect(7, textColor, "number")
+    v.expect(8, backgroundColor, "number")
+
+    if label == nil then
+        label = ""
+    else
+        label = " " .. label
+    end
+
+    local textY = math.ceil(height / 2) - 1
+    for x = 0, length - 1, 1 do
+        for y = 0, height - 1, 1 do
+            output.setCursorPos(startX + x, startY + y)
+            output.setTextColor(textColor)
+            output.setBackgroundColor(backgroundColor)
+            if x < #label and y == textY then
+                output.write(label:sub(x + 1, x + 1))
+            else
+                output.write(" ")
+            end
+        end
+    end
+end
+
+local function renderRect(rectObj, output)
+    if output == nil then
+        output = term
+    end
+    validateRect(rectObj, output)
+
+    local width, height = output.getSize()
+    local oldX, oldY = output.getCursorPos()
+    local oldColor = output.getTextColor()
+    local oldBackground = output.getBackgroundColor()
+    local backgroundColor = rectObj.backgroundColor
+    local fillColor = rectObj.getFillColor(output)
+    local textColor = rectObj.textColor
+    if backgroundColor == nil or not rectObj.visible then
+        backgroundColor = oldBackground
+    end
+    if fillColor == nil or not rectObj.visible then
+        fillColor = oldBackground
+    end
+    if textColor == nil or not rectObj.visible then
+        textColor = oldColor
+    end
+
+    local length = rectObj.length
+    if length == nil then
+        length = width
+    end
+
+    local startOffset = 1
+    local boxLength = length - 2
+
+    if rectObj.border == 0 then
+        startOffset = 0
+        boxLength = length
+    elseif rectObj.border == 1 then
+        renderBorder1(rectObj, output, length, backgroundColor)
+    elseif rectObj.border == 2 then
+        renderBorder2(rectObj, output, length, backgroundColor)
+    else
+        renderBorder3(rectObj, output, length)
+    end
+    renderBox(output, rectObj.x + startOffset, rectObj.y + startOffset, boxLength, rectObj.height, rectObj.getLabel(), textColor, fillColor)
+
+    output.setCursorPos(oldX, oldY)
+    output.setTextColor(oldColor)
+    output.setBackgroundColor(oldBackground)
+end
+
+local function withinRect(rectObj, x, y, output)
+    if output == nil then
+        output = term
+    end
+    validateRect(rectObj, output)
+
+    if not rectObj.visible then
+        return false
+    end
+
+    local width, height = output.getSize()
+    if x < rectObj.x or y < rectObj.y then
+        return false
+    end
+
+    local length = rectObj.length
+    if rectObj.length == nil then
+        length = width
+    end
+
+    return x <= (rectObj.x + length) and y <= (rectObj.y + rectObj.height)
+end
+
+ui.Rect = function(x, y, length, height, label)
+    v.expect(1, x, "number")
+    v.expect(2, y, "number")
+    v.expect(3, length, "number", "nil")
+    v.expect(4, height, "number")
+    v.expect(5, label, "string", "nil")
+
+    local rectObj = {
+        x=x,
+        y=y,
+        height=height,
+        length=length,
+        backgroundColor=nil,
+        borderColor=colors.gray,
+        fillColor=nil,
+        textColor=nil,
+        border=1,
+        label=label,
+        visible=true
+    }
+    rectObj.render = function(output)
+        renderRect(rectObj, output)
+    end
+    rectObj.getLabel = function(output)
+        return rectObj.label
+    end
+    rectObj.getFillColor = function(output)
+        if rectObj.fillColor == nil or not rectObj.visible then
+            return output.getBackgroundColor()
+        end
+        return rectObj.fillColor
+    end
+    rectObj.getBorderColor = function(output)
+        if rectObj.borderColor == nil or not rectObj.visible then
+            return output.getBackgroundColor()
+        end
+        return rectObj.borderColor
+    end
+    rectObj.getLabel = function(output)
+        if not rectObj.visible then
+            return nil
+        end
+        return rectObj.label
+    end
+    rectObj.within = function(x, y, output)
+        return withinRect(rectObj, x, y, output)
+    end
+    rectObj.handle = function(event, output)
+        handleEvent(rectObj, event, output)
+    end
+
+    return rectObj
+end
+-- #endregion
+
+
+
+local function validateBar(barObj, output)
+    v.field(barObj, "current", "number")
+    v.range(barObj.current, 0)
+
+    v.field(barObj, "total", "number")
+    v.range(barObj.total, math.floor(barObj.current))
+
+    v.field(barObj, "progressColor", "number")
+    v.range(barObj.progressColor, 1)
+
+    v.field(barObj, "showPercent", "boolean")
+    v.field(barObj, "showProgress", "boolean")
+end
+
+local function getBarLabel(barObj)
+    local label = ""
+    local current = math.min(barObj.current, barObj.total)
+    local percent = current / barObj.total
+
+    if barObj.label ~= nil then
+        label = label .. barObj.label
+    end
+    if barObj.showPercent then
+        label = label .. string.format(" %d%%", percent * 100)
+    end
+    if barObj.showProgress then
+        label = label .. string.format(" [%d/%d]", current, barObj.total)
+    end
+
+    if label == "" then
+        return nil
+    end
+    return label
+end
+
+local function renderBar(barObj, output)
+    if output == nil then
+        output = term
+    end
+
+    local width, height = output.getSize()
+    local oldX, oldY = output.getCursorPos()
+    local oldColor = output.getTextColor()
+    local oldBackground = output.getBackgroundColor()
+
+    renderRect(barObj, output)
+    if not barObj.visible then
+        return
+    end
+
+    local startOffset = 0
+    local length = barObj.length
+    local progressColor = barObj.progressColor
+    local textColor = barObj.textColor
+
+    if textColor == nil then
+        textColor = oldColor
+    end
+    if length == nil then
+        length = width
+    end
+    if barObj.border > 0 then
+        length = length - 2
+        startOffset = startOffset + 1
+    end
+
+    local current = math.min(barObj.current, barObj.total)
+    local percent = current / barObj.total
+    local fillTo = math.floor(percent * length)
+
+    renderBox(
+        output,
+        barObj.x + startOffset, barObj.y + startOffset,
+        fillTo, barObj.height,
+        barObj.getLabel(),
+        textColor, progressColor
+    )
+
+    output.setCursorPos(oldX, oldY)
+    output.setTextColor(oldColor)
+    output.setBackgroundColor(oldBackground)
+end
+
+ui.Bar = function(y, label)
+    v.expect(1, y, "number")
+    v.expect(2, label, "string", "nil")
+
+    local barObj = ui.Rect(1, y, nil, 1, label)
+    barObj.fillColor = colors.lightGray
+    barObj.textColor = colors.white
+    barObj.current=0
+    barObj.total=1
+    barObj.progressColor=colors.green
+    barObj.showProgress=true
+    barObj.showPercent=true
+    barObj.render = function(output)
+        renderBar(barObj, output)
+    end
+    barObj.getLabel = function(output)
+        return getBarLabel(barObj)
+    end
+
+    return barObj
+end
+
+ui.Button = function(x, y, length, height, label)
+    v.expect(1, x, "number")
+    v.expect(2, y, "number")
+    v.expect(3, length, "number", "nil")
+    v.expect(4, height, "number")
+    v.expect(5, label, "string", "nil")
+
+    local buttonObj = ui.Rect(x, y, length, height, label)
+    buttonObj.active = false
+    buttonObj.onClick = function(_, output, data)
+        buttonObj.active = true
+
+        if buttonObj.onActivate ~= nil then
+            buttonObj.onActivate(buttonObj, output, data)
+        end
+
+        buttonObj.render(output)
+    end
+    buttonObj.onMouseUp = function(_, output, data)
+        buttonObj.active = false
+
+        if buttonObj.onDeactivate ~= nil then
+            buttonObj.onDeactivate(buttonObj, output, data)
+        end
+
+        buttonObj.render(output)
+    end
+    buttonObj.getFillColor = function(output)
+        if buttonObj.active then
+            return buttonObj.borderColor
+        end
+        return buttonObj.fillColor
+    end
+    buttonObj.getBorderColor = function(output)
+        if not buttonObj.visible then
+            return output.getBackgroundColor()
+        end
+
+        if buttonObj.active then
+            return buttonObj.fillColor
+        end
+        return buttonObj.borderColor
+    end
+
+    return buttonObj
 end
 
 return ui

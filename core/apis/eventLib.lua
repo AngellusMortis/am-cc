@@ -14,6 +14,9 @@ eventLib.e.turtle = "am_turtle"
 eventLib.e.turtle_started = "started"
 eventLib.e.turtle_exited = "exited"
 eventLib.e.turtle_completed = "completed"
+eventLib.e.turtle_requestHalt = "requestHalt"
+eventLib.e.turtle_requestPause = "requestPause"
+eventLib.e.turtle_requestContinue = "requestContinue"
 eventLib.e.turtle_halted = "halted"
 eventLib.e.turtle_paused = "paused"
 eventLib.e.turtle_empty = "empty"
@@ -187,6 +190,18 @@ end
 eventLib.b.turtleCompleted = function()
     eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_completed})
     eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_exited})
+end
+
+eventLib.b.turtleRequestHalt = function(name)
+    eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_requestHalt, name})
+end
+
+eventLib.b.turtleRequestPause = function(name)
+    eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_requestPause, name})
+end
+
+eventLib.b.turtleRequestContinue = function(name)
+    eventLib.b.raw({eventLib.e.turtle, eventLib.e.turtle_requestContinue, name})
 end
 
 eventLib.b.turtleHalted = function()

@@ -5,6 +5,7 @@ ghu.initModulePaths()
 
 local log = require("log")
 local eventLib = require("eventLib")
+local progressLib = require("progressLib")
 local pathfind = require("pathfind")
 local turtleCore = require("turtleCore")
 
@@ -44,7 +45,14 @@ settings.define(quarry.s.autoResume.name, quarry.s.autoResume)
 settings.define(quarry.s.offsetPos.name, quarry.s.offsetPos)
 
 local startPos = {x=0, y=0, z=1, dir=pathfind.c.FORWARD}
-local isCompleted = false
+
+r = {}
+r.running = 1
+r.completed = 2
+r.paused = 3
+r.halted = 4
+
+local runType = r.running
 
 local function getProgress()
     return ghu.copy(settings.get(quarry.s.progress.name))
@@ -281,6 +289,10 @@ local function digLevel(firstLevel, lastLevel)
             end
         end
         completeRow()
+
+        if runType ~= r.running then
+            return
+        end
     end
 
     progress = getProgress()
@@ -344,20 +356,37 @@ local runLoop = function()
     eventLib.b.turtleStarted()
     turtleCore.emptyInventory()
     local progress = getProgress()
-    while progress.completedLevels < job.levels do
-        if progress.completedLevels % job.refuelLevel == 0 then
-            turtleCore.goRefuel(job.refuelTarget, progress.completedLevels ~= 0)
+    while progress.completedLevels < job.levels and (runType == r.running or runType == r.paused) do
+        if runType == r.running then
+            if progress.completedLevels % job.refuelLevel == 0 then
+               turtleCore.goRefuel(job.refuelTarget, progress.completedLevels ~= 0)
+            end
+            digLevel(progress.completedLevels == 0, (progress.completedLevels + 1) == job.levels)
+            progress = getProgress()
+
+            if runType == r.paused then
+                turtleCore.emptyInventory()
+                eventLib.b.turtlePaused()
+            end
+        else
+            sleep(5)
         end
-        digLevel(progress.completedLevels == 0, (progress.completedLevels + 1) == job.levels)
-        progress = getProgress()
     end
     finishJob()
     turtleCore.emptyInventory()
-    eventLib.b.turtleCompleted()
+    if runType == r.halted then
+        eventLib.b.turtleHalted()
+        sleep(3)
+        runType = r.completed
+    else
+        eventLib.b.turtleCompleted()
+    end
 end
 
 local eventLoop = function()
-    while not isCompleted do
+    while runType ~= r.completed do
+        -- timeout timer
+        local timer = os.startTimer(3)
         local data = {os.pullEvent()}
         local event = data[1]
         local subEvent = data[2]
@@ -367,7 +396,17 @@ local eventLoop = function()
                 setStatus("Emptying Inventory")
             elseif subEvent == eventLib.e.turtle_completed then
                 setStatus("success:Completed")
-                isCompleted = true
+                runType = r.completed
+            elseif subEvent == eventLib.e.turtle_requestPause then
+                runType = r.paused
+                log.log("Pausing...")
+            elseif subEvent == eventLib.e.turtle_requestHalt then
+                runType = r.halted
+                log.log("Halting...")
+            elseif subEvent == eventLib.e.turtle_requestContinue then
+                runType = r.running
+                log.log("Unpausing...")
+                eventLib.b.turtleStarted()
             elseif subEvent == eventLib.e.turtle_halted then
                 setStatus("error:Stopped")
             elseif subEvent == eventLib.e.turtle_paused then
@@ -400,6 +439,34 @@ local eventLoop = function()
                 eventLib.printProgress(data)
             end
         end
+        progressLib.handleEvent(data)
+        os.cancelTimer(timer)
+    end
+end
+
+local netEventLoop = function()
+    eventLib.initNetwork()
+    if not eventLib.online then
+        return
+    end
+
+    while runType ~= r.completed do
+        local id, data = rednet.receive(nil, 3)
+        if data ~= nil and data.type == eventLib.e.type then
+            if data.event[1] == eventLib.e.turtle then
+                if data.event[2] == eventLib.e.turtle_requestHalt and data.event[3] == eventLib.getName() then
+                    runType = r.halted
+                    log.log("Halting...")
+                elseif data.event[2] == eventLib.e.turtle_requestPause and data.event[3] == eventLib.getName() then
+                    runType = r.paused
+                    log.log("Pausing...")
+                elseif data.event[2] == eventLib.e.turtle_requestContinue and data.event[3] == eventLib.getName() then
+                    runType = r.running
+                    log.log("Unpausing...")
+                    eventLib.b.turtleStarted()
+                end
+            end
+        end
     end
 end
 
@@ -422,7 +489,7 @@ quarry.runJob = function(resume)
         log.log(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
     end
 
-    parallel.waitForAll(runLoop, eventLoop)
+    parallel.waitForAll(runLoop, eventLoop, netEventLoop)
     term.setCursorBlink(true)
     log.setPrint(true)
 end

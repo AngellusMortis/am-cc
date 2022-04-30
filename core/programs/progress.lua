@@ -4,6 +4,7 @@ local pp = require("cc.pretty")
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
+local log = require("log")
 local eventLib = require("eventLib")
 local progressLib = require("progressLib")
 
@@ -22,7 +23,6 @@ settings.define(s.outputMap.name, s.outputMap)
 settings.define(s.timeout.name, s.timeout)
 
 local autoDiscoverDisplay = true
-local terminalFree = true
 local minSize = {width=13, height=7}
 local baseSize = {width=25, height=13}
 local timeoutMap = {}
@@ -91,9 +91,7 @@ local function addOutput(name, outputName)
     settings.set(s.outputMap.name, outputNameMap)
     settings.save()
 
-    if terminalFree then
-        print(string.format("Adding %s as output for %s...", outputName, name))
-    end
+    log.log(string.format("Adding %s as output for %s...", outputName, name))
 end
 
 local function getOutputMap()
@@ -148,8 +146,9 @@ end
 
 local function initTerm(computerMap)
     if computerMap["term"] ~= nil then
-        terminalFree = false
+        log.setPrint(false)
     else
+        log.setPrint(true)
         term.clear()
         term.setCursorPos(1, 1)
         term.setTextColor(colors.white)
@@ -158,22 +157,32 @@ end
 
 local function eventLoop()
     while true do
+        local event = {os.pullEvent()}
+        progressLib.handleEvent(event)
+    end
+end
+
+local function netEventLoop()
+    while true do
         local id, data = rednet.receive()
         if data.type == eventLib.e.type then
-            if data.event[1] == eventLib.e.progress then
-                local output = getDisplay(data.name)
-                if output ~= nil then
-                    eventLib.printProgress(data.event, data.name, output)
-                    if timeoutMap[data.name] ~= -1 then
+            local output = getDisplay(data.name)
+            if output ~= nil then
+                if data.event[1] == eventLib.e.progress then
+                    if output ~= nil then
+                        eventLib.printProgress(data.event, data.name, output)
+                        if timeoutMap[data.name] ~= -1 then
+                            timeoutMap[data.name] = os.clock() + settings.get(s.timeout.name)
+                        end
+                    end
+                elseif data.event[1] == eventLib.e.turtle then
+                    if data.event[2] == eventLib.e.turtle_started then
                         timeoutMap[data.name] = os.clock() + settings.get(s.timeout.name)
+                    elseif data.event[2] == eventLib.e.turtle_exited then
+                        timeoutMap[data.name] = -1
                     end
                 end
-            elseif data.event[1] == eventLib.e.turtle then
-                if data.event[2] == eventLib.e.turtle_started then
-                    timeoutMap[data.name] = os.clock() + settings.get(s.timeout.name)
-                elseif data.event[2] == eventLib.e.turtle_exited then
-                    timeoutMap[data.name] = -1
-                end
+                progressLib.handleEvent(data.event, data.name)
             end
         end
     end
@@ -217,22 +226,18 @@ local function main(name, outputName)
     end
 
     for name, output in pairs(outputMap) do
-        if terminalFree then
-            local outputName = peripheral.getName(output)
-            print(string.format("Using %s output for %s", outputName, name))
-        end
+        local outputName = peripheral.getName(output)
+        log.log(string.format("Using %s output for %s", outputName, name))
+
         output.clear()
         output.setCursorPos(1, 1)
         output.setTextColor(colors.white)
         output.write(string.format("Wait for %s...", name))
     end
 
-    if terminalFree then
-        print("Listening for progress events...")
-    end
-
+    log.log("Listening for progress events...")
     eventLoopData = {outputMap=outputMap, computerMap=computerMap}
-    parallel.waitForAny(eventLoop, heartbeat)
+    parallel.waitForAny(eventLoop, netEventLoop, heartbeat)
 end
 
 main(arg[1], arg[2])
