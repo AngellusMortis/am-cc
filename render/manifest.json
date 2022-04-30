@@ -1,0 +1,7 @@
+{
+  "files": {
+    "apis/textLib.lua": "64566c3c6916acdd016bb59b7cd341289ee111e4e00d1ff3c3096d5babc8766f",
+    "apis/uiLib.lua": "c3683e72af4601a9b2916fbb3e10580f5b0c97c5b814cb915dfe48c84673e652"
+  },
+  "dependencies": []
+}
