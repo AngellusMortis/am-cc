@@ -6,6 +6,7 @@ ghu.initModulePaths()
 
 local log = require("log")
 local eventLib = require("eventLib")
+local ui = require("uiLib")
 local progressLib = require("progressLib")
 
 local s = {}
@@ -226,7 +227,10 @@ local function main(name, outputName)
     end
 
     for name, output in pairs(outputMap) do
-        local outputName = peripheral.getName(output)
+        local outputName = "term"
+        if not ui.isTerm(output) then
+            outputName = peripheral.getName(output)
+        end
         log.log(string.format("Using %s output for %s", outputName, name))
 
         output.clear()

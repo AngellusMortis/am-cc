@@ -222,6 +222,9 @@ local function digAndFill(count, fillLeft, fillRight, isLast)
             turtleCore.fillForward(true)
             pathfind.turnLeft()
         end
+        if runType ~= r.running then
+            return
+        end
     end
 end
 
@@ -235,6 +238,9 @@ local function digLevel(firstLevel, lastLevel)
     if pos.x == 0 and pos.z == 0 and pos.y == 0 then
         goToOffset()
         digAndFill(1, job.left == 1, true)
+        if runType ~= r.running then
+            return
+        end
         pos = pathfind.getPosition()
         startPos = ghu.copy(pos)
     end
@@ -265,6 +271,9 @@ local function digLevel(firstLevel, lastLevel)
         local fillLeft = isLastRow and not isEvenRow
         local fillRight = row == 1 or (isLastRow and isEvenRow)
         digAndFill(job.forward - 1, fillLeft, fillRight, lastLevel)
+        if runType ~= r.running then
+            return
+        end
 
         -- fill end block
         turtleCore.fillForward(true)
@@ -275,6 +284,9 @@ local function digLevel(firstLevel, lastLevel)
                 pathfind.turnLeft()
             end
             digAndFill(1, isEvenRow, not isEvenRow)
+            if runType ~= r.running then
+                return
+            end
             if (row + 1) == job.left then
                 turtleCore.fillForward(true)
             end
