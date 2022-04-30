@@ -6,7 +6,7 @@ ghu.initModulePaths()
 
 local log = require("log")
 local eventLib = require("eventLib")
-local ui = require("lib.ui")
+local ui = require("am.ui")
 local progressLib = require("progressLib")
 
 local s = {}
