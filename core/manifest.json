@@ -1,10 +1,9 @@
 {
   "files": {
-    "apis/buttonH.lua": "8fdcb9a7e29bc35d3cca41cf3152f33b29585fd650d0ec5b917068b7ae43b8fe",
     "apis/log.lua": "1b2d3d6f47f14d37226cf83b3b4fb094a553718627ca1c4d213eeba6c660d995",
-    "apis/progressLib.lua": "f3b734b55e8e2a04c906f7b098479160a8c4387d6e1ba50a91bf18d3ade37d05",
+    "apis/progressLib.lua": "e6d03c335c2d9341a262e4a5e8fcd134329eb6b12fa961ea24bf981c7922697e",
     "apis/eventLib.lua": "858f1919cddf648a07ad03c9b24bb52e7f14fa40bf6a2434c415f5b84818f0e2",
-    "programs/progress.lua": "3fefcecb10981f08d00d74cb8136b000a1230f180103b9fed26dccc8db9563ca"
+    "programs/progress.lua": "383927f07d65578c31b4d1b3e8867c57b2b787813c6b3dad393faa21e88cc3f0"
   },
   "dependencies": [
     "AngellusMortis/am-cc:/render"
