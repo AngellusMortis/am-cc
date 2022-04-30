@@ -445,7 +445,6 @@ local eventLoop = function()
 end
 
 local netEventLoop = function()
-    eventLib.initNetwork()
     if not eventLib.online then
         return
     end
@@ -476,6 +475,7 @@ quarry.runJob = function(resume)
     end
     v.expect(1, resume, "boolean")
 
+    eventLib.initNetwork()
     local job = getJob()
     term.clear()
     term.setCursorPos(1, 1)
@@ -483,7 +483,7 @@ quarry.runJob = function(resume)
         log.log(string.format("Resume Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
         setStatus("Resuming")
         if not settings.get(log.s.print.name) then
-            eventLib.printQuarryProgress(job, getProgress(), pathfind.getPosition(), eventLib.getName())
+            progressLib.quarry(term, job, getProgress(), pathfind.getPosition(), eventLib.getName(), eventLib.online)
         end
     else
         log.log(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
