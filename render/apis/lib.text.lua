@@ -3,9 +3,9 @@ local pp = require("cc.pretty")
 
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 
-local textLib = {}
+local text = {}
 
-textLib.getTextColor = function(msg)
+text.getTextColor = function(msg)
     local parts = ghu.split(msg, ":")
     local color = nil
     if #parts == 2 then
@@ -27,7 +27,7 @@ textLib.getTextColor = function(msg)
     return msg, color
 end
 
-textLib.writeStatus = function(msg, output)
+text.writeStatus = function(msg, output)
     if output == nil then
         output = term
     end
@@ -54,7 +54,7 @@ textLib.writeStatus = function(msg, output)
     output.setTextColor(oldColor)
 end
 
-textLib.write = function(output, msg, x, y)
+text.write = function(output, msg, x, y)
     if type(output) ~= "table" then
         y = x
         x = msg
@@ -75,7 +75,7 @@ textLib.write = function(output, msg, x, y)
     v.expect(3, x, "number")
     v.expect(4, y, "number")
 
-    local actualMsg, color = textLib.getTextColor(msg)
+    local actualMsg, color = text.getTextColor(msg)
     output.setCursorPos(x, y)
     if color ~= nil then
         output.setTextColor(color)
@@ -85,7 +85,7 @@ textLib.write = function(output, msg, x, y)
     output.setCursorPos(oldX, oldY)
 end
 
-textLib.center = function(output, msg, y, clear)
+text.center = function(output, msg, y, clear)
     if type(output) ~= "table" then
         y = msg
         msg = output
@@ -106,13 +106,13 @@ textLib.center = function(output, msg, y, clear)
     v.expect(3, y, "number")
     v.expect(4, clear, "boolean")
 
-    local actualMsg, color = textLib.getTextColor(msg)
+    local actualMsg, color = text.getTextColor(msg)
     if clear then
         output.setCursorPos(1, y)
         output.clearLine()
         output.setCursorPos(oldX, oldY)
     end
-    textLib.write(output, msg, (width - #actualMsg) / 2, y)
+    text.write(output, msg, (width - #actualMsg) / 2, y)
 end
 
-return textLib
+return text

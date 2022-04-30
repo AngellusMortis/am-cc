@@ -6,7 +6,7 @@ ghu.initModulePaths()
 
 local log = require("log")
 local eventLib = require("eventLib")
-local ui = require("uiLib")
+local l.ui = require("lib.ui")
 local progressLib = require("progressLib")
 
 local s = {}
@@ -112,7 +112,11 @@ local function getOutputMap()
     return outputMap, computerMap
 end
 
-local function getDisplay(name)
+local function getDisplay(name, autoDiscovery)
+    if autoDiscovery == nil then
+        autoDiscovery = autoDiscoverDisplay
+    end
+
     v.expect(1, name, "string")
     if eventLoopData.outputMap == nil or eventLoopData.computerMap == nil then
         eventLoopData.outputMap, eventLoopData.computerMap = getOutputMap()
@@ -122,7 +126,7 @@ local function getDisplay(name)
 
     name = string.lower(name)
     local output = eventLoopData.outputMap[name]
-    if output ~= nil or not autoDiscoverDisplay then
+    if output ~= nil or not autoDiscovery then
         return output
     end
 
@@ -167,9 +171,12 @@ local function netEventLoop()
     while true do
         local id, data = rednet.receive()
         if data.type == eventLib.e.type then
-            local output = getDisplay(data.name)
+            local output = getDisplay(data.name, false)
             if output ~= nil then
                 if data.event[1] == eventLib.e.progress then
+                    if output == nil then
+                        output = getDisplay(data.name)
+                    end
                     if output ~= nil then
                         eventLib.printProgress(data.event, data.name, output)
                         if timeoutMap[data.name] ~= -1 then
@@ -228,7 +235,7 @@ local function main(name, outputName)
 
     for name, output in pairs(outputMap) do
         local outputName = "term"
-        if not ui.isTerm(output) then
+        if not l.ui.isTerm(output) then
             outputName = peripheral.getName(output)
         end
         log.log(string.format("Using %s output for %s", outputName, name))

@@ -3,7 +3,7 @@ local v = require("cc.expect")
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
-local textLib = require("textLib")
+local l.text = require("lib.text")
 
 local ui = {}
 ui.c = {}
@@ -20,9 +20,9 @@ ui.isTerm = function(output)
 end
 
 local function handleEvent(uiObj, event, output)
-    local isGroup = false
+    local isGui = false
     if uiObj.output ~= nil then
-        isGroup = true
+        isGui = true
         output = uiObj.output
     end
     v.expect(3, output, "table")
@@ -38,7 +38,7 @@ local function handleEvent(uiObj, event, output)
         return
     end
 
-    if isGroup then
+    if isGui then
         for _, subObj in pairs(uiObj.items) do
             subObj.handle(event, output)
         end
@@ -88,10 +88,10 @@ local function handleEvent(uiObj, event, output)
     end
 end
 
-local function addToGroup(groupObj, uiObj, id)
+local function addToGui(guiObj, uiObj, id)
     if id == nil then
-        id = "ui" .. tostring(groupObj.idAuto)
-        groupObj.idAuto = groupObj.idAuto + 1
+        id = "ui" .. tostring(guiObj.idAuto)
+        guiObj.idAuto = guiObj.idAuto + 1
     end
 
     v.expect(2, uiObj, "table")
@@ -100,66 +100,66 @@ local function addToGroup(groupObj, uiObj, id)
         error("Not a valid UI obj")
     end
 
-    groupObj.items[id] = uiObj
+    guiObj.items[id] = uiObj
 end
 
-local function removeFromGroup(groupObj, id)
+local function removeFromGui(guiObj, id)
     v.expect(2, id, "string")
 
-    if groupObj.items[id] == nil then
-        error(id .. " not in UI group")
+    if guiObj.items[id] == nil then
+        error(id .. " not in GUI object")
     end
 
-    table.remove(groupObj.items, id)
+    table.remove(guiObj.items, id)
 end
 
-local function resetGroup(groupObj)
-    groupObj.items = {}
+local function resetGui(guiObj)
+    guiObj.items = {}
 end
 
-local function renderGroup(groupObj)
-    local _, height = groupObj.output.getSize()
+local function renderGui(guiObj)
+    local _, height = guiObj.output.getSize()
 
-    groupObj.output.clear()
-    groupObj.output.setCursorPos(1, 1)
-    groupObj.output.setCursorBlink(false)
-    groupObj.output.setTextColor(colors.white)
+    guiObj.output.clear()
+    guiObj.output.setCursorPos(1, 1)
+    guiObj.output.setCursorBlink(false)
+    guiObj.output.setTextColor(colors.white)
 
-    for _, uiObj in pairs(groupObj.items) do
-        uiObj.render(groupObj.output)
+    for _, uiObj in pairs(guiObj.items) do
+        uiObj.render(guiObj.output)
     end
 
-    groupObj.output.setCursorPos(1, height)
+    guiObj.output.setCursorPos(1, height)
 end
 
-ui.Group = function(output)
+ui.GUI = function(output)
     if output == nil then
         output = term
     end
 
-    local groupObj = {
+    local guiObj = {
         items = {},
         idAuto = 1,
         output = output,
         visible = true
     }
-    groupObj.add = function(uiObj, id)
-        addToGroup(groupObj, uiObj, id)
+    guiObj.add = function(uiObj, id)
+        addToGui(guiObj, uiObj, id)
     end
-    groupObj.remove = function(id)
-        removeFromGroup(groupObj, id)
+    guiObj.remove = function(id)
+        removeFromGui(guiObj, id)
     end
-    groupObj.reset = function()
-        resetGroup(groupObj)
+    guiObj.reset = function()
+        resetGui(guiObj)
     end
-    groupObj.render = function()
-        renderGroup(groupObj)
+    guiObj.render = function()
+        renderGui(guiObj)
     end
-    groupObj.handle = function(event)
-        handleEvent(groupObj, event)
+    guiObj.handle = function(event)
+        handleEvent(guiObj, event)
     end
 
-    return groupObj
+    return guiObj
 end
 
 -- #region Text
@@ -170,7 +170,7 @@ local function centerAnchor(anchorObj, output, msg)
     v.expect(3, msg, "string")
 
     local width, _ = output.getSize()
-    local actualMsg, _ = textLib.getTextColor(msg)
+    local actualMsg, _ = l.text.getTextColor(msg)
 
     return {x=(width - #actualMsg) / 2, y=anchorObj.y}
 end
@@ -251,7 +251,7 @@ local function rightAnchor(anchorObj, output, msg)
     v.expect(3, msg, "string")
 
     local width, _ = output.getSize()
-    local actualMsg, _ = textLib.getTextColor(msg)
+    local actualMsg, _ = l.text.getTextColor(msg)
 
     return {x=(width - #actualMsg), y=anchorObj.y}
 end
@@ -314,7 +314,7 @@ local function renderText(textObj, output)
     local oldBackground = output.getBackgroundColor()
 
     local anchorPos = textObj.anchor.getPos(output, textObj.text)
-    local msg, color = textLib.getTextColor(textObj.text)
+    local msg, color = l.text.getTextColor(textObj.text)
     if textObj.color ~= nil then
         output.setTextColor(textObj.color)
     elseif color ~= nil then
