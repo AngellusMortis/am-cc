@@ -3,7 +3,7 @@ local v = require("cc.expect")
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
-local l.ui = require("lib.ui")
+local ui = require("lib.ui")
 local log = require("log")
 
 local progressLib = {}
@@ -18,7 +18,7 @@ local function getGui(output, name, create)
     v.expect(3, create, "boolean")
 
     local namespace = "term"
-    if not l.ui.isTerm(output) then
+    if not ui.isTerm(output) then
         namespace = peripheral.getName(output)
     end
 
@@ -30,7 +30,7 @@ local function getGui(output, name, create)
     local created = false
     local gui = GUI[guiName]
     if gui == nil and create then
-        gui = l.ui.GUI(output)
+        gui = ui.GUI(output)
         created = true
         GUI[guiName] = gui
     end
@@ -67,26 +67,26 @@ local initQuarryUi = function(gui, job, name)
     local center = math.floor(width / 2)
     local titleY = 1
     if name ~= nil then
-        gui.add(l.ui.Text("", l.ui.a.Center(1)), "nameText")
+        gui.add(ui.Text("", ui.a.Center(1)), "nameText")
         titleY = 2
     end
     gui.isPaused = false
     gui.name = name
 
-    gui.add(l.ui.Text("", l.ui.a.Center(titleY)), "titleText")
-    gui.add(l.ui.Bar(3, "Total"), "totalBar")
+    gui.add(ui.Text("", ui.a.Center(titleY)), "titleText")
+    gui.add(ui.Bar(3, "Total"), "totalBar")
     gui.items.totalBar.showProgress = false
     gui.items.totalBar.showPercent = false
-    gui.add(l.ui.Bar(6, "Level"), "lineBar")
+    gui.add(ui.Bar(6, "Level"), "lineBar")
     gui.items.lineBar.total = job.left
-    gui.add(l.ui.Text("", l.ui.a.Center(9)), "statusText")
-    gui.add(l.ui.Button(center - 7, 10, 8, 1, "Stop"), "buttonHalt")
+    gui.add(ui.Text("", ui.a.Center(9)), "statusText")
+    gui.add(ui.Button(center - 7, 10, 8, 1, "Stop"), "buttonHalt")
     gui.items.buttonHalt.fillColor = colors.red
     gui.items.buttonHalt.onActivate = function(_, output, data)
         log.log(string.format("Halting %s...", gui.name))
         require("eventLib").b.turtleRequestHalt(gui.name)
     end
-    gui.add(l.ui.Button(center + 2, 10, 9, 1, "Pause"), "buttonPause")
+    gui.add(ui.Button(center + 2, 10, 9, 1, "Pause"), "buttonPause")
     gui.items.buttonPause.fillColor = colors.yellow
     gui.items.buttonPause.onActivate = function(_, output, data)
         if gui.isPaused then
@@ -97,7 +97,7 @@ local initQuarryUi = function(gui, job, name)
             require("eventLib").b.turtleRequestPause(gui.name)
         end
     end
-    gui.add(l.ui.Text("", l.ui.a.Bottom()), "curPosText")
+    gui.add(ui.Text("", ui.a.Bottom()), "curPosText")
 
     origHandle = gui.handle
     gui.handle = function(event)
@@ -174,7 +174,7 @@ progressLib.quarry = function(output, job, progress, pos, name, isOnline)
     v.expect(6, isOnline, "boolean")
 
     local namespace = "term"
-    if not l.ui.isTerm(output) then
+    if not ui.isTerm(output) then
         namespace = peripheral.getName(output)
     end
     local gui, created = getGui(output, name)

@@ -3,7 +3,7 @@ local v = require("cc.expect")
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
 
-local l.text = require("lib.text")
+local textLib = require("lib.text")
 
 local ui = {}
 ui.c = {}
@@ -170,7 +170,7 @@ local function centerAnchor(anchorObj, output, msg)
     v.expect(3, msg, "string")
 
     local width, _ = output.getSize()
-    local actualMsg, _ = l.text.getTextColor(msg)
+    local actualMsg, _ = textLib.getTextColor(msg)
 
     return {x=(width - #actualMsg) / 2, y=anchorObj.y}
 end
@@ -251,7 +251,7 @@ local function rightAnchor(anchorObj, output, msg)
     v.expect(3, msg, "string")
 
     local width, _ = output.getSize()
-    local actualMsg, _ = l.text.getTextColor(msg)
+    local actualMsg, _ = textLib.getTextColor(msg)
 
     return {x=(width - #actualMsg), y=anchorObj.y}
 end
@@ -314,7 +314,7 @@ local function renderText(textObj, output)
     local oldBackground = output.getBackgroundColor()
 
     local anchorPos = textObj.anchor.getPos(output, textObj.text)
-    local msg, color = l.text.getTextColor(textObj.text)
+    local msg, color = textLib.getTextColor(textObj.text)
     if textObj.color ~= nil then
         output.setTextColor(textObj.color)
     elseif color ~= nil then
