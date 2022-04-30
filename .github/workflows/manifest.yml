@@ -30,8 +30,9 @@ jobs:
     - name: Generate Manifest
       run: |-
         for module in $MODULES; do
-          cd $GITHUB_WORKSPACE/${module}
-          bash $GITHUB_WORKSPACE/.bin/manifest.sh
+          echo "Generate manifest for /${module}..."
+          cd ${GITHUB_WORKSPACE}/${module}
+          bash ${GITHUB_WORKSPACE}/.bin/manifest.sh
         done
 
     - name: Commit Changes
@@ -40,7 +41,7 @@ jobs:
         git config user.email github-actions@github.com
 
         for module in $MODULES; do
-          $GITHUB_WORKSPACE/${module}/manifest.json
+          ${GITHUB_WORKSPACE}/${module}/manifest.json
         done
 
         git commit -m "Generate new manifest"
