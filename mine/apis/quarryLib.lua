@@ -243,7 +243,7 @@ local function resetNodes()
 end
 
 local function resumeLevel(rowNum, isLast)
-    setStatus(string.format("Returning to Row %d...", rowNum)
+    setStatus(string.format("Returning to Row %d...", rowNum))
     log.log(string.format("..Resume start: %s", pp.render(pp.pretty(startPos))))
     local job = getJob()
     local rotated = false
