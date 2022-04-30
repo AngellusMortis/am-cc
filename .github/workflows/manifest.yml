@@ -41,7 +41,7 @@ jobs:
         git config user.email github-actions@github.com
 
         for module in $MODULES; do
-          ${GITHUB_WORKSPACE}/${module}/manifest.json
+          git add ${GITHUB_WORKSPACE}/${module}/manifest.json
         done
 
         git commit -m "Generate new manifest"
