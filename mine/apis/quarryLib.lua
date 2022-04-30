@@ -311,8 +311,8 @@ local function digLevel(firstLevel, lastLevel)
             return
         end
         pos = pathfind.getPosition()
+        startPos = ghu.copy(pos)
     end
-    startPos = ghu.copy(pos)
     resetNodes()
 
     local progress = getProgress()
