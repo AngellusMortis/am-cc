@@ -9,6 +9,14 @@ on:
     paths:
       - '**.lua'
 
+env:
+  MODULES: |-
+    control
+    core
+    mine
+    render
+    turtle
+
 jobs:
   manifest:
     runs-on: ubuntu-latest
@@ -19,25 +27,20 @@ jobs:
 
     - name: Generate Manifest
       run: |-
-        cd $GITHUB_WORKSPACE/control
-        bash $GITHUB_WORKSPACE/.bin/manifest.sh
+        for module in $MODULES do
+          echo $module
+          # cd $GITHUB_WORKSPACE/${module}
+          # bash $GITHUB_WORKSPACE/.bin/manifest.sh
+        done
 
-        cd $GITHUB_WORKSPACE/core
-        bash $GITHUB_WORKSPACE/.bin/manifest.sh
-
-        cd $GITHUB_WORKSPACE/mine
-        bash $GITHUB_WORKSPACE/.bin/manifest.sh
-
-        cd $GITHUB_WORKSPACE/turtle
-        bash $GITHUB_WORKSPACE/.bin/manifest.sh
-
-    - name: Commit Changes
-      run: |-
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git add $GITHUB_WORKSPACE/control/manifest.json
-        git add $GITHUB_WORKSPACE/core/manifest.json
-        git add $GITHUB_WORKSPACE/mine/manifest.json
-        git add $GITHUB_WORKSPACE/turtle/manifest.json
-        git commit -m "Generate new manifest"
-        git push
+    # - name: Commit Changes
+    #   run: |-
+    #     git config user.name github-actions
+    #     git config user.email github-actions@github.com
+    #     git add $GITHUB_WORKSPACE/control/manifest.json
+    #     git add $GITHUB_WORKSPACE/control/manifest.json
+    #     git add $GITHUB_WORKSPACE/core/manifest.json
+    #     git add $GITHUB_WORKSPACE/mine/manifest.json
+    #     git add $GITHUB_WORKSPACE/turtle/manifest.json
+    #     git commit -m "Generate new manifest"
+    #     git push
