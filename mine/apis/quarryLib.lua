@@ -1,4 +1,5 @@
 local v = require("cc.expect")
+local pp = require("cc.pretty")
 
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
 ghu.initModulePaths()
@@ -164,6 +165,7 @@ local function completeLevel()
     local job = getJob()
 
     progress.completedLevels = progress.completedLevels + 1
+    progress.completedRows = 0
     progress.levelPercent = 1
     progress.totalPercent = progress.completedLevels / job.levels
     progress.status = string.format("Completing Level %d", progress.completedLevels - 1)
@@ -228,6 +230,73 @@ local function digAndFill(count, fillLeft, fillRight, isLast)
     end
 end
 
+local function resetNodes()
+    v.expect(1, startPos, "table")
+
+    local offset = settings.get(quarry.s.offsetPos.name)
+
+    pathfind.resetNodes()
+    if offset then
+        pathfind.addNode(offset)
+    end
+    pathfind.addNode(startPos)
+end
+
+local function resumeLevel(rowNum, isLast)
+    setStatus(string.format("Returning to Row %d...", rowNum)
+    log.log(string.format("..Resume start: %s", pp.render(pp.pretty(startPos))))
+    local job = getJob()
+    local rotated = false
+    local leftMod = -1
+    local forwardMod = 1
+    if startPos.dir == pathfind.c.RIGHT then
+        rotated = true
+        leftMod = 1
+        forwardMod = 1
+    elseif startPos.dir == pathfind.c.BACK then
+        leftMod = 1
+        forwardMod = -1
+    elseif startPos.dir == pathfind.c.LEFT then
+        rotated = true
+        leftMod = -1
+        forwardMod = -1
+    end
+
+    local currentX = startPos.x
+    local currentZ = startPos.z
+
+    local isEven = rowNum % 2 == 0
+    if not isEven then
+        local forwardCount = forwardMod * (job.forward - 1)
+        log.log(string.format("..Resume: forward %d", job.forward - 1))
+        if rotated then
+            currentX = startPos.x + forwardCount
+        else
+            currentZ = startPos.z + forwardCount
+        end
+        pathfind.goTo(currentX, currentZ)
+    end
+
+    local leftCount = leftMod * (rowNum - 1)
+    log.log(string.format("..Resume: left %d", rowNum - 1))
+    if rotated then
+        pathfind.goTo(currentX, currentZ + leftCount, nil, startPos.dir)
+    else
+        pathfind.goTo(currentX + leftCount, currentZ, nil, startPos.dir)
+    end
+
+    pathfind.turnLeft()
+    log.log(string.format("..Resume: dig", rowNum - 1))
+    digAndFill(1, isEven, not isEven, isLast)
+    if isEven then
+        log.log("..Resume: turn right")
+        pathfind.turnRight()
+    else
+        log.log("..Resume: turn left")
+        pathfind.turnLeft()
+    end
+end
+
 local function digLevel(firstLevel, lastLevel)
     local job = getJob()
     local progressOneLevel = 1 / job.levels
@@ -242,8 +311,9 @@ local function digLevel(firstLevel, lastLevel)
             return
         end
         pos = pathfind.getPosition()
-        startPos = ghu.copy(pos)
     end
+    startPos = ghu.copy(pos)
+    resetNodes()
 
     local progress = getProgress()
     local levelsDown = pos.y - startPos.y
@@ -263,7 +333,11 @@ local function digLevel(firstLevel, lastLevel)
         turtleCore.fillDown(true)
     end
 
-    for row = 1, job.left, 1 do
+    if progress.completedRows > 0 then
+        resumeLevel(progress.completedRows, lastLevel)
+    end
+
+    for row = progress.completedRows + 1, job.left, 1 do
         local isEvenRow = row % 2 == 0
         local isLastRow = row == job.left
 

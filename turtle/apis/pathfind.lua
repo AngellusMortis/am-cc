@@ -54,8 +54,11 @@ pathfind.getReturnNodes = function()
     return settings.get(pathfind.s.returnNodes.name)
 end
 
-pathfind.addNode = function()
-    local pos = pathfind.getPosition()
+pathfind.addNode = function(pos)
+    if pos == nil then
+        pos = pathfind.getPosition()
+    end
+    v.expect(1, pos, "table")
     local nodes = pathfind.getNodes()
     nodes[#nodes + 1] = pos
     settings.set(pathfind.s.nodes.name, nodes)
@@ -65,8 +68,11 @@ pathfind.addNode = function()
     return pos
 end
 
-pathfind.addReturnNode = function()
-    local pos = pathfind.getPosition()
+pathfind.addReturnNode = function(pos)
+    if pos == nil then
+        pos = pathfind.getPosition()
+    end
+    v.expect(1, pos, "table")
     local nodes = pathfind.getReturnNodes()
     nodes[#nodes + 1] = pos
     settings.set(pathfind.s.returnNodes.name, nodes)
