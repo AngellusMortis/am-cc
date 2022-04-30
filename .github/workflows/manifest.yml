@@ -8,6 +8,8 @@ on:
       - master
     paths:
       - '**.lua'
+      - '**/help/*.txt'
+      - '**/deps.json'
 
 env:
   MODULES: |-
@@ -27,7 +29,7 @@ jobs:
 
     - name: Generate Manifest
       run: |-
-        for module in $MODULES do
+        for module in $MODULES; do
           echo $module
           # cd $GITHUB_WORKSPACE/${module}
           # bash $GITHUB_WORKSPACE/.bin/manifest.sh
