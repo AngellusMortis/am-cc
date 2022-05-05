@@ -1,0 +1,10 @@
+{
+  "files": {
+    "apis/am/event.lua": "9f93ad4f92a8cbc5f016bf38e13f1de2dc3c9512e5734a240e070d929fab0d5e",
+    "apis/am/log.lua": "a30069f8a7ab002d9b07f863692cfad8d2e8aa91ec1b2fa2ebbc42838e9884e6",
+    "apis/am/helpers.lua": "20abc977736e8fb41ca9adccbcdf66cd8eeec80e8a5a77e1510f49efd80a3686"
+  },
+  "dependencies": [
+    "AngellusMortis/cc-render@v1"
+  ]
+}
