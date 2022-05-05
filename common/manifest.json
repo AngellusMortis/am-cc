@@ -1,8 +1,8 @@
 {
   "files": {
-    "apis/am/event.lua": "9f93ad4f92a8cbc5f016bf38e13f1de2dc3c9512e5734a240e070d929fab0d5e",
-    "apis/am/log.lua": "a30069f8a7ab002d9b07f863692cfad8d2e8aa91ec1b2fa2ebbc42838e9884e6",
-    "apis/am/helpers.lua": "20abc977736e8fb41ca9adccbcdf66cd8eeec80e8a5a77e1510f49efd80a3686"
+    "apis/am/event.lua": "49d7743dec5abf61e719a5e0c8aa8ddcc8457787823d0b46441732ae122a1ad6",
+    "apis/am/log.lua": "88a01220884a3b9fdc4d7caf0207cb4dfeeef91291eff8821070758695d1e767",
+    "apis/am/helpers.lua": "d433cc8144b86962006b828f5db7e56a4385268796b681000503a22d7a9eaa5f"
   },
   "dependencies": [
     "AngellusMortis/cc-render@v1"

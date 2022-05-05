@@ -1,10 +1,10 @@
 {
   "files": {
-    "apis/am/turtle.lua": "d72a005bfefdf444a5829f701a752f715193856e6180068e4e4c90406fc948d1",
-    "apis/am/pathfind.lua": "896ca872c5c61f2f25ea18be32057c8fb4faf56a26d589821aa1d01026f19304",
-    "autorun/completions.lua": "eedfeed026225b206e3b3cc6d6d821ed5330adff99a50e0e1f806b88b6a3f27c",
-    "programs/pf.lua": "ab4e033bb37fbd52651b469867f96b87a59e135e46afbb0b4631ee33535731eb",
-    "programs/tc.lua": "b87bd7e27174cea6cc37843e11e87b41f4b85eada5b63c8d7ff2a725cc56d3b7"
+    "apis/am/turtle.lua": "0667730a0d6c986ac6ebd5e72aafe87292ee62582770bebb00a9e8dd479fa5cc",
+    "apis/am/pathfind.lua": "95cd51586fda3b318767e7bb08ff52f15c6f9bd9c14a603021d241d38154b207",
+    "autorun/completions.lua": "aab1740bdf52457af391a966878b2a98c89cb7a52d516b14de50d27ff74b9f61",
+    "programs/pf.lua": "f8ee867bb0e03b5e89c866f32f7e6db4402e065ce50d52e8303f218e65241d76",
+    "programs/tc.lua": "35ba858edfd5efe115b73d584ef79e8c29ba5850c5efabca386b83edc7411735"
   },
   "dependencies": [
     "AngellusMortis/am-cc:/common"
