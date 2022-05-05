@@ -1,3 +1,5 @@
+local v = require("cc.expect")
+
 local object = require("ext.object")
 
 ---@class cc.item
@@ -27,23 +29,53 @@ local object = require("ext.object")
 ---@field equals fun(cc.vector): boolean
 
 local function isVector(obj)
-    return obj.normalized ~= nil and obj.x ~= nil and obj.y ~= nil and obj.z ~= nil
+    return obj.normalize ~= nil and obj.x ~= nil and obj.y ~= nil and obj.z ~= nil
 end
 
-local function requireVector(obj)
+local function requireVector(index, obj)
+    v.expect(1, index, "number")
     if not isVector(obj) then
-        error("must be a vector")
+        local t = type(obj)
+        local name
+        local ok, info = pcall(debug.getinfo, 3, "nS")
+        if ok and info.name and info.name ~= "" and info.what ~= "C" then
+            name = info.name
+        end
+
+        if name then
+            error(("bad argument #%d to '%s' (expected Vector, got %s)"):format(index, name, t), 3)
+        else
+            error(("bad argument #%d (expected Vector, got %s)"):format(index, t), 3)
+        end
     end
 end
 
 local function isPosition(obj)
+    local log = require("am.log")
+    log.debug(obj)
     return object.has(obj, "am.p.TurtlePosition")
 end
 
-local function requirePosition(obj)
+local function requirePosition(index, obj)
+    v.expect(1, index, "number")
     if not isPosition(obj) then
-        error("must be a vector")
+        local t = type(obj)
+        local name
+        local ok, info = pcall(debug.getinfo, 3, "nS")
+        if ok and info.name and info.name ~= "" and info.what ~= "C" then
+            name = info.name
+        end
+
+        if name then
+            error(("bad argument #%d to '%s' (expected TurtlePosition, got %s)"):format(index, name, t), 3)
+        else
+            error(("bad argument #%d (expected TurtlePosition, got %s)"):format(index, t), 3)
+        end
     end
+end
+
+local function isOrigin(pos)
+    return isPosition(pos) and pos.v.x == 0 and pos.v.y == 0 and pos.v.z == 0
 end
 
 local h = {}
@@ -52,5 +84,6 @@ h.isVector = isVector
 h.requireVector = requireVector
 h.isPosition = isPosition
 h.requirePosition = requirePosition
+h.isOrigin = isOrigin
 
 return h

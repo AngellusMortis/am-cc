@@ -2,9 +2,10 @@ local v = require("cc.expect")
 
 require(settings.get("ghu.base") .. "core/apis/ghu")
 
-local log = require("log")
-local pf = require("pathfind")
-local e = require("eventLib")
+local log = require("am.log")
+local pf = require("am.pathfind")
+local e = require("am.event")
+local h = require("am.helpers")
 
 local tc = {}
 ---@type table<string, string>
@@ -119,14 +120,14 @@ end
 
 local function emptyInventoryBase()
     e.TurtleEmptyEvent(false, nil):send()
-    log("Returning to origin...")
+    log.info("Returning to origin...")
     while not pf.goToOrigin() do
         turtleError("Cannot Return to Origin")
         sleep(5)
     end
 
     pf.turnTo(e.c.Turtle.Direction.Left)
-    log("Emptying inventory...")
+    log.info("Emptying inventory...")
     local items = getInventory()
     for i = 2, 16, 1 do
         if turtle.getItemCount(i) > 0 then
@@ -167,7 +168,8 @@ local function emptyInventory(doReturn)
     end
 
     emptyInventoryBase()
-    if doReturn then
+    local pos = pf.s.position.get()
+    if doReturn and not h.isOrigin(pos) then
         log.info("Returning...")
         while not pf.goToReturn() do
             turtleError("Cannot Return to Return")
@@ -182,13 +184,25 @@ local function refuelBase(count)
     v.expect(1, count, "number")
     v.range(count, 1)
 
-    local needed = count - turtle.getFuelLevel()
+    local currentLevel = turtle.getFuelLevel()
+    local needed = count - currentLevel
     local chestMsg = "Missing Refuel Chest Above"
+    local pullCount = nil
     turtle.select(2)
-    while count > turtle.getFuelLevel() do
-        tc.pullUp(nil, string.format("Need %d More Fuel", needed), chestMsg)
+    while count > currentLevel do
+        tc.pullUp(pullCount, string.format("Need %d More Fuel", needed), chestMsg)
         turtle.refuel()
-        needed = count - turtle.getFuelLevel()
+        if pullCount == nil then
+            local fuelPer = turtle.getFuelLevel() - currentLevel
+            pullCount = math.ceil(needed / fuelPer)
+            if pullCount < 1 then
+                pullCount = nil
+            elseif pullCount > 64 then
+                pullCount = 64
+            end
+        end
+        currentLevel = turtle.getFuelLevel()
+        needed = count - currentLevel
     end
     turtle.dropUp()
     turtle.select(1)
@@ -215,8 +229,16 @@ local function refuel(count, empty)
         emptyInventory()
         e.TurtleRefuelEvent(false, count, startingLevel):send()
     end
+    local pos = pf.s.position.get()
+    if not h.isOrigin(pos) then
+        log.info("Returning...")
+        while not pf.goToOrigin() do
+            turtleError("Cannot Return to Origin")
+            sleep(5)
+        end
+    end
     log.info(string.format("Refueling (%d)...", count))
-    refuel(count)
+    refuelBase(count)
     e.TurtleRefuelEvent(true, count, startingLevel, turtle.getFuelLevel()):send()
 end
 
@@ -490,7 +512,7 @@ local function digMoveDir(moveDir, count)
     end
     v.expect(1, moveDir, "number")
     v.expect(2, count, "number")
-    v.range(moveDir, 1, 3)
+    v.range(moveDir, -1, 1)
 
     digEventDir(moveDir, count, false)
     local hasFilled = false
@@ -567,7 +589,7 @@ local function insertDir(moveDir, count, msg, chestMsg)
     end
     v.expect(1, moveDir, "number")
     v.expect(2, count, "number")
-    v.range(moveDir, 1, 3)
+    v.range(moveDir, -1, 1)
 
     if msg == nil then
         msg = "Failed to Insert Item" .. dirStr(moveDir)
@@ -618,7 +640,7 @@ local function pullDir(moveDir, count, msg, chestMsg)
     end
     v.expect(1, moveDir, "number")
     v.expect(2, count, "number")
-    v.range(moveDir, 1, 3)
+    v.range(moveDir, -1, 1)
 
     if msg == nil then
         msg = "Failed to Pull Item" .. dirStr(moveDir)

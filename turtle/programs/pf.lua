@@ -50,23 +50,28 @@ end
 ---@param arg3 string
 ---@param arg4 string
 local function main(op, arg1, arg2, arg3, arg4)
-    op = string.lower(op)
+    if op ~= nil then
+        op = string.lower(op)
+    end
 
     if op == "pos" then
         log.debug("pf pos")
         log.info(pf.s.position.get())
     elseif op == "nodes" or op == "save" then
+        if arg1 == nil then
+            arg1 = false
+        end
         local isReturn = core.strBool(arg1)
         v.expect(2, isReturn, "boolean")
 
         log.debug(string.format("pf %s %s", op, isReturn))
         if op == "save" then
-            log.info(pf.addNode(isReturn))
+            log.info(pf.addNode(nil, isReturn))
             return
         end
 
         if isReturn then
-            log.info(pf.s.returnnodes.get())
+            log.info(pf.s.returnNodes.get())
         else
             log.info(pf.s.nodes.get())
         end
@@ -93,7 +98,7 @@ local function main(op, arg1, arg2, arg3, arg4)
         end
         string.lower(arg1)
 
-        log.debug(string.format("pf turnTo %d", arg1))
+        log.debug(string.format("pf turnTo %s", arg1))
         local dir = pf.dirFromString(arg1, pf.c.DirType.Turn)
         log.info(pf.turnTo(dir))
     elseif op == "turn" then
@@ -101,7 +106,7 @@ local function main(op, arg1, arg2, arg3, arg4)
         if arg1 == "left" then
             log.debug("pf turn left")
             log.info(pf.turnLeft())
-        elseif arg2 == "right" then
+        elseif arg1 == "right" then
             log.debug("pf turn right")
             log.info(pf.turnRight())
         else

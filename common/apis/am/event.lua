@@ -2,7 +2,7 @@ local v = require("cc.expect")
 
 require(settings.get("ghu.base") .. "core/apis/ghu")
 
-local BaseEvent = require("am.ui").b.BaseEvent
+local BaseEvent = require("am.ui").e.BaseEvent
 
 local h = require("am.helpers")
 
@@ -184,11 +184,11 @@ end
 
 ---@class am.e.PositionUpdateEvent:am.e.PathfindEvent
 ---@field position am.p.TurtlePosition
-local PositionUpdateEvent = DistributedEvent:extend("am.e.PositionUpdateEvent")
+local PositionUpdateEvent = PathfindEvent:extend("am.e.PositionUpdateEvent")
 e.PositionUpdateEvent = PositionUpdateEvent
 function PositionUpdateEvent:init(position)
     v.expect(1, position, "table")
-    h.requirePosition(position)
+    h.requirePosition(1, position)
     PositionUpdateEvent.super.init(self, e.c.Event.Pathfind.position)
 
     self.position = position
@@ -204,15 +204,15 @@ function ResetPathfindEvent:init()
     return self
 end
 
----@class am.e.NewNodeEvent:am.e.PositionUpdateEvent
+---@class am.e.NewNodeEvent:am.e.PathfindEvent
 ---@field position am.p.TurtlePosition
 ---@field isReturn boolean|nil
-local NewNodeEvent = PositionUpdateEvent:extend("am.e.NewNodeEvent")
+local NewNodeEvent = PathfindEvent:extend("am.e.NewNodeEvent")
 e.NewNodeEvent = NewNodeEvent
 function NewNodeEvent:init(position, isReturn)
     v.expect(1, position, "table")
     v.expect(1, isReturn, "boolean", "nil")
-    h.requirePosition(position)
+    h.requirePosition(1, position)
     NewNodeEvent.super.init(self, e.c.Event.Pathfind.node)
     if isReturn == nil then
         isReturn = false
@@ -259,7 +259,7 @@ function PathfindTurnEvent:init(dir, success)
     v.expect(1, dir, "number")
     v.expect(2, success, "boolean", "nil")
     v.range(dir, 1, 4)
-    FailableTurtleEvent.super.init(self, e.c.Event.Pathfind.pathfind_turn, success)
+    FailableTurtleEvent.super.init(self, e.c.Event.Pathfind.turn, success)
 
     self.dir = dir
     return self
@@ -275,8 +275,8 @@ function PathfindGoToEvent:init(destPos, startPos, gotoType, success)
     v.expect(2, startPos, "table")
     v.expect(3, gotoType, "number")
     v.expect(4, success, "boolean", "nil")
-    h.requirePosition(destPos)
-    h.requirePosition(startPos)
+    h.requirePosition(1, destPos)
+    h.requirePosition(2, startPos)
     v.range(gotoType, 0, 2)
     PathfindGoToEvent.super.init(self, e.c.Event.Pathfind.go_to, success)
 
@@ -418,9 +418,9 @@ local TurtleRefuelEvent = TurtleCompletableEvent:extend("am.e.TurtleRefuelEvent"
 e.TurtleRefuelEvent = TurtleRefuelEvent
 function TurtleRefuelEvent:init(completed, requested, oldLevel, newLevel)
     v.expect(1, completed, "boolean")
-    v.expect(2, requested, "table", "nil")
-    v.expect(3, oldLevel, "table", "nil")
-    v.expect(4, newLevel, "table", "nil")
+    v.expect(2, requested, "number", "nil")
+    v.expect(3, oldLevel, "number", "nil")
+    v.expect(4, newLevel, "number", "nil")
     if completed and (oldLevel == nil or newLevel == nil) then
         error("Must include levels if is complete")
     end

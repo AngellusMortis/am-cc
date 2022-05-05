@@ -13,8 +13,12 @@ shell.setCompletionFunction(
 local turnDirections = { "left", "right", "front", "back" }
 local compGoTo = function(shell, text, previous)
     local op = string.lower(previous[2])
-    if op ~= "goto" and op ~= "turn" and op ~= "turnto" then
+    if op ~= "goto" and op ~= "turn" and op ~= "turnto" and op ~= "nodes" and op ~= "save" then
         return nil
+    end
+
+    if op == "nodes" or op == "save" then
+        return completion.choice(shell, text, previous, { "true", "false" }, false)
     end
 
     if op == "turn" then
@@ -30,7 +34,7 @@ end
 shell.setCompletionFunction(
     shellBase .. "pf.lua",
     completion.build(
-        { completion.choice, { "pos", "nodes ", "save", "reset", "turn ", "turnto ", "go ", "goup ", "goto ", "gotopos " }, false},
+        { completion.choice, { "pos", "nodes ", "save ", "reset", "turn ", "turnto ", "go ", "goup ", "goto ", "gotopos " }, false},
         compGoTo,
         nil,
         nil,

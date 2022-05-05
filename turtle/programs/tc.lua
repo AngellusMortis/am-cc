@@ -31,6 +31,9 @@ local function printUsage(op)
 end
 
 local function main(op, count)
+    if op ~= nil then
+        op = string.lower(op)
+    end
     if count == nil then
         count = 1
     else
@@ -53,10 +56,10 @@ local function main(op, count)
 
         tc.refuel(current + count)
     elseif op == "dig" then
-        tc.digForward(count)
-    elseif op == "digUp" then
+        tc.dig(count)
+    elseif op == "digup" then
         tc.digUp(count)
-    elseif op == "digDown" then
+    elseif op == "digdown" then
         tc.digDown(count)
     else
         printUsage(op)

@@ -47,14 +47,15 @@ local function log(msg, pretty, fileOnly)
         else
             logFile.writeLine(msg)
         end
+        logFile.close()
     end
 
-    if not l.s.print.get() then
+    if fileOnly or not l.s.print.get() then
         return
     end
 
     if pretty then
-        pp.print(pp.group(pp.print(msg)))
+        pp.print(pp.group(pp.pretty(msg)))
     else
         print(msg)
     end
