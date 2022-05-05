@@ -9,6 +9,20 @@ local log = require("log")
 local progressLib = {}
 local GUI = {}
 
+-- eventLib.printProgress = function(event, name, output)
+--     if name == nil then
+--         name = eventLib.getName()
+--     end
+--     if output == nil then
+--         output = term
+--     end
+
+--     local progressType = event[2]
+--     if progressType == eventLib.e.progress_quarry then
+--         progressLib.quarry(output, event[3], event[4], event[5], name, eventLib.online)
+--     end
+-- end
+
 local function getGui(output, name, create)
     if create == nil then
         create = true

@@ -7,17 +7,17 @@ on:
     branches:
       - master
     paths:
+      - .github/workflows/manifest.yml
+      - .bin/manifest.sh
       - '**.lua'
       - '**/help/*.txt'
       - '**/deps.json'
+      - '!**.min.lua'
+      - '!install.lua'
 
 env:
   MODULES: |-
-    oo
-    control
-    core
-    mine
-    render
+    common
     turtle
 
 jobs:
@@ -27,6 +27,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+
+    - name: Install npm
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+
+    - name: Install luamin
+      run: sudo npm install -g luamin
 
     - name: Generate Manifest
       run: |-
@@ -41,9 +49,13 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
 
+        cd ${GITHUB_WORKSPACE}
         for module in $MODULES; do
           git add ${GITHUB_WORKSPACE}/${module}/manifest.json
+          git add ${GITHUB_WORKSPACE}/${module}/*.min.lua
         done
 
-        git commit -m "Generate new manifest"
-        git push
+        if [[ -n $(git diff --name-only --cached) ]]; then
+          git commit -m "Generate new manifest"
+          git push
+        fi

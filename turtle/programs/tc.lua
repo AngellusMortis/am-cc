@@ -1,13 +1,13 @@
 local v = require("cc.expect")
 
-local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
-ghu.initModulePaths()
+require(settings.get("ghu.base") .. "core/apis/ghu")
 
-local turtleCore = require("turtleCore")
+local tc = require("am.turtle")
 
 local function printUsage(op)
     local programName = arg[0] or fs.getName(shell.getRunningProgram())
-    local usage = " <empty|refuel|dig|digUp|digDown> [count]"
+    local usage = " <action> [count]"
+    local printActions = false
 
     if op == "empty" then
         usage = " empty"
@@ -19,9 +19,15 @@ local function printUsage(op)
         usage = " digUp <count>"
     elseif op == "digDown" then
         usage = " digDown <count>"
+    else
+        printActions = true
     end
 
     print("Usage: " .. programName .. usage)
+    if printActions then
+        print("Actions:")
+        print("empty, refuel, dig, digUp, digDown")
+    end
 end
 
 local function main(op, count)
@@ -32,7 +38,7 @@ local function main(op, count)
     end
 
     if op == "empty" then
-        turtleCore.emptyInventory()
+        tc.emptyInventory()
     elseif op == "refuel" then
         local current = turtle.getFuelLevel()
         if current == "unlimited" then
@@ -45,13 +51,13 @@ local function main(op, count)
             return
         end
 
-        turtleCore.goRefuel(current + count, false)
+        tc.refuel(current + count)
     elseif op == "dig" then
-        turtleCore.digForward(count)
+        tc.digForward(count)
     elseif op == "digUp" then
-        turtleCore.digUp(count)
+        tc.digUp(count)
     elseif op == "digDown" then
-        turtleCore.digDown(count)
+        tc.digDown(count)
     else
         printUsage(op)
     end

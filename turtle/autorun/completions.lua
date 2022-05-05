@@ -1,37 +1,39 @@
 local completion = require("cc.shell.completion")
 
 local ghu = require(settings.get("ghu.base") .. "core/apis/ghu")
-ghu.initModulePaths()
-
-local shellBase = string.sub(ghu.base .. "AngellusMortis/am-cc/turtle/", 2)
+local shellBase = string.sub(ghu.p.ext .. "AngellusMortis/am-cc/turtle/programs/turtle/", 2)
 
 shell.setCompletionFunction(
-    shellBase .. "programs/turtle/tc.lua",
+    shellBase .. "tc.lua",
     completion.build(
         { completion.choice, { "empty", "refuel ", "dig ", "digUp ", "digDown " }, false}
     )
 )
 
-local directions = { "left", "right", "forward", "back" }
+local turnDirections = { "left", "right", "front", "back" }
 local compGoTo = function(shell, text, previous)
     local op = string.lower(previous[2])
-    if op ~= "goto" and op ~= "turn" then
+    if op ~= "goto" and op ~= "turn" and op ~= "turnto" then
         return nil
     end
 
     if op == "turn" then
-        return completion.choice(shell, text, previous, directions, false)
+        return completion.choice(shell, text, previous, { "left", "right" }, false)
     end
 
-    return completion.choice(shell, text, previous, { "origin", "return", "node", "returnNode" }, false)
+    if op == "turnto" then
+        return completion.choice(shell, text, previous, turnDirections, false)
+    end
+
+    return completion.choice(shell, text, previous, { "origin", "return", "node", "returnnode" }, false)
 end
 shell.setCompletionFunction(
-    shellBase .. "programs/turtle/pf.lua",
+    shellBase .. "pf.lua",
     completion.build(
-        { completion.choice, { "pos", "nodes ", "returnnodes", "save", "savereturn", "reset", "go ", "govert ", "turn ", "turnleft", "turnright", "goto ", "gotopos " }, false},
+        { completion.choice, { "pos", "nodes ", "save", "reset", "turn ", "turnto ", "go ", "goup ", "goto ", "gotopos " }, false},
         compGoTo,
         nil,
         nil,
-        { completion.choice, directions, false}
+        { completion.choice, turnDirections, false}
     )
 )
