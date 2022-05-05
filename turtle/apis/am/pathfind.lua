@@ -294,7 +294,8 @@ local function turnTo(dir)
     end
     v.range(dir, 1, 4)
 
-    e.PathfindTurnEvent(dir, nil):send()
+    local event = e.PathfindTurnEvent(dir, nil)
+    event:send()
     local pos = p.s.position.get()
     local success = false
     if preferLeft[pos.dir] == dir then
@@ -308,7 +309,8 @@ local function turnTo(dir)
             pos = p.s.position.get()
         end
     end
-    e.PathfindTurnEvent(dir, success):send()
+    event.success = success
+    event:send()
     return success
 end
 
@@ -421,7 +423,8 @@ local function goTo(x, z, y, dir)
         y = startPos.v.y
     end
     local destPos = TurtlePosition(vector.new(x, y, z), dir)
-    e.PathfindGoToEvent(destPos, startPos, e.c.Turtle.GoTo.Node, nil):send()
+    local event = e.PathfindGoToEvent(destPos, startPos, e.c.Turtle.GoTo.Node, nil)
+    event:send()
 
     local success = true
     local xDiff = -(startPos.v.x - x)
@@ -454,7 +457,8 @@ local function goTo(x, z, y, dir)
     if not success then
         local pos = p.s.position.get()
         if startPos.v.x == pos.v.x and startPos.v.y == pos.v.y and startPos.v.z == pos.v.z then
-            e.PathfindGoToEvent(destPos, startPos, e.c.Turtle.GoTo.Node, false):send()
+            event.success = false
+            event:send()
             return false
         end
         return goTo(x, z, y, dir)
@@ -463,7 +467,8 @@ local function goTo(x, z, y, dir)
     if success and dir ~= nil then
         turnTo(dir)
     end
-    e.PathfindGoToEvent(destPos, startPos, e.c.Turtle.GoTo.Node, success):send()
+    event.success = success
+    event:send()
     return success
 end
 
@@ -503,9 +508,10 @@ end
 local function goToOrigin()
     local startPos = p.s.position.get()
     local origin = p.s.position.default:copy()
-    e.PathfindGoToEvent(
+    local event = e.PathfindGoToEvent(
         startPos, origin, e.c.Turtle.GoTo.Origin, nil
-    ):send()
+    )
+    event:send()
     resetNodes(true)
     addNode(nil, true)
 
@@ -515,9 +521,8 @@ local function goToOrigin()
     while #nodes > 0 do
         success, pos = goToPreviousNode()
         if not success then
-            e.PathfindGoToEvent(
-                startPos, origin, e.c.Turtle.GoTo.Origin, false
-            ):send()
+            event.success = false
+            event:send()
             return false
         end
         addNode(nil, true)
@@ -525,9 +530,8 @@ local function goToOrigin()
     end
     resetNodes(false)
     success = goTo(origin.v.x, origin.v.z, origin.v.y, origin.dir)
-    e.PathfindGoToEvent(
-        startPos, origin, e.c.Turtle.GoTo.Origin, success
-    ):send()
+    event.success = success
+    event:send()
     return success
 end
 
@@ -543,9 +547,10 @@ local function goToReturn()
     end
 
     local startPos = p.s.position.get()
-    e.PathfindGoToEvent(
+    local event = e.PathfindGoToEvent(
         startPos, destPos, e.c.Turtle.GoTo.Return, nil
-    ):send()
+    )
+    event:send()
     resetNodes(false)
     addNode()
 
@@ -554,18 +559,16 @@ local function goToReturn()
     while #nodes > 0 do
         success, pos = goToPreviousNode(true)
         if not success then
-            e.PathfindGoToEvent(
-                startPos, destPos, e.c.Turtle.GoTo.Return, false
-            ):send()
+            event.success = false
+            event:send()
             return false
         end
         addNode()
         nodes = p.s.returnNodes.get()
     end
     resetNodes(true)
-    e.PathfindGoToEvent(
-        startPos, destPos, e.c.Turtle.GoTo.Return, true
-    ):send()
+    event.success = success
+    event:send()
     return true
 end
 

@@ -119,7 +119,8 @@ local function hasRoom()
 end
 
 local function emptyInventoryBase()
-    e.TurtleEmptyEvent(false, nil):send()
+    local event = e.TurtleEmptyEvent(false, nil)
+    event:send()
     log.info("Returning to origin...")
     while not pf.goToOrigin() do
         turtleError("Cannot Return to Origin")
@@ -143,9 +144,12 @@ local function emptyInventoryBase()
             placed[#placed + 1] = placed
         end
     end
-    e.TurtleEmptyEvent(true, placed):send()
+    event.completed = true
+    event.items = placed
+    event:send()
 
-    e.TurtleFetchFillEvent(false, nil):send()
+    event = e.TurtleFetchFillEvent(false, nil)
+    event:send()
     items = getInventory()
     turtle.select(1)
     pf.turnTo(e.c.Turtle.Direction.Right)
@@ -155,7 +159,9 @@ local function emptyInventoryBase()
     newItems = getInventoryDiff(items)
     for _, item in ipairs(newItems) do
         if item ~= nil and item.count > 0 then
-            e.TurtleFetchFillEvent(true, item):send()
+            event.completed = true
+            event.item = item
+            event:send()
         end
     end
 end
@@ -223,11 +229,12 @@ local function refuel(count, empty)
         return
     end
     local startingLevel = turtle.getFuelLevel()
-    e.TurtleRefuelEvent(false, count, startingLevel):send()
+    local event = e.TurtleRefuelEvent(false, count, startingLevel)
+    event:send()
 
     if empty then
         emptyInventory()
-        e.TurtleRefuelEvent(false, count, startingLevel):send()
+        event:send()
     end
     local pos = pf.s.position.get()
     if not h.isOrigin(pos) then
@@ -239,7 +246,9 @@ local function refuel(count, empty)
     end
     log.info(string.format("Refueling (%d)...", count))
     refuelBase(count)
-    e.TurtleRefuelEvent(true, count, startingLevel, turtle.getFuelLevel()):send()
+    event.completed = true
+    event.newLevel = turtle.getFuelLevel()
+    event:send()
 end
 
 ---@param moveDir number
