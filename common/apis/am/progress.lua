@@ -39,6 +39,10 @@ function ProgressWrapper:update(event)
     self.progress = event
 end
 
+---@param status string
+function ProgressWrapper:updateStatus(status)
+end
+
 ---@param event string Event name
 ---@param args table
 function ProgressWrapper:handle(event, args)
@@ -132,6 +136,14 @@ function QuarryWrapper:update(event)
     ))
 end
 
+---@param status string
+function QuarryWrapper:updateStatus(status)
+    local statusText = self.screen:get("statusText")
+    ---@cast statusText am.ui.BoundText
+
+    statusText:update(status)
+end
+
 ---@param event string Event name
 ---@param args table
 function QuarryWrapper:handle(event, args)
@@ -209,6 +221,18 @@ local function getWrapper(src, event, output)
 end
 
 ---@param src am.net.src
+---@param status string
+local function updateStatus(src, status)
+    v.expect(1, src, "table")
+    v.expect(2, status, "string")
+
+    local wrapper = getWrapper(src)
+    if wrapper ~= nil then
+        wrapper:updateStatus(status)
+    end
+end
+
+---@param src am.net.src
 ---@param event am.e.ProgressEvent
 ---@param output? cc.output
 local function printProgress(src, event, output)
@@ -237,6 +261,7 @@ local function handle(src, event, args)
     end
 end
 
+p.updateStatus = updateStatus
 p.print = printProgress
 p.handle = handle
 
