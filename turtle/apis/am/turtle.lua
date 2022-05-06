@@ -593,11 +593,8 @@ end
 ---@param msg? string
 ---@param chestMsg? string
 local function insertDir(moveDir, count, msg, chestMsg)
-    if count == nil then
-        count = 1
-    end
     v.expect(1, moveDir, "number")
-    v.expect(2, count, "number")
+    v.expect(2, count, "number", "nil")
     v.range(moveDir, -1, 1)
 
     if msg == nil then
