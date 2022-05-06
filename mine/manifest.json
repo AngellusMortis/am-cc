@@ -2,7 +2,7 @@
   "files": {
     "apis/am/quarry.lua": "bd9320dfcfc4a2e9b562686dc660918e8eafbf83840b7e88a1c9a87689d072a8",
     "autorun/quarryResume.lua": "d4adb3c13d02ace3eea19c21f361588d15db706479193d8029d85cea3b40bbfc",
-    "autorun/completions.lua": "7173a3118b226a6244048df7c69a726b0273b41a6214fdf313ada015e70b25d0",
+    "autorun/completions.lua": "fbda47aa7ba11148e8e274de2c9bc53244fc295aec3ac4bfe5ae1cda6c0a9bab",
     "programs/turtle/quarry.lua": "309e21aeed931f1f7293ddce4d69bf2cc16592f33618a81835c7b2f120f25029"
   },
   "dependencies": [
