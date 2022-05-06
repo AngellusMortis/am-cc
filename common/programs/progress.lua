@@ -129,7 +129,10 @@ local function getDisplay(src, autoDiscovery)
         DATA.outputMap, DATA.computerMap = getOutputMap()
     end
 
-    local output = DATA.outputMap[src.id] or DATA.outputMap[string.lower(src.label)]
+    local output = DATA.outputMap[src.id]
+    if output == nil and src.label ~= nil then
+        output = DATA.outputMap[string.lower(src.label)]
+    end
     if output ~= nil or not autoDiscovery then
         return output
     end
