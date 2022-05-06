@@ -1,7 +1,7 @@
 {
   "files": {
-    "apis/am/event.lua": "49d7743dec5abf61e719a5e0c8aa8ddcc8457787823d0b46441732ae122a1ad6",
-    "apis/am/log.lua": "88a01220884a3b9fdc4d7caf0207cb4dfeeef91291eff8821070758695d1e767",
+    "apis/am/event.lua": "711f520028e36b5afd952a85e45eadbeccb115e7821dda4941ed1c53e00826c1",
+    "apis/am/log.lua": "fa65d7aa771887585e21761d9da2fadfd46160d5dd61fa12d005c62adde3a32a",
     "apis/am/helpers.lua": "d433cc8144b86962006b828f5db7e56a4385268796b681000503a22d7a9eaa5f"
   },
   "dependencies": [
