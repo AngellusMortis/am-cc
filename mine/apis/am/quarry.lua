@@ -316,10 +316,10 @@ local function digAndFill(count, walls, fillLeft, fillRight, isLast)
 
     for i = 1, count, 1 do
         tc.dig()
+        if not turtle.detectDown() and ((isLast and walls) or tc.isSourceBlockDown()) then
+            tc.fillDown(true)
+        end
         if walls then
-            if not turtle.detectDown() and (isLast or tc.isSourceBlockDown()) then
-                tc.fillDown(true)
-            end
             if fillLeft then
                 pf.turnLeft()
                 tc.fill(true)
@@ -429,8 +429,8 @@ local function digLevel(firstLevel, lastLevel)
         tc.digDown(progress.completedLevels + levelsDown)
     end
 
-    pf.turnRight()
     if job.walls then
+        pf.turnRight()
         tc.fill(true)
         if not firstLevel then
             pf.turnRight()
@@ -473,7 +473,7 @@ local function digLevel(firstLevel, lastLevel)
             if CURRENT ~= RunType.Running then
                 return
             end
-            if (row + 1) == job.left then
+            if (row + 1) == job.left and job.walls then
                 tc.fill(true)
             end
             if isEvenRow then
@@ -482,7 +482,7 @@ local function digLevel(firstLevel, lastLevel)
                 pf.turnLeft()
             end
 
-            if lastLevel then
+            if lastLevel and job.walls then
                 tc.fillDown(true)
             end
         end

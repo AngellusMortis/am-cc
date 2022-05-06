@@ -129,10 +129,7 @@ local function getDisplay(src, autoDiscovery)
         DATA.outputMap, DATA.computerMap = getOutputMap()
     end
 
-    local output = DATA.outputMap[src.id]
-    if output == nil and not autoDiscovery and src.label ~= nil then
-        output = DATA.outputMap[string.lower(src.label)]
-    end
+    local output = DATA.outputMap[src.id] or DATA.outputMap[string.lower(src.label)]
     if output ~= nil or not autoDiscovery then
         return output
     end
@@ -160,9 +157,9 @@ end
 ---@param computerMap table<string, number>
 local function initTerm(computerMap)
     if computerMap["term"] ~= nil then
-        log.setPrint(false)
+        log.s.print.set(false)
     else
-        log.setPrint(true)
+        log.s.print.set(true)
         term.clear()
         term.setCursorPos(1, 1)
         term.setTextColor(colors.white)
@@ -181,19 +178,21 @@ local function netEventLoop()
         local id, data = rednet.receive()
         if data ~= nil and data.type == e.type then
             ---@cast data am.net
-            local output = getDisplay(data.src, false)
+            local output = nil
+            if e.c.Lookup.Progress[data.name] then
+                output = getDisplay(data.src)
+                if output ~= nil then
+                    p.print(data.src, data.event, output)
+                    if TIMEOUT_MAP[data.src.id] ~= -1 then
+                        TIMEOUT_MAP[data.src.id] = os.clock() + settings.get(s.timeout.name)
+                    end
+                end
+            end
+            if output == nil then
+                output = getDisplay(data.src, false)
+            end
             if output ~= nil then
-                if e.c.Event.Progress[data.event.name] then
-                    if output == nil then
-                        output = getDisplay(data.src)
-                    end
-                    if output ~= nil then
-                        p.print(data.src, data.event, output)
-                        if TIMEOUT_MAP[data.src.id] ~= -1 then
-                            TIMEOUT_MAP[data.src.id] = os.clock() + settings.get(s.timeout.name)
-                        end
-                    end
-                elseif data.event.name == e.c.Event.Turtle.turtle_started then
+                if data.event.name == e.c.Event.Turtle.turtle_started then
                     TIMEOUT_MAP[data.src.id] = os.clock() + settings.get(s.timeout.name)
                 elseif data.event.name == e.c.Event.Turtle.turtle_paused or data.event.name == e.c.Event.Turtle.turtle_exited then
                     TIMEOUT_MAP[data.src.id] = -1
@@ -231,7 +230,7 @@ local function main(name, outputName)
         name = string.lower(name)
         AUTO_DISCOVER = false
         outputMap[name] = outputObj
-        computerMap[outputObj] = name
+        computerMap[outputName] = name
     else
         outputMap, computerMap = getOutputMap()
     end
@@ -244,18 +243,19 @@ local function main(name, outputName)
 
     for id, output in pairs(outputMap) do
         outputName = "term"
-        if not ui.isTerm(output) then
+        if not ui.h.isTerm(output) then
             outputName = peripheral.getName(output)
         end
-        log.log(string.format("Using %s output for %s", outputName, name))
+        log.info(string.format("Using %s output for %s", outputName, name))
 
         output.clear()
         output.setCursorPos(1, 1)
         output.setTextColor(colors.white)
         output.write(string.format("Wait for %s...", name))
+        output.setCursorPos(1, 2)
     end
 
-    log.log("Listening for progress events...")
+    log.info("Listening for progress events...")
     DATA = {outputMap=outputMap, computerMap=computerMap}
     parallel.waitForAny(eventLoop, netEventLoop, heartbeat)
 end

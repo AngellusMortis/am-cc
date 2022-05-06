@@ -10,7 +10,7 @@ local log = require("am.log")
 local core = require("am.core")
 
 local p = {}
-local wrappers = {}
+local WRAPPERS = {}
 
 ---@class am.progress.ProgressWrapper:am.ui.b.BaseObject
 ---@field src am.net.src
@@ -25,7 +25,7 @@ function ProgressWrapper:init(src, progress, output)
 
     self.src = src
     self.progress = progress
-    self.screen = ui.Screen(output)
+    self.screen = ui.Screen(output, {id="screen." .. src.id})
     return self
 end
 
@@ -61,13 +61,19 @@ end
 function QuarryWrapper:createUI()
     local wrapper = self
 
-    local haltButton = ui.Button(ui.a.Center(10, ui.c.Offset.Left), "Stop", {id="haltButton", fillColor=colors.red})
+    local baseId = self.screen.id
+
+    local haltButton = ui.Button(ui.a.Center(10, ui.c.Offset.Left), "Stop", {
+        id=baseId .. ".haltButton", fillColor=colors.red
+    })
     haltButton:addActivateHandler(function()
         log.info(string.format("Halting %s...", self.src.label))
         e.TurtleRequestHaltEvent(self.src.id):send()
     end)
 
-    local pauseButton = ui.Button(ui.a.Center(10, ui.c.Offset.Right), "Pause", {id="pauseButton", fillColor=colors.yellow})
+    local pauseButton = ui.Button(ui.a.Center(10, ui.c.Offset.Right), "Pause", {
+        id=baseId .. ".pauseButton", fillColor=colors.yellow
+    })
     pauseButton:addActivateHandler(function()
         if wrapper.paused then
             log.info(string.format("Continuing %s...", self.src.label))
@@ -78,18 +84,18 @@ function QuarryWrapper:createUI()
         end
     end)
 
-    self.screen:add(ui.Text(ui.a.Top(), "", {id="nameText"}))
-    self.screen:add(ui.Text(ui.a.Center(2), "", {id="titleText"}))
+    self.screen:add(ui.Text(ui.a.Top(), "", {id=baseId .. ".nameText"}))
+    self.screen:add(ui.Text(ui.a.Center(2), "", {id=baseId .. ".titleText"}))
     self.screen:add(ui.ProgressBar(ui.a.Left(3), {
-        id="totalBar", label="Total", displayTotal=self.progress.job.levels, fillColor=colors.lightGray
+        id=baseId .. ".totalBar", label="Total", displayTotal=self.progress.job.levels, fillColor=colors.lightGray
     }))
     self.screen:add(ui.ProgressBar(ui.a.Left(6), {
-        id="levelBar", label="Level", total=self.progress.job.left, fillColor=colors.lightGray
+        id=baseId .. ".levelBar", label="Level", total=self.progress.job.left, fillColor=colors.lightGray
     }))
-    self.screen:add(ui.Text(ui.a.Center(9), "", {id="statusText"}))
+    self.screen:add(ui.Text(ui.a.Center(9), "", {id=baseId .. ".statusText"}))
     self.screen:add(haltButton)
     self.screen:add(pauseButton)
-    self.screen:add(ui.Text(ui.a.Bottom(), "", {id="posText"}))
+    self.screen:add(ui.Text(ui.a.Bottom(), "", {id=baseId .. ".posText"}))
 
     QuarryWrapper.super.createUI(self)
 end
@@ -98,9 +104,10 @@ end
 function QuarryWrapper:update(event)
     local width, _ = self.screen.output.getSize()
 
+    local baseId = self.screen.id
     self.progress = event
     if self.src.label ~= nil then
-        local nameText = self.screen:get("nameText")
+        local nameText = self.screen:get(baseId .. ".nameText")
         if nameText ~= nil then
             ---@cast nameText am.ui.BoundText
             local nameStatus = self.src.label
@@ -110,15 +117,15 @@ function QuarryWrapper:update(event)
             nameText:update(nameStatus)
         end
     end
-    local titleText = self.screen:get("titleText")
+    local titleText = self.screen:get(baseId .. ".titleText")
     ---@cast titleText am.ui.BoundText
-    local totalBar = self.screen:get("totalBar")
+    local totalBar = self.screen:get(baseId .. ".totalBar")
     ---@cast totalBar am.ui.BoundProgressBar
-    local levelBar = self.screen:get("levelBar")
+    local levelBar = self.screen:get(baseId .. ".levelBar")
     ---@cast levelBar am.ui.BoundProgressBar
-    local statusText = self.screen:get("statusText")
+    local statusText = self.screen:get(baseId .. ".statusText")
     ---@cast statusText am.ui.BoundText
-    local posText = self.screen:get("posText")
+    local posText = self.screen:get(baseId .. ".posText")
     ---@cast posText am.ui.BoundText
 
     titleText:update(string.format(
@@ -195,14 +202,14 @@ local function getWrapper(src, event, output)
         ui.h.requireOutput(output)
     end
 
-    local wrapper = wrappers[src.id]
+    local wrapper = WRAPPERS[src.id]
     local created = false
     if create then
         ---@cast output cc.output
         ---@cast event am.e.ProgressEvent
         if wrapper ~= nil then
-            if wrapper.event.name ~= event.name or not ui.h.isSameScreen(wrapper.screen, output) then
-                wrappers[src.id] = nil
+            if wrapper.progress.name ~= event.name or not ui.h.isSameScreen(wrapper.screen.output, output) then
+                WRAPPERS[src.id] = nil
                 wrapper = nil
             end
         end
@@ -212,7 +219,7 @@ local function getWrapper(src, event, output)
                 wrapper = QuarryWrapper(src, event, output)
                 ---@cast wrapper am.progress.ProgressWrapper
                 wrapper:createUI()
-                wrappers[src.id] = wrapper
+                WRAPPERS[src.id] = wrapper
             end
         end
     end
@@ -255,6 +262,15 @@ end
 ---@param event string Event name
 ---@param args table
 local function handle(src, event, args)
+    if ui.c.l.Events.UI[event] then
+        local parts = core.split(args[1].objId, ".")
+        if parts[1] == "screen" then
+            src = {
+                id=tonumber(parts[2])
+            }
+        end
+    end
+
     local wrapper, created = getWrapper(src)
     if wrapper ~= nil then
         wrapper:handle(event, args)

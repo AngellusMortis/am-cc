@@ -42,7 +42,7 @@ local function log(msg, pretty, fileOnly)
     end
 
     if pretty then
-        msg = pp.pretty(msg)
+        msg = pp.group(pp.pretty(msg))
     end
 
     local logFilePath = l.s.file.get()
@@ -61,7 +61,7 @@ local function log(msg, pretty, fileOnly)
     end
 
     if pretty then
-        pp.print(pp.group(pp.pretty(msg)))
+        pp.print(msg)
     else
         print(msg)
     end

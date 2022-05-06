@@ -5,6 +5,7 @@ require(settings.get("ghu.base") .. "core/apis/ghu")
 local BaseEvent = require("am.ui").e.BaseEvent
 
 local h = require("am.helpers")
+local log = require("am.log")
 
 local e = {}
 
@@ -90,6 +91,11 @@ e.broadcastMap = {
     ["am.turtle_error"] = false,
 }
 
+e.c.Lookup = {}
+e.c.Lookup.Progress = {
+    ["am.progress_quarry"] = true
+}
+
 e.c.Event = {}
 ---@type table<string, string>
 e.c.Event.Progress = {
@@ -144,6 +150,7 @@ function DistributedEvent:send()
     if e.broadcastMap[self.name] then
         initNetwork()
         if e.online then
+            log.debug(string.format("broadcast %s", self.name))
             rednet.broadcast({
                 type = e.type,
                 src = getComputer(),
