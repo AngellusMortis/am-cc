@@ -14,7 +14,7 @@ e.type = "am.net"
 
 ---@class am.net.src
 ---@field id number
----@field label string
+---@field label string|nil
 
 ---@class am.net
 ---@field type "am.net"
@@ -166,9 +166,9 @@ function ProgressEvent:init(name)
 end
 
 ---@class am.e.QuarryProgressEvent:am.e.ProgressEvent
----@param pos am.p.TurtlePosition
----@param job am.q.QuarryJob
----@param progress am.q.QuarryProgress
+---@field pos am.p.TurtlePosition
+---@field job am.q.QuarryJob
+---@field progress am.q.QuarryProgress
 local QuarryProgressEvent = ProgressEvent:extend("am.e.QuarryProgressEvent")
 e.QuarryProgressEvent = QuarryProgressEvent
 function QuarryProgressEvent:init(pos, job, progress)
@@ -348,29 +348,35 @@ function TurtleExitEvent:init(completed)
 end
 
 ---@class am.e.TurtleRequestHaltEvent:am.e.TurtleEvent
+---@field id string
 local TurtleRequestHaltEvent = TurtleEvent:extend("am.e.TurtleRequestHaltEvent")
 e.TurtleRequestHaltEvent = TurtleRequestHaltEvent
-function TurtleRequestHaltEvent:init()
+function TurtleRequestHaltEvent:init(id)
     TurtleRequestHaltEvent.super.init(self, e.c.Event.Turtle.request_halt)
 
+    self.id = id
     return self
 end
 
 ---@class am.e.TurtleRequestPauseEvent:am.e.TurtleEvent
+---@field id string
 local TurtleRequestPauseEvent = TurtleEvent:extend("am.e.TurtleRequestPauseEvent")
 e.TurtleRequestPauseEvent = TurtleRequestPauseEvent
-function TurtleRequestPauseEvent:init()
+function TurtleRequestPauseEvent:init(id)
     TurtleRequestPauseEvent.super.init(self, e.c.Event.Turtle.request_pause)
 
+    self.id = id
     return self
 end
 
 ---@class am.e.TurtleRequestContinueEvent:am.e.TurtleEvent
+---@field id string
 local TurtleRequestContinueEvent = TurtleEvent:extend("am.e.TurtleRequestHaltEvent")
 e.TurtleRequestContinueEvent = TurtleRequestContinueEvent
-function TurtleRequestContinueEvent:init()
+function TurtleRequestContinueEvent:init(id)
     TurtleRequestContinueEvent.super.init(self, e.c.Event.Turtle.request_continue)
 
+    self.id = id
     return self
 end
 

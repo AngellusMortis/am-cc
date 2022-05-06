@@ -8,7 +8,7 @@ local core = require("am.core")
 local log = require("am.log")
 local e = require("am.event")
 local h = require("am.helpers")
--- local progressLib = require("progressLib")
+local p = require("am.progress")
 local pf = require("am.pathfind")
 local tc = require("am.turtle")
 
@@ -581,7 +581,7 @@ local function runLoop()
     end
 end
 
-local eventLoop = function()
+local function eventLoop()
     while runType ~= RunType.Completed do
         -- timeout timer
         local timer = os.startTimer(3)
@@ -636,12 +636,12 @@ local eventLoop = function()
         elseif event == e.c.Event.Turtle.error then
             setStatus(string.format("error:%s", args[1].error))
         end
-        -- progressLib.handleEvent(data)
+        p.handle(e.getComputer(), event, args)
         os.cancelTimer(timer)
     end
 end
 
-local netEventLoop = function()
+local function netEventLoop()
     e.initNetwork()
     if not e.online then
         return
@@ -680,8 +680,12 @@ local function runJob(resume)
     if resume then
         log.info(string.format("Resume Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
         setStatus("Resuming")
-        if not settings.get(log.s.print.name) then
-            -- progressLib.quarry(term, job, getProgress(), pathfind.getPosition(), eventLib.getName(), eventLib.online)
+        if not log.s.print.get() then
+            p.print(e.getComputer(), e.QuarryProgressEvent(
+                pf.s.position.get(),
+                q.s.quarry.get(),
+                q.s.progress.get()
+            ))
         end
     else
         log.info(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
