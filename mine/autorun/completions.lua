@@ -13,7 +13,7 @@ shell.setCompletionFunction(
         nil,
         nil,
         nil,
-        { completion.choice, { "left", "right", "forward", "back" }, true},
+        { completion.choice, { "left", "right", "front", "back" }, true},
         { completion.choice, { "true", "false" }, false}
     )
 )
