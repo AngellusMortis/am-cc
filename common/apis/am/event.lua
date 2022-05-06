@@ -10,6 +10,18 @@ local e = {}
 
 local initalizedNetwork = false
 e.online = false
+e.type = "am.net"
+
+---@class am.net.src
+---@field id number
+---@field label string
+
+---@class am.net
+---@field type "am.net"
+---@field src am.net.src
+---@field name string
+---@field event am.e.DistributedEvent
+---@field signature any
 
 local function initNetwork()
     if initalizedNetwork then
@@ -28,6 +40,7 @@ local function initNetwork()
     initalizedNetwork = true
 end
 
+---@return am.net.src
 local function getComputer()
     return {
         id = os.getComputerID(),
@@ -63,8 +76,6 @@ e.broadcastMap = {
     ["am.pathfind_reset"] = false,
     ["am.pathfind_turn"] = false,
     ["am.pathfind_go_to"] = false,
-    ["am.pathfind_go_to_origin"] = false,
-    ["am.pathfind_go_to_return"] = false,
 
     ["am.turtle_started"] = false,
     ["am.turtle_paused"] = false,
@@ -91,8 +102,6 @@ e.c.Event.Pathfind = {
     reset = "am.pathfind_reset",
     turn = "am.pathfind_turn",
     go_to = "am.pathfind_go_to",
-    go_to_origin = "am.pathfind_go_to_origin",
-    go_to_return = "am.pathfind_go_to_return"
 }
 e.c.Event.Turtle = {
     started = "am.turtle_started",
@@ -136,6 +145,7 @@ function DistributedEvent:send()
         initNetwork()
         if e.online then
             rednet.broadcast({
+                type = e.type,
                 src = getComputer(),
                 name = self.name,
                 event = self,
@@ -156,10 +166,21 @@ function ProgressEvent:init(name)
 end
 
 ---@class am.e.QuarryProgressEvent:am.e.ProgressEvent
+---@param pos am.p.TurtlePosition
+---@param job am.q.QuarryJob
+---@param progress am.q.QuarryProgress
 local QuarryProgressEvent = ProgressEvent:extend("am.e.QuarryProgressEvent")
 e.QuarryProgressEvent = QuarryProgressEvent
-function QuarryProgressEvent:init()
+function QuarryProgressEvent:init(pos, job, progress)
+    v.expect(1, pos, "table")
+    v.expect(2, job, "table")
+    v.expect(3, progress, "table")
+    h.requirePosition(1, pos)
     QuarryProgressEvent.super.init(self, e.c.Event.Progress.quarry)
+
+    self.pos = pos
+    self.job = job
+    self.progress = progress
 
     return self
 end
@@ -251,7 +272,7 @@ function FailableTurtleEvent:init(name, success)
     return self
 end
 
----@class am.e.PathfindTurnEvent:am.e.PathfindEvent
+---@class am.e.PathfindTurnEvent:am.e.FailableTurtleEvent
 ---@field dir number
 local PathfindTurnEvent = FailableTurtleEvent:extend("am.e.PathfindTurnEvent")
 e.PathfindTurnEvent = PathfindTurnEvent
@@ -265,7 +286,7 @@ function PathfindTurnEvent:init(dir, success)
     return self
 end
 
----@class am.e.PathfindGoToEvent:am.e.PathfindEvent
+---@class am.e.PathfindGoToEvent:am.e.FailableTurtleEvent
 ---@field startPos number
 ---@field destPos number
 local PathfindGoToEvent = FailableTurtleEvent:extend("am.e.PathfindGoToEvent")

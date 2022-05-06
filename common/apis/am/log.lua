@@ -19,6 +19,12 @@ s.print = {
 l.s = core.makeSettingWrapper(s)
 
 ---@param msg any
+---@return string
+local function format(msg)
+    return pp.render(pp.group(pp.pretty(msg)))
+end
+
+---@param msg any
 ---@param pretty? boolean
 ---@param fileOnly? boolean
 local function log(msg, pretty, fileOnly)
@@ -55,7 +61,7 @@ local function log(msg, pretty, fileOnly)
     end
 
     if pretty then
-        pp.print(pp.group(pp.pretty(msg)))
+        pp.print(format(msg))
     else
         print(msg)
     end
@@ -73,6 +79,7 @@ local function debug(msg, pretty)
     log(msg, pretty, true)
 end
 
+l.format = format
 l.info = info
 l.debug = debug
 

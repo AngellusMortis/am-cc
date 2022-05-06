@@ -28,6 +28,9 @@ function TurtlePosition:init(vector, direction)
     return self
 end
 
+---@param raw table
+---@param many? boolean
+---@return am.p.TurtlePosition
 function TurtlePosition:deserialize(raw, many)
     v.expect(2, many, "boolean", "nil")
     if many == nil then
@@ -44,6 +47,7 @@ function TurtlePosition:deserialize(raw, many)
     return TurtlePosition(vector.new(raw.v.x, raw.v.y, raw.v.z), raw.dir)
 end
 
+---@return am.p.TurtlePosition
 function TurtlePosition:copy()
     return TurtlePosition(vector.new(self.v.x, self.v.y, self.v.z), self.dir)
 end
