@@ -1,0 +1,1 @@
+local a=require("cc.shell.completion")local b=require(settings.get("ghu.base").."core/apis/ghu")local c=string.sub(b.p.ext.."AngellusMortis/am-cc/mine/programs/turtle/",2)shell.setCompletionFunction(c.."quarry.lua",a.build(nil,nil,nil,{a.choice,{"true","false"},true},nil,nil,nil,{a.choice,{"left","right","forward","back"},true},{a.choice,{"true","false"},false}))
