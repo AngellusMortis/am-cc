@@ -37,7 +37,7 @@ local function main(left, forward, levels, walls, offsetX, offsetZ, offsetY, off
         pretty = core.strBool(pretty)
     end
 
-    log.setPrint(not pretty)
+    log.s.print.set(not pretty)
     pf.resetPosition()
     if offsetX ~= nil and offsetZ ~= nil and offsetY ~= nil and offsetDir ~= nil then
         q.setOffset(

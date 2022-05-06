@@ -161,7 +161,7 @@ q.s.offsetPos.get = function()
     return raw
 end
 
-local START_POS = pf.TurtlePosition(0, 1, 0, e.c.Turtle.Direction.Front)
+local START_POS = pf.TurtlePosition(vector.new(0, 1, 0), e.c.Turtle.Direction.Front)
 ---@type table<string, number>
 local RunType = {
     Running = 1,
@@ -192,7 +192,7 @@ end
 ---@param progress am.q.QuarryProgress
 local function setProgress(progress)
     v.expect(1, progress, "table")
-    if not BaseObject:has(progress, "am.q.QuarryProgress") then
+    if not BaseObject.has(progress, "am.q.QuarryProgress") then
         error("Not progress obj")
     end
 
@@ -223,7 +223,7 @@ local function startRow(rowNum)
     progress.status = string.format("Digging Row %d", rowNum)
     setProgress(progress)
 
-    log.log(string.format(
+    log.info(string.format(
         "..Start row %d of %d (%d%%, %d%%)",
         rowNum, job.left,
         progress.levelPercent * 100, progress.totalPercent * 100
@@ -249,7 +249,7 @@ local function startLevel()
     progress.status = string.format("Starting Level %d", progress.completedLevels + 1)
     setProgress(progress)
 
-    log.log(string.format(
+    log.info(string.format(
         ".Start level %d of %d (%d%%, %d%%)",
         progress.completedLevels + 1, job.levels,
         progress.levelPercent * 100, progress.current * 100
@@ -315,19 +315,19 @@ local function digAndFill(count, walls, fillLeft, fillRight, isLast)
     end
 
     for i = 1, count, 1 do
-        tc.digForward()
+        tc.dig()
         if walls then
             if not turtle.detectDown() and (isLast or tc.isSourceBlockDown()) then
                 tc.fillDown(true)
             end
             if fillLeft then
                 pf.turnLeft()
-                tc.fillForward(true)
+                tc.fill(true)
                 pf.turnRight()
             end
             if fillRight then
                 pf.turnRight()
-                tc.fillForward(true)
+                tc.fill(true)
                 pf.turnLeft()
             end
         end
@@ -350,7 +350,7 @@ end
 ---@param isLast boolean
 local function resumeLevel(rowNum, isLast)
     setStatus(string.format("Returning to Row %d", rowNum))
-    log.log(string.format("..Resume start: %s", log.format(START_POS)))
+    log.info(string.format("..Resume start: %s", log.format(START_POS)))
     local job = q.s.job.get()
     local rotated = false
     local leftMod = -1
@@ -368,23 +368,23 @@ local function resumeLevel(rowNum, isLast)
         forwardMod = -1
     end
 
-    local currentX = START_POS.x
-    local currentZ = START_POS.z
+    local currentX = START_POS.v.x
+    local currentZ = START_POS.v.z
 
     local isEven = rowNum % 2 == 0
     if not isEven then
         local forwardCount = forwardMod * (job.forward - 1)
-        log.log(string.format("..Resume: forward %d", job.forward - 1))
+        log.info(string.format("..Resume: forward %d", job.forward - 1))
         if rotated then
-            currentX = START_POS.x + forwardCount
+            currentX = START_POS.v.x + forwardCount
         else
-            currentZ = START_POS.z + forwardCount
+            currentZ = START_POS.v.z + forwardCount
         end
         pf.goTo(currentX, currentZ)
     end
 
     local leftCount = leftMod * (rowNum - 1)
-    log.log(string.format("..Resume: left %d", rowNum - 1))
+    log.info(string.format("..Resume: left %d", rowNum - 1))
     if rotated then
         pf.goTo(currentX, currentZ + leftCount, nil, START_POS.dir)
     else
@@ -392,13 +392,13 @@ local function resumeLevel(rowNum, isLast)
     end
 
     pf.turnLeft()
-    log.log(string.format("..Resume: dig", rowNum - 1))
+    log.info(string.format("..Resume: dig", rowNum - 1))
     digAndFill(1, job.walls, isEven, not isEven, isLast)
     if isEven then
-        log.log("..Resume: turn right")
+        log.info("..Resume: turn right")
         pf.turnRight()
     else
-        log.log("..Resume: turn left")
+        log.info("..Resume: turn left")
         pf.turnLeft()
     end
 end
@@ -411,30 +411,30 @@ local function digLevel(firstLevel, lastLevel)
     pf.turnTo(START_POS.dir)
 
     startLevel()
-    local pos = pf.getPosition()
-    if pos.x == 0 and pos.z == 0 and pos.y == 0 then
+    local pos = pf.s.position.get()
+    if pos.v.x == 0 and pos.v.z == 0 and pos.v.y == 0 then
         goToOffset()
         digAndFill(1, job.walls, job.left == 1, true)
         if CURRENT ~= RunType.Running then
             return
         end
-        pos = pf.getPosition()
+        pos = pf.s.position.get()
         START_POS = core.copy(pos)
     end
     resetNodes()
 
     local progress = q.s.progress.get()
-    local levelsDown = pos.y - START_POS.y
+    local levelsDown = pos.v.y - START_POS.v.y
     if progress.completedLevels > 0 then
         tc.digDown(progress.completedLevels + levelsDown)
     end
 
     pf.turnRight()
     if job.walls then
-        tc.fillForward(true)
+        tc.fill(true)
         if not firstLevel then
             pf.turnRight()
-            tc.fillForward(true)
+            tc.fill(true)
             pf.turnLeft()
         end
         pf.turnLeft()
@@ -461,7 +461,7 @@ local function digLevel(firstLevel, lastLevel)
 
         -- fill end block
         if job.walls then
-            tc.fillForward(true)
+            tc.fill(true)
         end
         if row < job.left then
             if isEvenRow then
@@ -474,7 +474,7 @@ local function digLevel(firstLevel, lastLevel)
                 return
             end
             if (row + 1) == job.left then
-                tc.fillForward(true)
+                tc.fill(true)
             end
             if isEvenRow then
                 pf.turnRight()
@@ -494,11 +494,11 @@ local function digLevel(firstLevel, lastLevel)
     end
 
     progress = q.s.progress.get()
-    log.log(string.format(
+    log.info(string.format(
         "..Return to start (%d%%, %d%%)",
         job.percentPerLevel * 100, progress.current * 100
     ))
-    while not pf.goTo(START_POS.x, START_POS.z, nil, START_POS.dir) do
+    while not pf.goTo(START_POS.v.x, START_POS.v.z, nil, START_POS.dir) do
         tc.error("Cannot Return to Start")
         sleep(3)
     end
@@ -516,7 +516,7 @@ local function setOffset(x, z, y, dir)
     v.expect(4, dir, "number")
     v.range(dir, 1, 4)
 
-    q.s.offsetPos.set(pf.TurtlePosition(x, z, y, dir))
+    q.s.offsetPos.set(pf.TurtlePosition(vector.new(x, z, y), dir))
 end
 
 local function clearOffset()
@@ -557,7 +557,7 @@ local function runLoop()
     while progress.completedLevels < job.levels and (CURRENT == RunType.Running or CURRENT == RunType.Paused) do
         if CURRENT == RunType.Running then
             if progress.completedLevels % job.refuelLevel == 0 then
-               tc.goRefuel(job.refuelTarget, progress.completedLevels ~= 0)
+               tc.refuel(job.refuelTarget, progress.completedLevels ~= 0)
             end
             digLevel(progress.completedLevels == 0, (progress.completedLevels + 1) == job.levels)
             progress = q.s.progress.get()
@@ -619,13 +619,13 @@ local eventLoop = function()
             end
         elseif event == e.c.Event.Turtle.request_pause then
             runType = RunType.Paused
-            log.log("Pausing...")
+            log.info("Pausing...")
         elseif event == e.c.Event.Turtle.request_halt then
             runType = RunType.Halted
-            log.log("Halting...")
+            log.info("Halting...")
         elseif event == e.c.Event.Turtle.request_continue then
             runType = RunType.Running
-            log.log("Unpausing...")
+            log.info("Unpausing...")
             e.TurtleStartedEvent():send()
         elseif event == e.c.Event.Turtle.paused then
             setStatus("warning:Paused")
@@ -653,13 +653,13 @@ local netEventLoop = function()
             ---@cast data am.net
             if data.name == e.c.Event.Turtle.request_halt then
                 runType = RunType.Halted
-                log.log("Halting...")
+                log.info("Halting...")
             elseif data.name == e.c.Event.Turtle.request_pause then
                 runType = RunType.Paused
-                log.log("Pausing...")
+                log.info("Pausing...")
             elseif data.name == e.c.Event.Turtle.request_continue then
                 runType = RunType.Halted
-                log.log("Unpausing...")
+                log.info("Unpausing...")
                 e.TurtleStartedEvent():send()
             end
         end
@@ -678,18 +678,18 @@ local function runJob(resume)
     term.clear()
     term.setCursorPos(1, 1)
     if resume then
-        log.log(string.format("Resume Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
+        log.info(string.format("Resume Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
         setStatus("Resuming")
         if not settings.get(log.s.print.name) then
             -- progressLib.quarry(term, job, getProgress(), pathfind.getPosition(), eventLib.getName(), eventLib.online)
         end
     else
-        log.log(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
+        log.info(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
     end
 
     parallel.waitForAll(runLoop, eventLoop, netEventLoop)
     term.setCursorBlink(true)
-    log.setPrint(true)
+    log.s.print.set(true)
 end
 
 q.setOffset = setOffset

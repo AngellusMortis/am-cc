@@ -61,7 +61,7 @@ local function log(msg, pretty, fileOnly)
     end
 
     if pretty then
-        pp.print(format(msg))
+        pp.print(pp.group(pp.pretty(msg)))
     else
         print(msg)
     end
