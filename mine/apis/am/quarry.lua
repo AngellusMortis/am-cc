@@ -161,7 +161,7 @@ q.s.offsetPos.get = function()
     return raw
 end
 
-local START_POS = pf.TurtlePosition(vector.new(0, 1, 0), e.c.Turtle.Direction.Front)
+local START_POS = pf.TurtlePosition(vector.new(0, 0, 1), e.c.Turtle.Direction.Front)
 ---@type table<string, number>
 local RunType = {
     Running = 1,
@@ -279,7 +279,7 @@ local function goToOffset()
     local offset = q.s.offsetPos.get()
     if offset then
         setStatus("Going to Offset")
-        while not pf.goTo(offset.x, offset.z, offset.y, offset.dir) do
+        while not pf.goTo(offset.v.x, offset.v.z, offset.v.y, offset.dir) do
             tc.error("Cannot Goto Offset")
             sleep(3)
         end
@@ -516,7 +516,7 @@ local function setOffset(x, z, y, dir)
     v.expect(4, dir, "number")
     v.range(dir, 1, 4)
 
-    q.s.offsetPos.set(pf.TurtlePosition(vector.new(x, z, y), dir))
+    q.s.offsetPos.set(pf.TurtlePosition(vector.new(x, y, z), dir))
 end
 
 local function clearOffset()
