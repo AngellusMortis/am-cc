@@ -26,6 +26,7 @@ function ProgressWrapper:init(src, progress, output)
     self.src = src
     self.progress = progress
     self.screen = ui.Screen(output, {id="screen." .. src.id})
+    log.debug(self.screen.id)
     return self
 end
 
@@ -131,7 +132,7 @@ function QuarryWrapper:update(event)
     titleText:update(string.format(
         "Quarry: %d x %d (%d)", self.progress.job.left, self.progress.job.forward, self.progress.job.levels
     ))
-    totalBar:update(self.progress.progress.current)
+    totalBar:update(self.progress.progress.current * 100)
     levelBar:update(self.progress.progress.completedRows)
     statusText:update(self.progress.progress.status)
     local posFmt = "pos (%d, %d) e: %d, d: %d"
@@ -145,7 +146,8 @@ end
 
 ---@param status string
 function QuarryWrapper:updateStatus(status)
-    local statusText = self.screen:get("statusText")
+    local baseId = self.screen.id
+    local statusText = self.screen:get(baseId .. ".statusText")
     ---@cast statusText am.ui.BoundText
 
     statusText:update(status)
@@ -154,19 +156,20 @@ end
 ---@param event string Event name
 ---@param args table
 function QuarryWrapper:handle(event, args)
+    local baseId = self.screen.id
     if event == e.c.Event.Progress.quarry then
         self:update(args[1])
     elseif event == e.c.Event.Turtle.paused then
         self.paused = true
-        local pauseButton = self.screen:get("pauseButton")
+        local pauseButton = self.screen:get(baseId .. ".pauseButton")
         ---@cast pauseButton am.ui.BoundButton
         pauseButton.obj.fillColor = colors.green
         pauseButton:updateLabel("Go")
     elseif event == e.c.Event.Turtle.started then
         self.paused = false
-        local haltButton = self.screen:get("haltButton")
+        local haltButton = self.screen:get(baseId .. ".haltButton")
         ---@cast haltButton am.ui.BoundButton
-        local pauseButton = self.screen:get("pauseButton")
+        local pauseButton = self.screen:get(baseId .. ".pauseButton")
         ---@cast pauseButton am.ui.BoundButton
 
         haltButton.obj.visible = true
@@ -175,9 +178,9 @@ function QuarryWrapper:handle(event, args)
         pauseButton.obj.fillColor = colors.yellow
         pauseButton:updateLabel("Pause")
     elseif event == e.c.Event.Turtle.exited then
-        local haltButton = self.screen:get("haltButton")
+        local haltButton = self.screen:get(baseId .. ".haltButton")
         ---@cast haltButton am.ui.BoundButton
-        local pauseButton = self.screen:get("pauseButton")
+        local pauseButton = self.screen:get(baseId .. ".pauseButton")
         ---@cast pauseButton am.ui.BoundButton
 
         haltButton.obj.visible = false

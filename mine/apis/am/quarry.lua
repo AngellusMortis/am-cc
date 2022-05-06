@@ -218,15 +218,15 @@ local function startRow(rowNum)
     local job = q.s.job.get()
 
     progress.completedRows = rowNum - 1
-    progress.levelPercent = progress.completedRows / job.left
-    progress.totalPercent = progress.completedLevels / job.levels + job.percentPerLevel * progress.levelPercent
+    progress.levelCurrent = progress.completedRows / job.left
+    progress.current = progress.completedLevels / job.levels + job.percentPerLevel * progress.levelCurrent
     progress.status = string.format("Digging Row %d", rowNum)
     setProgress(progress)
 
     log.info(string.format(
         "..Start row %d of %d (%d%%, %d%%)",
         rowNum, job.left,
-        progress.levelPercent * 100, progress.totalPercent * 100
+        progress.levelCurrent * 100, progress.current * 100
     ))
 end
 
@@ -235,8 +235,8 @@ local function completeRow()
     local job = q.s.job.get()
 
     progress.completedRows = progress.completedRows + 1
-    progress.levelPercent = progress.completedRows / job.left
-    progress.totalPercent = progress.completedLevels / job.levels + job.percentPerLevel * progress.levelPercent
+    progress.levelCurrent = progress.completedRows / job.left
+    progress.current = progress.completedLevels / job.levels + job.percentPerLevel * progress.levelCurrent
     progress.status = string.format("Completed Row %d", progress.completedRows)
     setProgress(progress)
 end
@@ -245,14 +245,14 @@ local function startLevel()
     local progress = q.s.progress.get()
     local job = q.s.job.get()
 
-    progress.levelPercent = 0
+    progress.levelCurrent = 0
     progress.status = string.format("Starting Level %d", progress.completedLevels + 1)
     setProgress(progress)
 
     log.info(string.format(
         ".Start level %d of %d (%d%%, %d%%)",
         progress.completedLevels + 1, job.levels,
-        progress.levelPercent * 100, progress.current * 100
+        progress.levelCurrent * 100, progress.current * 100
     ))
 end
 
@@ -262,8 +262,8 @@ local function completeLevel()
 
     progress.completedLevels = progress.completedLevels + 1
     progress.completedRows = 0
-    progress.levelPercent = 1
-    progress.totalPercent = progress.completedLevels / job.levels
+    progress.levelCurrent = 1
+    progress.current = progress.completedLevels / job.levels
     progress.status = string.format("Completing Level %d", progress.completedLevels - 1)
     setProgress(progress)
 end
