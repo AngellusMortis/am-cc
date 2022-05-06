@@ -2,8 +2,8 @@
   "files": {
     "apis/am/event.lua": "8b052c7243737651462173919959c32204b88921eb48789cbd077c158f6c4d6d",
     "apis/am/log.lua": "82b6a65597789d2e5113557c80456ddf845bbde2d6763a155882d73da2110736",
-    "apis/am/progress.lua": "8b39fd29e062a4fb1cdf7480308439ad7de445b79d7bc6047415cd374d2048cb",
-    "apis/am/helpers.lua": "d433cc8144b86962006b828f5db7e56a4385268796b681000503a22d7a9eaa5f"
+    "apis/am/progress.lua": "2564d942a3b7726db234278590af0b70a4b0a3eef9be89ccf3a72a92bd573c3d",
+    "apis/am/helpers.lua": "3245fec201bc7280a4804c2f6fe57a2720c9840d4f543613a6f2a58111434356"
   },
   "dependencies": [
     "AngellusMortis/cc-render@v1"
