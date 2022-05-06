@@ -177,7 +177,7 @@ local function fireProgressEvent(pos, progress)
     v.expect(1, pos, "table", "nil")
     v.expect(2, progress, "table", "nil")
     if pos ~= nil then
-        h.requirePosition(pos)
+        h.requirePosition(1, pos)
     end
 
     if pos == nil then
@@ -582,13 +582,14 @@ local function runLoop()
 end
 
 local function eventLoop()
-    while runType ~= RunType.Completed do
+    while CURRENT ~= RunType.Completed do
         -- timeout timer
         local timer = os.startTimer(3)
         local event, args = core.cleanEventArgs(os.pullEvent())
 
         if event == e.c.Event.Pathfind.position then
-            fireProgressEvent(args[1].position)
+            local pos = pf.TurtlePosition.deserialize(nil, args[1].position)
+            fireProgressEvent(pos)
         elseif event == e.c.Event.Pathfind.go_to then
             local eventObj = args[1]
             ---@cast eventObj am.e.PathfindGoToEvent
@@ -606,25 +607,25 @@ local function eventLoop()
                 end
             end
         elseif event == e.c.Event.Progress then
-            -- eventLib.printProgress(data)
+            p.print(e.getComputer(), args[1])
         elseif event == e.c.Event.Turtle.empty then
             setStatus("Emptying Inventory")
         elseif event == e.c.Event.Turtle.exited then
             if args[1].completed then
                 setStatus("success:Completed")
-                runType = RunType.Completed
+                CURRENT = RunType.Completed
             else
                 setStatus("error:Stopped")
-                runType = RunType.Halted
+                CURRENT = RunType.Halted
             end
         elseif event == e.c.Event.Turtle.request_pause then
-            runType = RunType.Paused
+            CURRENT = RunType.Paused
             log.info("Pausing...")
         elseif event == e.c.Event.Turtle.request_halt then
-            runType = RunType.Halted
+            CURRENT = RunType.Halted
             log.info("Halting...")
         elseif event == e.c.Event.Turtle.request_continue then
-            runType = RunType.Running
+            CURRENT = RunType.Running
             log.info("Unpausing...")
             e.TurtleStartedEvent():send()
         elseif event == e.c.Event.Turtle.paused then
@@ -647,18 +648,18 @@ local function netEventLoop()
         return
     end
 
-    while runType ~= RunType.Completed do
+    while CURRENT ~= RunType.Completed do
         local id, data = rednet.receive(nil, 3)
         if data ~= nil and data.type == e.type and data.src.id == os.getComputerID() then
             ---@cast data am.net
             if data.name == e.c.Event.Turtle.request_halt then
-                runType = RunType.Halted
+                CURRENT = RunType.Halted
                 log.info("Halting...")
             elseif data.name == e.c.Event.Turtle.request_pause then
-                runType = RunType.Paused
+                CURRENT = RunType.Paused
                 log.info("Pausing...")
             elseif data.name == e.c.Event.Turtle.request_continue then
-                runType = RunType.Halted
+                CURRENT = RunType.Halted
                 log.info("Unpausing...")
                 e.TurtleStartedEvent():send()
             end
@@ -677,22 +678,26 @@ local function runJob(resume)
     local job = q.s.job.get()
     term.clear()
     term.setCursorPos(1, 1)
+    if not log.s.print.get() then
+        p.print(e.getComputer(), e.QuarryProgressEvent(
+            pf.s.position.get(),
+            job,
+            q.s.progress.get()
+        ))
+    end
     if resume then
         log.info(string.format("Resume Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
         setStatus("Resuming")
-        if not log.s.print.get() then
-            p.print(e.getComputer(), e.QuarryProgressEvent(
-                pf.s.position.get(),
-                q.s.quarry.get(),
-                q.s.progress.get()
-            ))
-        end
     else
         log.info(string.format("Quarry: %d x %d (%d)", job.left, job.forward, job.levels))
     end
 
     parallel.waitForAll(runLoop, eventLoop, netEventLoop)
     term.setCursorBlink(true)
+    if not log.s.print.get() then
+        term.clear()
+        term.setCursorPos(1, 1)
+    end
     log.s.print.set(true)
 end
 

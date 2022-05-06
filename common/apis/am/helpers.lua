@@ -52,7 +52,6 @@ end
 
 local function isPosition(obj)
     local log = require("am.log")
-    log.debug(obj)
     return object.has(obj, "am.p.TurtlePosition")
 end
 

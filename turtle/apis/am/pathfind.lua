@@ -72,6 +72,11 @@ p.s = core.makeSettingWrapper(s)
 p.s.position.get = function()
     return TurtlePosition.deserialize(nil, settings.get(p.s.position.name))
 end
+p.s.position.set = function(pos)
+    settings.set(p.s.position.name, pos)
+    settings.save()
+    e.PositionUpdateEvent(pos):send()
+end
 p.s.nodes.get = function()
     return TurtlePosition.deserialize(nil, settings.get(p.s.nodes.name), true)
 end
