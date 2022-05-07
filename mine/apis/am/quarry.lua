@@ -123,6 +123,7 @@ function QuarryProgress:init(
     self.completedRows = completedRows
     self.finished = finished
     self.status = status
+    self.hitBedrock = false
     return self
 end
 
@@ -333,9 +334,7 @@ local function digAndFill(count, walls, fillLeft, fillRight, isLast)
     end
 
     for i = 1, count, 1 do
-        local wasBlock = turtle.detect()
-        local digSuccess, reason = tc.dig()
-        if wasBlock and not digSuccess then
+        if not tc.dig() then
             return false
         end
         if not turtle.detectDown() and ((isLast and walls) or tc.isSourceBlockDown()) then
@@ -354,7 +353,7 @@ local function digAndFill(count, walls, fillLeft, fillRight, isLast)
             end
         end
         if CURRENT ~= RunType.Running then
-            return
+            return true
         end
     end
     return true
@@ -460,9 +459,7 @@ local function digLevel(firstLevel, lastLevel)
     local levelsDown = pos.v.y - START_POS.v.y
     if progress.completedLevels > 0 then
         for i = 1, progress.completedLevels + levelsDown, 1 do
-            local wasBlock = turtle.detectDown()
-            local digSuccess, reason = tc.digDown()
-            if wasBlock and not digSuccess then
+            if not tc.digDown() then
                 return false
             end
         end
@@ -674,6 +671,15 @@ local function runLoop()
         else
             sleep(5)
         end
+    end
+    if hitBedrock then
+        progress = q.s.progress.get()
+        q.s.job.set(QuarryJob(job.left, job.forward, progress.completedLevels + 1, job.walls))
+        completeLevel()
+        progress = q.s.progress.get()
+        progress.hitBedrock = true
+        progress.status = "Hit Bedrock"
+        setProgress(progress)
     end
     finishJob()
     tc.emptyInventory()

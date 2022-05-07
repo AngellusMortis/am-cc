@@ -515,6 +515,7 @@ end
 
 ---@param moveDir number
 ---@param count? number
+---@return boolean
 local function digMoveDir(moveDir, count)
     if count == nil then
         count = 1
@@ -540,6 +541,10 @@ local function digMoveDir(moveDir, count)
                     sleep(5)
                 end
                 if not error and not digDir(moveDir) then
+                    local inspectSuccess, data = inspectDir(moveDir)
+                    if inspectSuccess and data.name == "minecraft:bedrock" then
+                        return false
+                    end
                     error = true
                     turtleError("Cannot Dig Block" .. dirStr(moveDir))
                     sleep(1)
@@ -569,23 +574,27 @@ local function digMoveDir(moveDir, count)
                 success = true
             end
         end
+        return true
     end
     digEventDir(moveDir, count, true)
 end
 
 ---@param count? number
+---@return boolean
 local function dig(count)
-    digMoveDir(e.c.Turtle.Direction.Front, count)
+    return digMoveDir(e.c.Turtle.Direction.Front, count)
 end
 
 ---@param count? number
+---@return boolean
 local function digDown(count)
-    digMoveDir(e.c.Turtle.Direction.Down, count)
+    return digMoveDir(e.c.Turtle.Direction.Down, count)
 end
 
 ---@param count? number
+---@return boolean
 local function digUp(count)
-    digMoveDir(e.c.Turtle.Direction.Up, count)
+    return digMoveDir(e.c.Turtle.Direction.Up, count)
 end
 
 ---@param moveDir number

@@ -134,7 +134,11 @@ function QuarryWrapper:update(event)
     end
 
     titleText:update(string.format("Quarry%s", extra))
+    totalBar.obj.displayTotal = self.progress.job.levels
     totalBar:update(self.progress.progress.current * 100)
+    if self.progress.progress.hitBedrock then
+        totalBar:updateLabel("Total (Bedrock)")
+    end
     if self.progress.job.left ~= nil then
         levelBar.obj.total = self.progress.job.left
     end
