@@ -12,6 +12,11 @@ local log = require("am.log")
 local e = {}
 
 local s = {}
+s.signing = {
+    name = "event.signing",
+    default = false,
+    type = "boolean"
+}
 s.psk = {
     name = "event.psk",
     default = "",
@@ -41,7 +46,7 @@ local function initNetwork()
         return
     end
 
-    if s.psk.get() ~= "" then
+    if not s.signing.get() or s.psk.get() ~= "" then
         e.online = false
         local modems = { peripheral.find("modem", function(name, modem)
             return modem.isWireless()
@@ -167,6 +172,10 @@ end
 ---@param message am.net
 ---@return boolean
 function DistributedEvent:validate(message)
+    if not s.signing.get() and message.signature == nil then
+        return true
+    end
+
     if not e.online or message.signature == nil then
         return false
     end
@@ -179,6 +188,9 @@ end
 ---@param message am.raw
 ---@return am.net
 function DistributedEvent:sign(message)
+    if not s.signing.get() then
+        return message
+    end
     local signature = hmac.hmac(hmac.sha256, s.psk.get(), log.format(message))
     message.signature = signature
     return message
