@@ -3,6 +3,6 @@
     "autorun/startProgress.lua": "649298733578c24a337935bd6813aa1b9dce3dcbd50e25e1c6dcad6f52ff616f"
   },
   "dependencies": [
-    "AngellusMortis/am-cc:/core"
+    "AngellusMortis/am-cc:/control"
   ]
 }
