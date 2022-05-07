@@ -178,7 +178,7 @@ end
 
 local function netEventLoop()
     while true do
-        local id, data = rednet.receive()
+        local _, data = rednet.receive(3)
         if data ~= nil and data.type == e.type then
             ---@cast data am.net
             local output = nil
@@ -197,7 +197,7 @@ local function netEventLoop()
             if output ~= nil then
                 if data.event.name == e.c.Event.Turtle.turtle_started then
                     TIMEOUT_MAP[data.src.id] = os.clock() + settings.get(s.timeout.name)
-                elseif data.event.name == e.c.Event.Turtle.turtle_paused or data.event.name == e.c.Event.Turtle.turtle_exited then
+                elseif data.event.name == e.c.Event.Turtle.paused or data.event.name == e.c.Event.Turtle.exited then
                     TIMEOUT_MAP[data.src.id] = -1
                 end
                 p.handle(data.src, data.event.name, {data.event})
