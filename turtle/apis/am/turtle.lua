@@ -61,7 +61,8 @@ local function getItemDiff(oldItem, newItem)
         return nil
     end
     if oldItem ~= nil and newItem == nil then
-        return nil
+        oldItem.count = -oldItem.count
+        return oldItem
     end
     if oldItem == nil and newItem ~= nil then
         return newItem
@@ -73,6 +74,9 @@ local function getItemDiff(oldItem, newItem)
         return newItem
     end
     newItem.count = oldItem.count - newItem.count
+    if newItem.count == 0 then
+        return nil
+    end
     return newItem
 end
 
@@ -138,10 +142,10 @@ local function emptyInventoryBase()
     end
     local newItems = getInventoryDiff(items)
     local placed = {}
-    for _, item in ipairs(newItems) do
+    for _, item in pairs(newItems) do
         if item ~= nil and item.count < 0 then
             item.count = math.abs(item.count)
-            placed[#placed + 1] = placed
+            placed[#placed + 1] = item
         end
     end
     event.completed = true

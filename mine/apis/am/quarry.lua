@@ -143,6 +143,8 @@ function QuarryProgress:deserialize(raw)
     )
     progress.hitBedrock = raw.hitBedrock
     progress.items = raw.items
+
+    return progress
 end
 
 local s = {}
@@ -190,6 +192,7 @@ local RunType = {
 }
 
 local CURRENT = RunType.Running
+local RUN_EVENT_LOOP = true
 
 ---@param pos? am.p.TurtlePosition
 local function fireProgressEvent(pos, progress)
@@ -240,6 +243,7 @@ local function addItems(event)
             progress.items[item.name] = curItem
         end
     end
+    setProgress(progress)
 end
 
 ---@param rowNum number
@@ -311,6 +315,9 @@ local function finishJob()
     progress.status = "Finishing Job"
     setProgress(progress)
     log.debug("Finishing Quarry...")
+
+    sleep(5)
+    RUN_EVENT_LOOP = false
     log.debug("Items Mined:")
     local items = p.itemStrings(progress.items)
     for _, item in ipairs(items) do
@@ -713,8 +720,8 @@ local function runLoop()
         progress.status = "Hit Bedrock"
         setProgress(progress)
     end
-    finishJob()
     tc.emptyInventory()
+    finishJob()
     if CURRENT == RunType.Halted then
         e.TurtleExitEvent(false):send()
         sleep(3)
@@ -725,7 +732,7 @@ local function runLoop()
 end
 
 local function eventLoop()
-    while CURRENT ~= RunType.Completed do
+    while RUN_EVENT_LOOP do
         -- timeout timer
         local timer = os.startTimer(3)
         local event, args = core.cleanEventArgs(os.pullEvent())
@@ -754,6 +761,9 @@ local function eventLoop()
             p.print(e.getComputer(), args[1])
         elseif event == e.c.Event.Turtle.empty then
             setStatus("Emptying Inventory")
+            if args[1].completed then
+                addItems(args[1])
+            end
         elseif event == e.c.Event.Turtle.exited then
             if args[1].completed then
                 setStatus("success:Completed")
@@ -780,8 +790,6 @@ local function eventLoop()
             setStatus("Refueling")
         elseif event == e.c.Event.Turtle.error then
             setStatus(string.format("error:%s", args[1].error))
-        elseif event == e.c.Event.Turtle.empty then
-            addItems(args[1])
         end
         p.handle(e.getComputer(), event, args)
         os.cancelTimer(timer)
@@ -794,7 +802,7 @@ local function netEventLoop()
         return
     end
 
-    while CURRENT ~= RunType.Completed do
+    while RUN_EVENT_LOOP do
         local data = e.receive()
         if data ~= nil then
             ---@cast data am.turtle_request
