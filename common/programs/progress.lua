@@ -178,9 +178,8 @@ end
 
 local function netEventLoop()
     while true do
-        local _, data = rednet.receive(3)
-        if data ~= nil and data.type == e.type then
-            ---@cast data am.net
+        local data = e.receive()
+        if data ~= nil then
             local output = nil
             if e.c.Lookup.Progress[data.name] then
                 output = getDisplay(data.src)

@@ -649,8 +649,8 @@ local function netEventLoop()
     end
 
     while CURRENT ~= RunType.Completed do
-        local id, data = rednet.receive(nil, 3)
-        if data ~= nil and data.type == e.type then
+        local data = e.receive()
+        if data ~= nil then
             ---@cast data am.net
             id = os.getComputerID()
             if data.name == e.c.Event.Turtle.request_halt and data.event.id == id then

@@ -5,9 +5,19 @@ require(settings.get("ghu.base") .. "core/apis/ghu")
 local BaseEvent = require("am.ui").e.BaseEvent
 
 local h = require("am.helpers")
+local core = require("am.core")
+local hmac = require("ext.hmac")
 local log = require("am.log")
 
 local e = {}
+
+local s = {}
+s.psk = {
+    name = "event.psk",
+    default = "",
+    type = "string"
+}
+s = core.makeSettingWrapper(s)
 
 local initalizedNetwork = false
 e.online = false
@@ -17,26 +27,30 @@ e.type = "am.net"
 ---@field id number
 ---@field label string|nil
 
----@class am.net
+---@class am.raw
 ---@field type "am.net"
 ---@field src am.net.src
 ---@field name string
 ---@field event am.e.DistributedEvent
----@field signature any
+
+---@class am.net:am.raw
+---@field signature string
 
 local function initNetwork()
     if initalizedNetwork then
         return
     end
 
-    e.online = false
-    local modems = { peripheral.find("modem", function(name, modem)
-        return modem.isWireless()
-    end) }
+    if s.psk.get() ~= "" then
+        e.online = false
+        local modems = { peripheral.find("modem", function(name, modem)
+            return modem.isWireless()
+        end) }
 
-    if #modems > 0 then
-        rednet.open(peripheral.getName(modems[1]))
-        e.online = true
+        if #modems > 0 then
+            rednet.open(peripheral.getName(modems[1]))
+            e.online = true
+        end
     end
     initalizedNetwork = true
 end
@@ -47,6 +61,23 @@ local function getComputer()
         id = os.getComputerID(),
         label = os.computerLabel()
     }
+end
+
+---@return am.net?
+local function receive()
+    if not e.online then
+        return nil
+    end
+
+    local _, data = rednet.receive(nil, 3)
+    if data ~= nil and data.type == e.type then
+        if e.DistributedEvent.validate(nil, core.copy(data, false)) then
+            return data
+        else
+            log.debug(string.format("bad signature: %s", log.format(data)))
+        end
+    end
+    return nil
 end
 
 e.c = {}
@@ -133,15 +164,24 @@ function DistributedEvent:init(name)
     return self
 end
 
----@param signature any
+---@param message am.net
 ---@return boolean
-function DistributedEvent:validate(signature)
-    return true
+function DistributedEvent:validate(message)
+    if not e.online or message.signature == nil then
+        return false
+    end
+    local provided = message.signature
+    message.signature = nil
+    local actual = hmac.hmac(hmac.sha256, s.psk.get(), log.format(message))
+    return provided == actual
 end
 
----@return any
-function DistributedEvent:sign()
-    return ""
+---@param message am.raw
+---@return am.net
+function DistributedEvent:sign(message)
+    local signature = hmac.hmac(hmac.sha256, s.psk.get(), log.format(message))
+    message.signature = signature
+    return message
 end
 
 function DistributedEvent:send()
@@ -150,13 +190,12 @@ function DistributedEvent:send()
     if e.broadcastMap[self.name] then
         initNetwork()
         if e.online then
-            rednet.broadcast({
+            rednet.broadcast(self:sign({
                 type = e.type,
                 src = getComputer(),
                 name = self.name,
-                event = self,
-                signature = self:sign()
-            })
+                event = core.copy(self, false),
+            }))
         end
     end
 end
@@ -190,14 +229,6 @@ function QuarryProgressEvent:init(pos, job, progress)
 
     return self
 end
-
--- eventLib.b.progressQuarry = function(job, progress, pos)
---     v.expect(1, job, "table")
---     v.expect(2, progress, "table")
---     v.expect(3, pos, "table")
-
---     eventLib.b.raw({eventLib.e.progress, eventLib.e.progress_quarry, job, progress, pos})
--- end
 
 ---@class am.e.PathfindEvent:am.e.DistributedEvent
 local PathfindEvent = DistributedEvent:extend("am.e.PathfindEvent")
@@ -483,5 +514,6 @@ end
 
 e.initNetwork = initNetwork
 e.getComputer = getComputer
+e.receive = receive
 
 return e
