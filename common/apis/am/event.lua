@@ -41,6 +41,9 @@ e.type = "am.net"
 ---@class am.net:am.raw
 ---@field signature string
 
+---@class am.turtle_request:am.net
+---@field event am.e.TurtleRequestHaltEvent|am.e.TurtleRequestPauseEvent|am.e.TurtleRequestContinueEvent
+
 local function initNetwork()
     if initalizedNetwork then
         return

@@ -48,7 +48,7 @@ end
 local function getInventory()
     local items = {}
     for i = 1, 16, 1 do
-        items[i] = turtle.getItemDetail(i)
+        items[i] = turtle.getItemDetail(i, true)
     end
     return items
 end

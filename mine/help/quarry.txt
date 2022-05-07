@@ -1,9 +1,9 @@
 digs out a cubic shape. Turtle's location is the top right corner
 
 ex:
-"quarry" will dig out a 16x16 area directly in front of the turtle
-"quarry true 16 8 4" will dig out a 16 blocks to the left, 8 blocks forward and 4 blocks (current + 3) down stating with the block in front of turtle
-"quarry false 4 4 50" will dig out a a 4x4 quarry 50 block down without placing walls
+"quarry" will dig out a 16x16 quarry directly in front of the turtle with a max depth of 100 blocks
+"quarry true 4 16 8" will dig out a 16 blocks to the left, 8 blocks forward and 4 blocks (current + 3) down stating with the block in front of turtle
+"quarry false 50 4 4" will dig out a a 4x4 quarry 50 block down without placing walls
 
 notes:
 block above the turtle is expected to be an inventory with fuel

@@ -90,7 +90,7 @@ function QuarryWrapper:createUI()
         id=baseId .. ".totalBar", label="Total", displayTotal=self.progress.job.levels, fillColor=colors.lightGray
     }))
     self.screen:add(ui.ProgressBar(ui.a.Left(6), {
-        id=baseId .. ".levelBar", label="Level", total=self.progress.job.left, fillColor=colors.lightGray
+        id=baseId .. ".levelBar", label="Level", total=1, fillColor=colors.lightGray
     }))
     self.screen:add(ui.Text(ui.a.Center(9), "", {id=baseId .. ".statusText"}))
     self.screen:add(haltButton)
@@ -128,10 +128,16 @@ function QuarryWrapper:update(event)
     local posText = self.screen:get(baseId .. ".posText")
     ---@cast posText am.ui.BoundText
 
-    titleText:update(string.format(
-        "Quarry: %d x %d (%d)", self.progress.job.left, self.progress.job.forward, self.progress.job.levels
-    ))
+    local extra = ""
+    if self.progress.job.left ~= nil and self.progress.job.forward ~= nil then
+        extra = string.format(": %d x %d (%d)", self.progress.job.left, self.progress.job.forward, self.progress.job.levels)
+    end
+
+    titleText:update(string.format("Quarry%s", extra))
     totalBar:update(self.progress.progress.current * 100)
+    if self.progress.job.left ~= nil then
+        levelBar.obj.total = self.progress.job.left
+    end
     levelBar:update(self.progress.progress.completedRows)
     statusText:update(self.progress.progress.status)
     local posFmt = "pos (%d, %d) e: %d, d: %d"

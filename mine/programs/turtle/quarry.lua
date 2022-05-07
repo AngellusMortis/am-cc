@@ -7,38 +7,38 @@ local log = require("am.log")
 local pf = require("am.pathfind")
 local q = require("am.quarry")
 
----@param walls string
----@param left string
----@param forward string
----@param levels string
----@param offsetX string
----@param offsetZ string
----@param offsetY string
----@param offsetDir string
----@param pretty string
-local function main(walls, left, forward, levels, offsetX, offsetZ, offsetY, offsetDir, pretty)
+---@param walls? string
+---@param left? string
+---@param levels? string
+---@param forward? string
+---@param offsetX? string
+---@param offsetZ? string
+---@param offsetY? string
+---@param offsetDir? string
+---@param pretty? string
+local function main(walls, levels, left, forward, offsetX, offsetZ, offsetY, offsetDir, pretty)
     if walls == nil then
         walls = true
     else
         walls = core.strBool(walls)
     end
-    if left == nil then
-        left = 16
-    end
-    if forward == nil then
-        forward = left
-    end
     if levels == nil then
-        levels = 1
+        levels = 100
     end
     if pretty == nil then
         pretty = true
     else
         pretty = core.strBool(pretty)
     end
+    if left ~= nil then
+        left = tonumber(left)
+    end
+    if forward ~= nil then
+        forward = tonumber(forward)
+    end
 
-    log.s.print.set(not pretty)
     pf.resetPosition()
+    log.s.print.set(not pretty)
     if offsetX ~= nil and offsetZ ~= nil and offsetY ~= nil and offsetDir ~= nil then
         q.setOffset(
             tonumber(offsetX),
@@ -47,7 +47,7 @@ local function main(walls, left, forward, levels, offsetX, offsetZ, offsetY, off
             pf.dirFromString(offsetDir, pf.c.DirType.Turn)
         )
     end
-    q.setJob(tonumber(left), tonumber(forward), tonumber(levels), walls)
+    q.setJob(left, forward, tonumber(levels), walls)
     q.runJob()
 end
 

@@ -28,9 +28,9 @@ local function main(x, z, y, dir)
     end
     local offset = q.s.offsetPos.get()
     if offset then
-        log.info(string.format("Quarry Offset: %s", log.format(offset)))
+        print(string.format("Quarry Offset: %s", log.format(offset)))
     else
-        log.info("No quarry offset")
+        print("No quarry offset")
     end
 end
 
