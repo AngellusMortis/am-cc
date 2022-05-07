@@ -4,7 +4,7 @@
     "apis/am/log.lua": "f0da2c32b02b23ace39e90029de869c52a5422350387966ff82031c969a6faae",
     "apis/am/progress.lua": "8ad0531e8d25006f7fffcc2b874364952f600039498bdd91595b7c257615a788",
     "apis/am/helpers.lua": "3245fec201bc7280a4804c2f6fe57a2720c9840d4f543613a6f2a58111434356",
-    "programs/progress.lua": "ebdec5999bd91a8c0497142d0242717583497188fb72e649d0fac2a2509b7cf2"
+    "programs/progress.lua": "9702d2badf74ab315ba78ec5ac3f403a1134a7345c6349eca2e3c32cc3450f3d"
   },
   "dependencies": [
     "AngellusMortis/cc-render@v1"
