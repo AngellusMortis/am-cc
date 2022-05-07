@@ -141,9 +141,12 @@ function QuarryProgress:deserialize(raw)
         raw.finished,
         raw.status
     )
-    progress.hitBedrock = raw.hitBedrock
-    progress.items = raw.items
-
+    if raw.hitBedrock ~= nil then
+        progress.hitBedrock = raw.hitBedrock
+    end
+    if raw.items ~= nil then
+        progress.items = raw.items
+    end
     return progress
 end
 
