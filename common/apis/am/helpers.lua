@@ -5,6 +5,7 @@ local object = require("ext.object")
 ---@class cc.item
 ---@field name string
 ---@field count number
+---@field displayName string
 
 ---@class cc.block
 ---@field name string

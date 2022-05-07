@@ -574,9 +574,9 @@ local function digMoveDir(moveDir, count)
                 success = true
             end
         end
-        return true
     end
     digEventDir(moveDir, count, true)
+    return true
 end
 
 ---@param count? number

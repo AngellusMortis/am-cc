@@ -100,6 +100,8 @@ end
 ---@field completedRows number
 ---@field finished boolean
 ---@field status string
+---@field hitBedrock boolean
+---@field items table<string, cc.item>
 local QuarryProgress = BaseObject:extend("am.q.QuarryProgress")
 q.QuarryProgress = QuarryProgress
 function QuarryProgress:init(
@@ -123,13 +125,15 @@ function QuarryProgress:init(
     self.completedRows = completedRows
     self.finished = finished
     self.status = status
+    self.hitBedrock = false
+    self.items = {}
     return self
 end
 
 ---@param raw table
 ---@return am.q.QuarryProgress
 function QuarryProgress:deserialize(raw)
-    return QuarryProgress(
+    local progress = QuarryProgress(
         raw.current,
         raw.levelCurrent,
         raw.completedLevels,
@@ -137,6 +141,8 @@ function QuarryProgress:deserialize(raw)
         raw.finished,
         raw.status
     )
+    progress.hitBedrock = raw.hitBedrock
+    progress.items = raw.items
 end
 
 local s = {}
@@ -222,6 +228,20 @@ local function setStatus(status)
     setProgress(progress)
 end
 
+---@param event am.e.TurtleEmptyEvent
+local function addItems(event)
+    local progress = q.s.progress.get()
+    for _, item in ipairs(event.items) do
+        if progress.items[item.name] == nil then
+            progress.items[item.name] = item
+        else
+            local curItem = progress.items[item.name]
+            curItem.count = curItem.count + item.count
+            progress.items[item.name] = curItem
+        end
+    end
+end
+
 ---@param rowNum number
 local function startRow(rowNum)
     v.expect(1, rowNum, "number")
@@ -290,6 +310,12 @@ local function finishJob()
     progress.finished = true
     progress.status = "Finishing Job"
     setProgress(progress)
+    log.debug("Finishing Quarry...")
+    log.debug("Items Mined:")
+    local items = p.itemStrings(progress.items)
+    for _, item in ipairs(items) do
+        log.debug(item)
+    end
 end
 
 local function goToOffset()
@@ -678,6 +704,15 @@ local function runLoop()
             sleep(5)
         end
     end
+    if hitBedrock then
+        progress = q.s.progress.get()
+        q.s.job.set(QuarryJob(job.left, job.forward, progress.completedLevels + 1, job.walls))
+        completeLevel()
+        progress = q.s.progress.get()
+        progress.hitBedrock = true
+        progress.status = "Hit Bedrock"
+        setProgress(progress)
+    end
     finishJob()
     tc.emptyInventory()
     if CURRENT == RunType.Halted then
@@ -745,6 +780,8 @@ local function eventLoop()
             setStatus("Refueling")
         elseif event == e.c.Event.Turtle.error then
             setStatus(string.format("error:%s", args[1].error))
+        elseif event == e.c.Event.Turtle.empty then
+            addItems(args[1])
         end
         p.handle(e.getComputer(), event, args)
         os.cancelTimer(timer)

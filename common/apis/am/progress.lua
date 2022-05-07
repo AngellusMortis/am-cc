@@ -202,6 +202,40 @@ function QuarryWrapper:handle(event, args)
     end
 end
 
+local function sortItemsAsc(item1, item2)
+    return item1.count < item2.count
+end
+
+local function sortItemsDesc(item1, item2)
+    return item1.count > item2.count
+end
+
+---@param items table<string, cc.item>
+---@param asc? boolean
+---@return string[]
+local function itemStrings(items, asc)
+    if asc == nil then
+        asc = false
+    end
+
+    local itemList = {}
+    for _, item in pairs(items) do
+        itemList[#itemList + 1] = item
+    end
+    if asc then
+        table.sort(itemList, sortItemsAsc)
+    else
+        table.sort(itemList, sortItemsDesc)
+    end
+
+    local strings = {}
+    for _, item in ipairs(itemList) do
+        strings[#strings + 1] = string.format("%dx %s", item.count, item.displayName)
+    end
+
+    return strings
+end
+
 ---@param src am.net.src
 ---@param event? am.e.ProgressEvent
 ---@param output? cc.output
@@ -324,5 +358,6 @@ end
 p.updateStatus = updateStatus
 p.print = printProgress
 p.handle = handle
+p.itemStrings = itemStrings
 
 return p
