@@ -26,7 +26,6 @@ function ProgressWrapper:init(src, progress, output)
     self.src = src
     self.progress = progress
     self.screen = ui.Screen(output, {id="screen." .. src.id})
-    log.debug(self.screen.id)
     return self
 end
 
@@ -273,12 +272,23 @@ local function printProgress(src, event, output)
     end
 end
 
+---@param event string Event name
+---@param args table
+local function handleAll(event, args)
+    for _, wrapper in pairs(WRAPPERS) do
+        wrapper:handle(event, args)
+    end
+end
+
 ---@param src am.net.src
 ---@param event string Event name
 ---@param args table
 local function handle(src, event, args)
     local newSrc = nil
-    if ui.c.l.Events.UI[event] then
+    if ui.c.l.Events.Always[event] then
+        handleAll(event, args)
+        return
+    elseif ui.c.l.Events.UI[event] then
         local parts = core.split(args[1].objId, ".")
         if parts[1] == "screen" then
             newSrc = {
@@ -295,7 +305,7 @@ local function handle(src, event, args)
         src = newSrc
     end
 
-    local wrapper, created = getWrapper(src)
+    local wrapper, _ = getWrapper(src)
     if wrapper ~= nil then
         wrapper:handle(event, args)
     end

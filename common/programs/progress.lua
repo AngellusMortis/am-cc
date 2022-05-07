@@ -245,6 +245,7 @@ local function main(name, outputName)
     end
 
     for id, output in pairs(outputMap) do
+        name = name or id
         outputName = "term"
         if not ui.h.isTerm(output) then
             outputName = peripheral.getName(output)
