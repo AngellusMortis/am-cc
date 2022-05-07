@@ -123,7 +123,6 @@ function QuarryProgress:init(
     self.completedRows = completedRows
     self.finished = finished
     self.status = status
-    self.hitBedrock = false
     return self
 end
 
@@ -334,6 +333,7 @@ local function digAndFill(count, walls, fillLeft, fillRight, isLast)
     end
 
     for i = 1, count, 1 do
+        local wasBlock = turtle.detect()
         if not tc.dig() then
             return false
         end
@@ -600,7 +600,9 @@ local function discoverBoundary()
     log.info("Discovering Boundary")
     setStatus("Discovering Boundary")
     tc.refuel(500) -- allow discover of a 64x64 size boundary
+    local startingOffset = q.s.offsetPos.get()
     goToOffset()
+    setStatus("Discovering Boundary")
     tc.dig()
     pf.turnRight()
     if not turtle.detect() then
@@ -635,6 +637,9 @@ local function discoverBoundary()
     log.info(string.format("Discovered Boundary: %d %d", left, forward))
     setStatus(string.format("Discovered: %dx%d", left, forward))
     pf.resetNodes()
+    if startingOffset then
+        pf.addNode(startingOffset)
+    end
     pf.goToOrigin()
     pf.resetNodes()
     return left, forward
@@ -646,6 +651,7 @@ local function runLoop()
         local left, forward = discoverBoundary()
         setJob(left, forward, job.levels, job.walls)
         job = q.s.job.get()
+        completeLevel()
     end
     ---@cast job am.q.ReadyQuarryJob
 
@@ -671,15 +677,6 @@ local function runLoop()
         else
             sleep(5)
         end
-    end
-    if hitBedrock then
-        progress = q.s.progress.get()
-        q.s.job.set(QuarryJob(job.left, job.forward, progress.completedLevels + 1, job.walls))
-        completeLevel()
-        progress = q.s.progress.get()
-        progress.hitBedrock = true
-        progress.status = "Hit Bedrock"
-        setProgress(progress)
     end
     finishJob()
     tc.emptyInventory()
