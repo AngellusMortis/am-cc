@@ -78,12 +78,12 @@ e.broadcastMap = {
     ["am.pathfind_turn"] = false,
     ["am.pathfind_go_to"] = false,
 
-    ["am.turtle_started"] = false,
-    ["am.turtle_paused"] = false,
-    ["am.turtle_exited"] = false,
-    ["am.turtle_request_halt"] = false,
-    ["am.turtle_request_pause"] = false,
-    ["am.turtle_request_continue"] = false,
+    ["am.turtle_started"] = true,
+    ["am.turtle_paused"] = true,
+    ["am.turtle_exited"] = true,
+    ["am.turtle_request_halt"] = true,
+    ["am.turtle_request_pause"] = true,
+    ["am.turtle_request_continue"] = true,
     ["am.turtle_empty"] = false,
     ["am.turtle_fetch_fill"] = false,
     ["am.turtle_refuel"] = false,
@@ -150,7 +150,6 @@ function DistributedEvent:send()
     if e.broadcastMap[self.name] then
         initNetwork()
         if e.online then
-            log.debug(string.format("broadcast %s", self.name))
             rednet.broadcast({
                 type = e.type,
                 src = getComputer(),

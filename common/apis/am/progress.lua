@@ -165,6 +165,7 @@ function QuarryWrapper:handle(event, args)
         ---@cast pauseButton am.ui.BoundButton
         pauseButton.obj.fillColor = colors.green
         pauseButton:updateLabel("Go")
+        self.screen:render()
     elseif event == e.c.Event.Turtle.started then
         self.paused = false
         local haltButton = self.screen:get(baseId .. ".haltButton")
@@ -177,6 +178,7 @@ function QuarryWrapper:handle(event, args)
         pauseButton.obj.visible = true
         pauseButton.obj.fillColor = colors.yellow
         pauseButton:updateLabel("Pause")
+        self.screen:render()
     elseif event == e.c.Event.Turtle.exited then
         local haltButton = self.screen:get(baseId .. ".haltButton")
         ---@cast haltButton am.ui.BoundButton
@@ -184,9 +186,8 @@ function QuarryWrapper:handle(event, args)
         ---@cast pauseButton am.ui.BoundButton
 
         haltButton.obj.visible = false
-        haltButton:updateLabel("")
         pauseButton.obj.visible = false
-        pauseButton:updateLabel("")
+        self.screen:render()
     else
         self.screen:handle({event, unpack(args)})
     end
@@ -230,6 +231,17 @@ local function getWrapper(src, event, output)
     return wrapper, created
 end
 
+---@param output cc.output
+---@return am.net.src
+local function getSrcFromOutput(output)
+    for id, wrapper in pairs(WRAPPERS) do
+        if ui.h.isSameScreen(output, wrapper.screen.output) then
+            return {id=id}
+        end
+    end
+    return nil
+end
+
 ---@param src am.net.src
 ---@param status string
 local function updateStatus(src, status)
@@ -265,13 +277,22 @@ end
 ---@param event string Event name
 ---@param args table
 local function handle(src, event, args)
+    local newSrc = nil
     if ui.c.l.Events.UI[event] then
         local parts = core.split(args[1].objId, ".")
         if parts[1] == "screen" then
-            src = {
+            newSrc = {
                 id=tonumber(parts[2])
             }
         end
+    elseif ui.c.l.Events.Terminal[event] then
+        newSrc = getSrcFromOutput(term)
+    elseif ui.c.l.Events.Monitor[event] then
+        newSrc = getSrcFromOutput(peripheral.wrap(args[1]))
+    end
+
+    if newSrc ~= nil then
+        src = newSrc
     end
 
     local wrapper, created = getWrapper(src)

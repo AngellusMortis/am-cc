@@ -650,15 +650,19 @@ local function netEventLoop()
 
     while CURRENT ~= RunType.Completed do
         local id, data = rednet.receive(nil, 3)
-        if data ~= nil and data.type == e.type and data.src.id == os.getComputerID() then
+        if data ~= nil and data.src ~= nil then
+            log.debug(string.format("recieve %s %s", data.name, data.src.id))
+        end
+        if data ~= nil and data.type == e.type then
             ---@cast data am.net
-            if data.name == e.c.Event.Turtle.request_halt then
+            id = os.getComputerID()
+            if data.name == e.c.Event.Turtle.request_halt and data.event.id == id then
                 CURRENT = RunType.Halted
                 log.info("Halting...")
-            elseif data.name == e.c.Event.Turtle.request_pause then
+            elseif data.name == e.c.Event.Turtle.request_pause and data.event.id == id then
                 CURRENT = RunType.Paused
                 log.info("Pausing...")
-            elseif data.name == e.c.Event.Turtle.request_continue then
+            elseif data.name == e.c.Event.Turtle.request_continue and data.event.id == id then
                 CURRENT = RunType.Halted
                 log.info("Unpausing...")
                 e.TurtleStartedEvent():send()
