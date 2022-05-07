@@ -1,0 +1,6 @@
+sets or clears quarry offset for the quarry program
+
+ex:
+"qoffset" will print current offset
+"qoffset 0 -3 -20 back" will set the quarry offset to (x=0, y=-20, z=-3) facing opposite direction
+"qoffset clear" will clear the offset

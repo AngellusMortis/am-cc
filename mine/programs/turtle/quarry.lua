@@ -7,16 +7,21 @@ local log = require("am.log")
 local pf = require("am.pathfind")
 local q = require("am.quarry")
 
+---@param walls string
 ---@param left string
 ---@param forward string
 ---@param levels string
----@param walls string
 ---@param offsetX string
 ---@param offsetZ string
 ---@param offsetY string
 ---@param offsetDir string
 ---@param pretty string
-local function main(left, forward, levels, walls, offsetX, offsetZ, offsetY, offsetDir, pretty)
+local function main(walls, left, forward, levels, offsetX, offsetZ, offsetY, offsetDir, pretty)
+    if walls == nil then
+        walls = true
+    else
+        walls = core.strBool(walls)
+    end
     if left == nil then
         left = 16
     end
@@ -25,11 +30,6 @@ local function main(left, forward, levels, walls, offsetX, offsetZ, offsetY, off
     end
     if levels == nil then
         levels = 1
-    end
-    if walls == nil then
-        walls = true
-    else
-        walls = core.strBool(walls)
     end
     if pretty == nil then
         pretty = true
@@ -46,8 +46,6 @@ local function main(left, forward, levels, walls, offsetX, offsetZ, offsetY, off
             tonumber(offsetY),
             pf.dirFromString(offsetDir, pf.c.DirType.Turn)
         )
-    else
-        q.clearOffset()
     end
     q.setJob(tonumber(left), tonumber(forward), tonumber(levels), walls)
     q.runJob()
