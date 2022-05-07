@@ -650,9 +650,6 @@ local function netEventLoop()
 
     while CURRENT ~= RunType.Completed do
         local id, data = rednet.receive(nil, 3)
-        if data ~= nil and data.src ~= nil then
-            log.debug(string.format("recieve %s %s", data.name, data.src.id))
-        end
         if data ~= nil and data.type == e.type then
             ---@cast data am.net
             id = os.getComputerID()
