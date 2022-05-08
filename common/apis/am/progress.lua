@@ -71,7 +71,7 @@ function QuarryWrapper:createUI()
         nameText.visible = false
     end
 
-    if ui.h.isTerm(self.screen.output) then
+    if _G.RUN_PROGRESS ~= nil and ui.h.isTerm(self.screen.output) then
         local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".closeButton", fillColor=colors.red, border=0})
         closeButton:addActivateHandler(function()
             _G.RUN_PROGRESS = false
@@ -291,10 +291,10 @@ function QuarryWrapper:handle(event, args)
         ---@cast pauseButton am.ui.BoundButton
 
         haltButton.obj.visible = progressFrame.obj.visible
-        haltButton:updateLabel("X")
+        haltButton:updateLabel("\x8f")
         pauseButton.obj.visible = progressFrame.obj.visible
         pauseButton.obj.fillColor = colors.yellow
-        pauseButton:updateLabel("||")
+        pauseButton:updateLabel("\x95\x95")
         self.screen:render()
     elseif event == e.c.Event.Turtle.exited then
         local haltButton = self.screen:get(baseId .. ".haltButton")
