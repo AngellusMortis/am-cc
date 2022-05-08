@@ -65,7 +65,7 @@ function QuarryWrapper:createUI()
 
     local startY = 2
     local nameText = ui.Text(ui.a.Top(), "", {id=baseId .. ".nameText"})
-    local _, height = self.screen.output.getSize()
+    local width, height = self.screen.output.getSize()
     if height <= 12 then
         startY = 1
         nameText.visible = false
@@ -90,7 +90,14 @@ function QuarryWrapper:createUI()
     }))
     progressFrame:add(ui.Text(ui.a.Center(7), "", {id=baseId .. ".statusText"}))
 
-    local haltButton = ui.Button(ui.a.Center(8, ui.c.Offset.Left, 2), "X", {
+    local offsetHalt = 2
+    local offsetPause = 2
+    if width % 2 == 0 then
+        offsetHalt = 3
+        offsetPause = 1
+    end
+
+    local haltButton = ui.Button(ui.a.Center(8, ui.c.Offset.Left, offsetHalt), "X", {
         id=baseId .. ".haltButton", fillColor=colors.red
     })
     haltButton:addActivateHandler(function()
@@ -98,7 +105,7 @@ function QuarryWrapper:createUI()
         e.TurtleRequestHaltEvent(self.src.id):send()
     end)
 
-    local pauseButton = ui.Button(ui.a.Center(8, ui.c.Offset.Right, 2), "||", {
+    local pauseButton = ui.Button(ui.a.Center(8, ui.c.Offset.Right, offsetPause), "||", {
         id=baseId .. ".pauseButton", fillColor=colors.yellow
     })
     pauseButton:addActivateHandler(function()
@@ -151,6 +158,7 @@ function QuarryWrapper:createUI()
     itemsFrame:add(itemsListFrame)
     itemsFrame:setVisible(false)
     self.screen:add(itemsFrame)
+
 
     local itemsButton = ui.Button(ui.a.Center(8), "+", {
         id=baseId .. ".itemsButton", fillColor=colors.blue
@@ -210,7 +218,7 @@ function QuarryWrapper:update(event)
     progressFrame.obj.anchor.y = startY + 1
     local minListHeight = height - startY
     local items = p.itemStrings(self.progress.progress.items)
-    itemsListFrame.obj.height = math.max(minListHeight, #items)
+    itemsListFrame.obj.height = math.max(minListHeight, #items + 2)
     listText:update(items)
 
     local extra = ""
@@ -302,6 +310,23 @@ local function sortItemsDesc(item1, item2)
     return item1.count > item2.count
 end
 
+local metricSuffixes = {"K", "M", "T", "P"}
+
+---@param value number
+---@return string
+local function metricString(value)
+    local suffixIndex = 0
+    while value > 1000 do
+        value = value / 1000
+        suffixIndex = suffixIndex + 1
+    end
+
+    if suffixIndex == 0 then
+        return tostring(value)
+    end
+    return string.format("%.1f%s", value, metricSuffixes[suffixIndex])
+end
+
 ---@param items table<string, cc.item>
 ---@param asc? boolean
 ---@return string[]
@@ -322,7 +347,9 @@ local function itemStrings(items, asc)
 
     local strings = {}
     for _, item in ipairs(itemList) do
-        strings[#strings + 1] = string.format("%dx %s", item.count, item.displayName)
+        strings[#strings + 1] = string.format(
+            "%5sx %s", metricString(item.count), item.displayName
+        )
     end
 
     return strings
