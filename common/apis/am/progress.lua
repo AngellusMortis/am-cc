@@ -71,7 +71,7 @@ function QuarryWrapper:createUI()
         nameText.visible = false
     end
 
-    if _G.RUN_PROGRESS ~= nil and ui.h.isTerm(self.screen.output) then
+    if _G.RUN_PROGRESS and ui.h.isTerm(self.screen.output) then
         local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".closeButton", fillColor=colors.red, border=0})
         closeButton:addActivateHandler(function()
             _G.RUN_PROGRESS = false
