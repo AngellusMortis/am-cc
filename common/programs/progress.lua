@@ -26,6 +26,7 @@ local MIN_SIZE = {width=13, height=7}
 local BASE_SIZE = {width=25, height=13}
 local TIMEOUT_MAP = {}
 local DATA = {}
+_G.RUN_PROGRESS = true
 
 ---@return table<string, cc.output>
 local function getAllMonitors()
@@ -170,14 +171,14 @@ local function initTerm(computerMap)
 end
 
 local function eventLoop()
-    while true do
+    while _G.RUN_PROGRESS do
         local event, args = core.cleanEventArgs(os.pullEvent())
         p.handle(e.getComputer(), event, args)
     end
 end
 
 local function netEventLoop()
-    while true do
+    while _G.RUN_PROGRESS do
         local data = e.receive()
         if data ~= nil then
             local output = nil
@@ -206,7 +207,7 @@ local function netEventLoop()
 end
 
 local function heartbeat()
-    while true do
+    while _G.RUN_PROGRESS do
         sleep(1)
         local now = os.clock()
         for id, timeout in pairs(TIMEOUT_MAP) do
@@ -261,6 +262,11 @@ local function main(name, outputName)
     log.info("Listening for progress events...")
     DATA = {outputMap=outputMap, computerMap=computerMap}
     parallel.waitForAny(eventLoop, netEventLoop, heartbeat)
+    log.s.print.set(true)
+    term.setBackgroundColor(colors.black)
+    term.setTextColor(colors.white)
+    term.clear()
+    term.setCursorPos(1, 1)
 end
 
 main(arg[1], arg[2])

@@ -71,6 +71,14 @@ function QuarryWrapper:createUI()
         nameText.visible = false
     end
 
+    if ui.h.isTerm(self.screen.output) then
+        local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".closeButton", fillColor=colors.red, border=0})
+        closeButton:addActivateHandler(function()
+            _G.RUN_PROGRESS = false
+        end)
+        self.screen:add(closeButton)
+    end
+
     self.screen:add(nameText)
     self.screen:add(ui.Text(ui.a.Center(startY), "", {id=baseId .. ".titleText"}))
     local progressFrame = ui.Frame(ui.a.Anchor(1, startY + 1), {
@@ -97,7 +105,7 @@ function QuarryWrapper:createUI()
         offsetPause = 1
     end
 
-    local haltButton = ui.Button(ui.a.Center(8, ui.c.Offset.Left, offsetHalt), "X", {
+    local haltButton = ui.Button(ui.a.Center(8, ui.c.Offset.Left, offsetHalt), "\x8f", {
         id=baseId .. ".haltButton", fillColor=colors.red
     })
     haltButton:addActivateHandler(function()
@@ -105,7 +113,7 @@ function QuarryWrapper:createUI()
         e.TurtleRequestHaltEvent(self.src.id):send()
     end)
 
-    local pauseButton = ui.Button(ui.a.Center(8, ui.c.Offset.Right, offsetPause), "||", {
+    local pauseButton = ui.Button(ui.a.Center(8, ui.c.Offset.Right, offsetPause), "\x95\x95", {
         id=baseId .. ".pauseButton", fillColor=colors.yellow
     })
     pauseButton:addActivateHandler(function()
@@ -132,7 +140,7 @@ function QuarryWrapper:createUI()
     })
 
     itemsFrame:add(ui.Text(ui.a.TopLeft(), "Mined Items", {id=baseId .. ".itemsTitle"}))
-    local closeItemsButton = ui.Button(ui.a.TopRight(), "X", {
+    local closeItemsButton = ui.Button(ui.a.TopRight(), "x", {
         id=baseId .. ".closeItemsButton", fillColor=colors.red, border=0
     })
     closeItemsButton:addActivateHandler(function()
@@ -160,7 +168,7 @@ function QuarryWrapper:createUI()
     self.screen:add(itemsFrame)
 
 
-    local itemsButton = ui.Button(ui.a.Center(8), "+", {
+    local itemsButton = ui.Button(ui.a.Center(8), "\x17", {
         id=baseId .. ".itemsButton", fillColor=colors.blue
     })
     itemsButton:addActivateHandler(function()
@@ -302,12 +310,32 @@ function QuarryWrapper:handle(event, args)
     end
 end
 
-local function sortItemsAsc(item1, item2)
+---@param item1 cc.item
+---@param item2 cc.item
+---@return boolean
+local function sortItemCountAsc(item1, item2)
     return item1.count < item2.count
 end
 
-local function sortItemsDesc(item1, item2)
+---@param item1 cc.item
+---@param item2 cc.item
+---@return boolean
+local function sortItemCountDesc(item1, item2)
     return item1.count > item2.count
+end
+
+---@param item1 cc.item
+---@param item2 cc.item
+---@return boolean
+local function sortItemNameAsc(item1, item2)
+    return item1.displayName:lower() < item2.displayName:lower()
+end
+
+---@param item1 cc.item
+---@param item2 cc.item
+---@return boolean
+local function sortItemNameDesc(item1, item2)
+    return item1.displayName:lower() > item2.displayName:lower()
 end
 
 local metricSuffixes = {"K", "M", "T", "P"}
@@ -329,21 +357,34 @@ end
 
 ---@param items table<string, cc.item>
 ---@param asc? boolean
+---@param sortCount? boolean
 ---@return string[]
-local function itemStrings(items, asc)
+local function itemStrings(items, asc, sortCount)
     if asc == nil then
         asc = false
+    end
+    if sortCount == nil then
+        sortCount = true
     end
 
     local itemList = {}
     for _, item in pairs(items) do
         itemList[#itemList + 1] = item
     end
-    if asc then
-        table.sort(itemList, sortItemsAsc)
+    if sortCount then
+        if asc then
+            table.sort(itemList, sortItemCountAsc)
+        else
+            table.sort(itemList, sortItemCountDesc)
+        end
     else
-        table.sort(itemList, sortItemsDesc)
+        if asc then
+            table.sort(itemList, sortItemCountAsc)
+        else
+            table.sort(itemList, sortItemCountDesc)
+        end
     end
+
 
     local strings = {}
     for _, item in ipairs(itemList) do
