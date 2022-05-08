@@ -859,6 +859,8 @@ local function runJob(resume)
     parallel.waitForAll(runLoop, eventLoop, netEventLoop)
     term.setCursorBlink(true)
     if not log.s.print.get() then
+        term.setBackgroundColor(colors.black)
+        term.setTextColor(colors.white)
         term.clear()
         term.setCursorPos(1, 1)
     end
