@@ -819,7 +819,7 @@ local function netEventLoop()
                 CURRENT = RunType.Paused
                 log.info("Pausing...")
             elseif data.name == e.c.Event.Turtle.request_continue and data.event.id == id then
-                CURRENT = RunType.Halted
+                CURRENT = RunType.Running
                 log.info("Unpausing...")
                 e.TurtleStartedEvent():send()
             end

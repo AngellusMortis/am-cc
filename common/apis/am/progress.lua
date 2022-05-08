@@ -90,7 +90,7 @@ function QuarryWrapper:createUI()
     }))
     progressFrame:add(ui.Text(ui.a.Center(7), "", {id=baseId .. ".statusText"}))
 
-    local haltButton = ui.Button(ui.a.Center(8, ui.c.Offset.Left, 4), "Stop", {
+    local haltButton = ui.Button(ui.a.Center(8, ui.c.Offset.Left, 2), "X", {
         id=baseId .. ".haltButton", fillColor=colors.red
     })
     haltButton:addActivateHandler(function()
@@ -98,7 +98,7 @@ function QuarryWrapper:createUI()
         e.TurtleRequestHaltEvent(self.src.id):send()
     end)
 
-    local pauseButton = ui.Button(ui.a.Center(8, ui.c.Offset.Right, 4), "Pause", {
+    local pauseButton = ui.Button(ui.a.Center(8, ui.c.Offset.Right, 2), "||", {
         id=baseId .. ".pauseButton", fillColor=colors.yellow
     })
     pauseButton:addActivateHandler(function()
@@ -152,7 +152,7 @@ function QuarryWrapper:createUI()
     itemsFrame:setVisible(false)
     self.screen:add(itemsFrame)
 
-    local itemsButton = ui.Button(ui.a.Center(8), "Items", {
+    local itemsButton = ui.Button(ui.a.Center(8), "+", {
         id=baseId .. ".itemsButton", fillColor=colors.blue
     })
     itemsButton:addActivateHandler(function()
@@ -263,7 +263,7 @@ function QuarryWrapper:handle(event, args)
         local pauseButton = self.screen:get(baseId .. ".pauseButton")
         ---@cast pauseButton am.ui.BoundButton
         pauseButton.obj.fillColor = colors.green
-        pauseButton:updateLabel("Go")
+        pauseButton:updateLabel("\x10")
         self.screen:render()
     elseif event == e.c.Event.Turtle.started then
         self.paused = false
@@ -275,10 +275,10 @@ function QuarryWrapper:handle(event, args)
         ---@cast pauseButton am.ui.BoundButton
 
         haltButton.obj.visible = progressFrame.obj.visible
-        haltButton:updateLabel("Stop")
+        haltButton:updateLabel("X")
         pauseButton.obj.visible = progressFrame.obj.visible
         pauseButton.obj.fillColor = colors.yellow
-        pauseButton:updateLabel("Pause")
+        pauseButton:updateLabel("||")
         self.screen:render()
     elseif event == e.c.Event.Turtle.exited then
         local haltButton = self.screen:get(baseId .. ".haltButton")
