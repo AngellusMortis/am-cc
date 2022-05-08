@@ -2,7 +2,7 @@
   "files": {
     "apis/am/event.lua": "05868ea2b4fd1b62fccff3ba0743ebd6a986941094f287029e6116a797bc872c",
     "apis/am/log.lua": "f0da2c32b02b23ace39e90029de869c52a5422350387966ff82031c969a6faae",
-    "apis/am/progress.lua": "268db22c29676241425a4c9efe214f050e9ecbc024ead8add828cf5b90bad296",
+    "apis/am/progress.lua": "2c5d0e6e914356ae1ae94126a9772e54070f4aa9d7246e5a40d142179db4980d",
     "apis/am/helpers.lua": "a875372b53cc630126fc21fde833ab108324435de5d6ca78f33a9021d5210486",
     "apis/ext/hmac.lua": "4e87d8940e470893e9d885ca84023bc426f901c3877600839d5b43bbe58bb2ce",
     "programs/progress.lua": "ac9b94d6f2bff04c4e756a6ac2fc7d613ab42562df522cd90a796c6c927cb9d0"
