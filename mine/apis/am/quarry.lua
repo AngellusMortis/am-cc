@@ -688,6 +688,8 @@ local function runLoop()
         setJob(left, forward, job.levels, job.walls)
         job = q.s.job.get()
         completeLevel()
+        pf.resetNodes()
+        pf.resetNodes(true)
     end
     ---@cast job am.q.ReadyQuarryJob
 

@@ -63,7 +63,14 @@ function QuarryWrapper:createUI()
 
     local baseId = self.screen.id
 
-    local haltButton = ui.Button(ui.a.Center(10, ui.c.Offset.Left), "Stop", {
+    local startY = 2
+    local nameText = ui.Text(ui.a.Top(), "", {id=baseId .. ".nameText"})
+    local _, height = self.screen.output.getSize()
+    if height <= 12 then
+        startY = 1
+        nameText.visible = false
+    end
+    local haltButton = ui.Button(ui.a.Center(startY + 8, ui.c.Offset.Left), "Stop", {
         id=baseId .. ".haltButton", fillColor=colors.red
     })
     haltButton:addActivateHandler(function()
@@ -71,7 +78,7 @@ function QuarryWrapper:createUI()
         e.TurtleRequestHaltEvent(self.src.id):send()
     end)
 
-    local pauseButton = ui.Button(ui.a.Center(10, ui.c.Offset.Right), "Pause", {
+    local pauseButton = ui.Button(ui.a.Center(startY + 8, ui.c.Offset.Right), "Pause", {
         id=baseId .. ".pauseButton", fillColor=colors.yellow
     })
     pauseButton:addActivateHandler(function()
@@ -84,15 +91,16 @@ function QuarryWrapper:createUI()
         end
     end)
 
-    self.screen:add(ui.Text(ui.a.Top(), "", {id=baseId .. ".nameText"}))
-    self.screen:add(ui.Text(ui.a.Center(2), "", {id=baseId .. ".titleText"}))
-    self.screen:add(ui.ProgressBar(ui.a.Left(3), {
+
+    self.screen:add(nameText)
+    self.screen:add(ui.Text(ui.a.Center(startY), "", {id=baseId .. ".titleText"}))
+    self.screen:add(ui.ProgressBar(ui.a.Left(startY + 1), {
         id=baseId .. ".totalBar", label="Total", displayTotal=self.progress.job.levels, fillColor=colors.lightGray
     }))
-    self.screen:add(ui.ProgressBar(ui.a.Left(6), {
+    self.screen:add(ui.ProgressBar(ui.a.Left(startY + 4), {
         id=baseId .. ".levelBar", label="Level", total=1, fillColor=colors.lightGray
     }))
-    self.screen:add(ui.Text(ui.a.Center(9), "", {id=baseId .. ".statusText"}))
+    self.screen:add(ui.Text(ui.a.Center(startY + 7), "", {id=baseId .. ".statusText"}))
     self.screen:add(haltButton)
     self.screen:add(pauseButton)
     self.screen:add(ui.Text(ui.a.Bottom(), "", {id=baseId .. ".posText"}))
@@ -117,6 +125,8 @@ function QuarryWrapper:update(event)
             nameText:update(nameStatus)
         end
     end
+    local nameText = self.screen:get(baseId .. ".nameText")
+    ---@cast nameText am.ui.BoundText
     local titleText = self.screen:get(baseId .. ".titleText")
     ---@cast titleText am.ui.BoundText
     local totalBar = self.screen:get(baseId .. ".totalBar")
@@ -127,6 +137,25 @@ function QuarryWrapper:update(event)
     ---@cast statusText am.ui.BoundText
     local posText = self.screen:get(baseId .. ".posText")
     ---@cast posText am.ui.BoundText
+    local haltButton = self.screen:get(baseId .. ".haltButton")
+    ---@cast haltButton am.ui.BoundButton
+    local pauseButton = self.screen:get(baseId .. ".pauseButton")
+    ---@cast pauseButton am.ui.BoundButton
+
+    local _, height = self.screen.output.getSize()
+    local startY = 1
+    if height <= 12 then
+        nameText.obj.visible = false
+    else
+        startY = 2
+        nameText.obj.visible = true
+    end
+    titleText.obj.anchor.y = startY
+    totalBar.obj.anchor.y = startY + 1
+    levelBar.obj.anchor.y = startY + 4
+    statusText.obj.anchor.y = startY + 7
+    haltButton.obj.anchor.y = startY + 8
+    pauseButton.obj.anchor.y = startY + 8
 
     local extra = ""
     if self.progress.job.left ~= nil and self.progress.job.forward ~= nil then

@@ -179,7 +179,7 @@ local function emptyInventory(doReturn)
 
     emptyInventoryBase()
     local pos = pf.s.position.get()
-    if doReturn and not h.isOrigin(pos) then
+    if doReturn and h.isOrigin(pos) then
         log.info("Returning...")
         while not pf.goToReturn() do
             turtleError("Cannot Return to Return")
