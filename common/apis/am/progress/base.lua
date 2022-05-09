@@ -10,6 +10,7 @@ local ui = require("am.ui")
 ---@field src am.net.src
 ---@field progress am.e.ProgressEvent
 ---@field screen am.ui.Screen
+---@field names table<string, boolean>
 local ProgressWrapper = BaseObject:extend("am.progress.ProgressWrapper")
 function ProgressWrapper:init(src, progress, output)
     v.expect(1, src, "table")
@@ -20,6 +21,7 @@ function ProgressWrapper:init(src, progress, output)
     self.src = src
     self.progress = progress
     self.screen = ui.Screen(output, {id="screen." .. src.id, backgroundColor=colors.black, textColor=colors.white})
+    self.names = {}
     return self
 end
 

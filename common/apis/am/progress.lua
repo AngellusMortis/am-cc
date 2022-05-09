@@ -2,11 +2,8 @@ local v = require("cc.expect")
 
 require(settings.get("ghu.base") .. "core/apis/ghu")
 
-local BaseObject = require("am.ui.base").BaseObject
-
 local ui = require("am.ui")
 local e = require("am.event")
-local log = require("am.log")
 local core = require("am.core")
 local h = require("am.progress.helpers")
 
@@ -35,13 +32,12 @@ local function getWrapper(src, event, output)
         ---@cast output cc.output
         ---@cast event am.e.ProgressEvent
         if wrapper ~= nil then
-            if wrapper.progress.name ~= event.name or not ui.h.isSameScreen(wrapper.screen.output, output) then
+            if not wrapper.names[event.name] or not ui.h.isSameScreen(wrapper.screen.output, output) then
                 WRAPPERS[src.id] = nil
                 wrapper = nil
             end
         end
         if wrapper == nil then
-            created = true
             if event.name == e.c.Event.Progress.quarry then
                 wrapper = QuarryWrapper(src, event, output)
                 ---@cast wrapper am.progress.ProgressWrapper
@@ -51,10 +47,11 @@ local function getWrapper(src, event, output)
                 ---@cast event am.e.ColoniesScanEvent
                 wrapper = ColoniesWrapper(src, event.status.id, output)
                 ---@cast wrapper am.progress.ColoniesWrapper
-                wrapper.status = event.status
+                wrapper.progress.status = event.status
                 wrapper:createUI()
                 WRAPPERS[src.id] = wrapper
             end
+            created = wrapper ~= nil
         end
     end
 

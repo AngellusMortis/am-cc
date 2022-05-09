@@ -262,8 +262,9 @@ local function main(name, outputName)
         error("Could not find modem")
     end
 
+    local origOutputName = name
     for id, output in pairs(outputMap) do
-        name = name or id
+        name = origOutputName or id
         outputName = "term"
         if not ui.h.isTerm(output) then
             outputName = peripheral.getName(output)
