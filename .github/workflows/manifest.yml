@@ -17,6 +17,7 @@ on:
 
 env:
   MODULES: |-
+    colonies
     common
     control
     mine

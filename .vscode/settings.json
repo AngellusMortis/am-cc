@@ -40,7 +40,8 @@
         "_CC_DEFAULT_SETTINGS",
         "_HOST",
         "_VERSION",
-        "_"
+        "_",
+        "colony"
     ],
     "Lua.runtime.version": "Lua 5.1",
     "Lua.workspace.library": [

@@ -2,10 +2,18 @@ local v = require("cc.expect")
 
 local object = require("ext.object")
 
----@class cc.item
+---@class cc.item_simple
 ---@field name string
 ---@field count number
+---@field nbt string|nil
+
+---@class cc.item:cc.item_simple
 ---@field displayName string
+---@field maxCount number
+---@field tags table<string, boolean>
+
+---@class cc.item.colonies:cc.item
+---@field inventories table<string, number[]>
 
 ---@class cc.block
 ---@field name string

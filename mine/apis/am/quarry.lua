@@ -726,7 +726,6 @@ local function runLoop()
         setProgress(progress)
     end
     tc.emptyInventory()
-    finishJob()
     if CURRENT == RunType.Halted then
         e.TurtleExitEvent(false):send()
         sleep(3)
@@ -734,6 +733,7 @@ local function runLoop()
     else
         e.TurtleExitEvent(true):send()
     end
+    finishJob()
 end
 
 local function eventLoop()

@@ -221,6 +221,20 @@ local function heartbeat()
     end
 end
 
+---@return boolean
+local function isRunning()
+    local count = 0
+    for i = 1, multishell.getCount(), 1 do
+        if multishell.getTitle(i) == "progress" then
+            count = count + 1
+            if count > 1 then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 local function main(name, outputName)
     local outputMap = {}
     local computerMap = {}
@@ -236,6 +250,10 @@ local function main(name, outputName)
         computerMap[outputName] = name
     else
         outputMap, computerMap = getOutputMap()
+        if isRunning() then
+            error("Auto-discovery progress already running")
+            return
+        end
     end
 
     initTerm(computerMap)

@@ -128,6 +128,9 @@ e.broadcastMap = {
     ["am.turtle_refuel"] = false,
     ["am.turtle_dig"] = false,
     ["am.turtle_error"] = false,
+
+    ["am.colonies_warehouse_poll"] = true,
+    ["am.colonies_status_poll"] = true,
 }
 
 e.c.Lookup = {}
@@ -160,6 +163,10 @@ e.c.Event.Turtle = {
     refuel = "am.turtle_refuel",
     dig = "am.turtle_dig",
     error = "am.turtle_error"
+}
+e.c.Event.Colonies = {
+    warehouse_poll = "am.colonies_warehouse_poll",
+    status_poll = "am.colonies_status_poll",
 }
 
 ---@class am.e.DistributedEvent:am.ui.e.BaseEvent
@@ -524,6 +531,28 @@ function TurtleDigEvent:init(completed, moveDir, count)
 
     self.moveDir = moveDir
     self.count = count
+    return self
+end
+
+---@class am.e.ColoniesEvent:am.e.DistributedEvent
+local ColoniesEvent = DistributedEvent:extend("am.e.ColoniesEvent")
+e.ColoniesEvent = ColoniesEvent
+function ColoniesEvent:init(name)
+    v.expect(1, name, "string")
+    ColoniesEvent.super.init(self, name)
+
+    return self
+end
+
+---@class am.e.ColoniesScanEvent:am.e.ColoniesEvent
+---@field status cc.colony
+local ColonyStatusPollEvent = ColoniesEvent:extend("am.e.TurtleEmptyEvent")
+e.ColonyStatusPollEvent = ColonyStatusPollEvent
+function ColonyStatusPollEvent:init(status)
+    v.expect(1, status, "table")
+    ColonyStatusPollEvent.super.init(self, e.c.Event.Colonies.status_poll)
+
+    self.status = status
     return self
 end
 
