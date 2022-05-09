@@ -135,7 +135,8 @@ e.broadcastMap = {
 
 e.c.Lookup = {}
 e.c.Lookup.Progress = {
-    ["am.progress_quarry"] = true
+    ["am.progress_quarry"] = true,
+    ["am.colonies_status_poll"] = true,
 }
 
 e.c.Event = {}

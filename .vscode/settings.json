@@ -5,7 +5,7 @@
         "unused-function"
     ],
     "Lua.diagnostics.severity": {
-        "redefined-local": "Warning"
+        "redefined-local": "Warning",
     },
     "Lua.diagnostics.globals": [
         "printError",
@@ -43,7 +43,7 @@
         "_",
         "colony"
     ],
-    "Lua.runtime.version": "Lua 5.1",
+    "Lua.runtime.version": "Lua 5.2",
     "Lua.workspace.library": [
         "../cc-updater/src/apis",
         "../cc-render/src/apis"
