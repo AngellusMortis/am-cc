@@ -1,1 +1,1 @@
-shell.run("bg progress")
+local function a()local b=0;for c=1,multishell.getCount(),1 do if multishell.getTitle(c)=="progress"then b=b+1;if b>0 then return true end end end;return false end;if not a()then shell.run("bg progress")end
