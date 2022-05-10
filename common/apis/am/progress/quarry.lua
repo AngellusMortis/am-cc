@@ -13,10 +13,13 @@ local ProgressWrapper = require("am.progress.base")
 
 ---@class am.progress.QuarryWrapper:am.progress.ProgressWrapper
 ---@field progress am.e.QuarryProgressEvent
+---@field completed boolean
+---@field paused boolean
 local QuarryWrapper = ProgressWrapper:extend("am.progress.QuarryWrapper")
 function QuarryWrapper:init(src, progress, output)
     QuarryWrapper.super.init(self, src, progress, output)
 
+    self.completed = false
     self.paused = false
     self.names[progress.name] = true
     return self
@@ -34,6 +37,14 @@ function QuarryWrapper:createProgressFrame(mainFrame)
     })
     itemsButton:addActivateHandler(function()
         mainFrame:setActive(wrapper.screen.output, 2)
+        local haltButton = progressFrame:get(baseId .. ".haltButton")
+        ---@cast haltButton am.ui.Button
+        local pauseButton = progressFrame:get(baseId .. ".pauseButton")
+        ---@cast pauseButton am.ui.Button
+        if wrapper.completed then
+            haltButton.visible = false
+            pauseButton.visible = false
+        end
     end)
     progressFrame:add(itemsButton)
 
@@ -278,6 +289,7 @@ function QuarryWrapper:handle(event, args)
 
         if event == e.c.Event.Turtle.paused then
             self.paused = true
+            self.completed = false
             pauseButton.obj.fillColor = colors.green
             pauseButton:updateLabel("\x10")
             if progressActive then
@@ -285,6 +297,7 @@ function QuarryWrapper:handle(event, args)
             end
         elseif event == e.c.Event.Turtle.started then
             self.paused = false
+            self.completed = false
 
             haltButton.obj.visible = progressActive and true or false
             haltButton:updateLabel("\x8f")
@@ -295,6 +308,8 @@ function QuarryWrapper:handle(event, args)
                 mainFrame:render()
             end
         elseif event == e.c.Event.Turtle.exited then
+            self.completed = true
+            self.paused = false
             haltButton.obj.visible = false
             pauseButton.obj.visible = false
             if progressActive then

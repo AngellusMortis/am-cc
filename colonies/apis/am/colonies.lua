@@ -156,7 +156,8 @@ end
 ---@class cc.colony:cc.colony_base
 ---@field graves number
 ---@field constructionCount number
----@field buildings cc.colony.building
+---@field tavernCount number
+---@field buildings cc.colony.building[]
 ---@field players cc.colony.player[]
 ---@field visitorCount number
 ---@field visitors table<number, cc.colony.visitor>
@@ -183,6 +184,13 @@ local function pollColony()
     status.players = colony.getPlayers().players
     status.requests = colony.getRequests()
     status.buildings = colony.getBuildings()
+    status.tavernCount = 0
+    for _, building in ipairs(status.buildings) do
+        if building.type == "tavern" and building.level > 0 then
+            status.tavernCount = status.tavernCount + 1
+            break
+        end
+    end
 
     local visitors = colony.getVisitors()
     status.visitorCount = #visitors
