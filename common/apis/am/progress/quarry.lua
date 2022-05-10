@@ -18,6 +18,7 @@ function QuarryWrapper:init(src, progress, output)
     QuarryWrapper.super.init(self, src, progress, output)
 
     self.paused = false
+    self.names[progress.name] = true
     return self
 end
 
@@ -61,14 +62,7 @@ function QuarryWrapper:createUI()
     }))
     progressFrame:add(ui.Text(ui.a.Center(7), "", {id=baseId .. ".statusText"}))
 
-    local offsetHalt = 2
-    local offsetPause = 2
-    if width % 2 == 0 then
-        offsetHalt = 3
-        offsetPause = 1
-    end
-
-    local haltButton = ui.Button(ui.a.Center(8, ui.c.Offset.Left, offsetHalt), "\x8f", {
+    local haltButton = ui.Button(ui.a.Center(8, ui.c.Offset.Left, 3), "\x8f", {
         id=baseId .. ".haltButton", fillColor=colors.red
     })
     haltButton:addActivateHandler(function()
@@ -76,7 +70,7 @@ function QuarryWrapper:createUI()
         e.TurtleRequestHaltEvent(self.src.id):send()
     end)
 
-    local pauseButton = ui.Button(ui.a.Center(8, ui.c.Offset.Right, offsetPause), "\x95\x95", {
+    local pauseButton = ui.Button(ui.a.Center(8, ui.c.Offset.Right, 1), "\x95\x95", {
         id=baseId .. ".pauseButton", fillColor=colors.yellow
     })
     pauseButton:addActivateHandler(function()
@@ -272,3 +266,5 @@ function QuarryWrapper:handle(event, args)
         self.screen:handle({event, table.unpack(args)})
     end
 end
+
+return QuarryWrapper
