@@ -317,14 +317,14 @@ local function finishJob()
     progress.finished = true
     progress.status = "Finishing Job"
     setProgress(progress)
-    log.debug("Finishing Quarry...")
+    log.info("Finishing Quarry...")
 
     sleep(5)
     RUN_EVENT_LOOP = false
-    log.debug("Items Mined:")
+    log.info("Items Mined:")
     local items = p.itemStrings(progress.items)
     for _, item in ipairs(items) do
-        log.debug(item)
+        log.info(item)
     end
 end
 
