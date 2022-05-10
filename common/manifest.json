@@ -12,6 +12,6 @@
     "programs/progress.lua": "e56c49b1ecfb4b52d655077d66adbfa106c362e4928e71369f84e413ed12dd9d"
   },
   "dependencies": [
-    "AngellusMortis/cc-render@v1"
+    "AngellusMortis/cc-render"
   ]
 }
