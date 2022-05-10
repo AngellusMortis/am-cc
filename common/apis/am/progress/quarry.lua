@@ -51,7 +51,7 @@ function QuarryWrapper:createProgressFrame(mainFrame)
     progressFrame:add(ui.Text(ui.a.Center(7), "", {id=baseId .. ".statusText"}))
 
     --- halt button
-    local haltButton = ui.Button(ui.a.Center(8, ui.c.Offset.Left, 3), "\x8f", {
+    local haltButton = ui.Button(ui.a.Center(8, ui.c.Offset.Left, 2), "\x8f", {
         id=baseId .. ".haltButton", fillColor=colors.red
     })
     haltButton:addActivateHandler(function()
@@ -61,7 +61,7 @@ function QuarryWrapper:createProgressFrame(mainFrame)
     progressFrame:add(haltButton)
 
     --- pause button
-    local pauseButton = ui.Button(ui.a.Center(8, ui.c.Offset.Right, 1), "\x95\x95", {
+    local pauseButton = ui.Button(ui.a.Center(8, ui.c.Offset.Right, 2), "\x95\x95", {
         id=baseId .. ".pauseButton", fillColor=colors.yellow
     })
     pauseButton:addActivateHandler(function()
