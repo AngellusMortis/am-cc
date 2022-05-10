@@ -22,14 +22,112 @@ function QuarryWrapper:init(src, progress, output)
     return self
 end
 
-function QuarryWrapper:createUI()
+---@param mainFrame am.ui.TabbedFrame
+function QuarryWrapper:createProgressFrame(mainFrame)
     local wrapper = self
+    local progressFrame = mainFrame.tabs[1]
+    local baseId = self.screen.id
 
+    --- items button
+    local itemsButton = ui.Button(ui.a.Center(8), "\x17", {
+        id=baseId .. ".itemsButton", fillColor=colors.blue
+    })
+    itemsButton:addActivateHandler(function()
+        mainFrame:setActive(wrapper.screen.output, 2)
+    end)
+    progressFrame:add(itemsButton)
+
+    --- total bar
+    progressFrame:add(ui.ProgressBar(ui.a.TopLeft(), {
+        id=baseId .. ".totalBar", label="Total", displayTotal=self.progress.job.levels, fillColor=colors.lightGray
+    }))
+
+    --- level bar
+    progressFrame:add(ui.ProgressBar(ui.a.Left(4), {
+        id=baseId .. ".levelBar", label="Level", total=1, fillColor=colors.lightGray
+    }))
+
+    -- status text
+    progressFrame:add(ui.Text(ui.a.Center(7), "", {id=baseId .. ".statusText"}))
+
+    --- halt button
+    local haltButton = ui.Button(ui.a.Center(8, ui.c.Offset.Left, 3), "\x8f", {
+        id=baseId .. ".haltButton", fillColor=colors.red
+    })
+    haltButton:addActivateHandler(function()
+        log.info(string.format("Halting %s...", self.src.label))
+        e.TurtleRequestHaltEvent(self.src.id):send()
+    end)
+    progressFrame:add(haltButton)
+
+    --- pause button
+    local pauseButton = ui.Button(ui.a.Center(8, ui.c.Offset.Right, 1), "\x95\x95", {
+        id=baseId .. ".pauseButton", fillColor=colors.yellow
+    })
+    pauseButton:addActivateHandler(function()
+        if wrapper.paused then
+            log.info(string.format("Continuing %s...", self.src.label))
+            e.TurtleRequestContinueEvent(self.src.id):send()
+        else
+            log.info(string.format("Pausing %s...", self.src.label))
+            e.TurtleRequestPauseEvent(self.src.id):send()
+        end
+    end)
+    progressFrame:add(pauseButton)
+
+    --- position text
+    progressFrame:add(ui.Text(ui.a.Bottom(), "", {id=baseId .. ".posText"}))
+    progressFrame:setVisible(true)
+end
+
+---@param mainFrame am.ui.TabbedFrame
+---@param height number
+function QuarryWrapper:createItemsFrame(mainFrame, height)
+    local wrapper = self
+    local baseId = self.screen.id
+    local itemsFrame = mainFrame:createTab("items")
+    itemsFrame.fillHorizontal = true
+    itemsFrame.fillVertical = true
+    itemsFrame.border = 0
+    itemsFrame.fillColor = colors.black
+    itemsFrame.textColor = colors.white
+
+    --- title
+    itemsFrame:add(ui.Text(ui.a.TopLeft(), "Mined Items", {id=baseId .. ".itemsTitle"}))
+
+    --- close button
+    local closeItemsButton = ui.Button(ui.a.TopRight(), "x", {
+        id=baseId .. ".closeItemsButton", fillColor=colors.red, border=0
+    })
+    closeItemsButton:addActivateHandler(function()
+        mainFrame:setActive(wrapper.screen.output, 1)
+    end)
+    itemsFrame:add(closeItemsButton)
+
+    --- item list
+    local itemsListFrame = ui.Frame(ui.a.Anchor(1, 2), {
+        id=baseId .. ".itemsListFrame",
+        fillHorizontal=true,
+        border=0,
+        padLeft=1,
+        padTop=1,
+        fillColor=colors.lightGray,
+        textColor=colors.black,
+        scrollBar=true,
+        height=height
+    })
+    itemsListFrame:add(ui.Text(ui.a.TopLeft(), {}, {id=baseId .. ".itemListText"}))
+
+    itemsFrame:add(itemsListFrame)
+    itemsFrame:setVisible(false)
+end
+
+function QuarryWrapper:createUI()
     local baseId = self.screen.id
 
     local startY = 2
     local nameText = ui.Text(ui.a.Top(), "", {id=baseId .. ".nameText"})
-    local width, height = self.screen.output.getSize()
+    local _, height = self.screen.output.getSize()
     if height <= 12 then
         startY = 1
         nameText.visible = false
@@ -45,97 +143,20 @@ function QuarryWrapper:createUI()
 
     self.screen:add(nameText)
     self.screen:add(ui.Text(ui.a.Center(startY), "", {id=baseId .. ".titleText"}))
-    local progressFrame = ui.Frame(ui.a.Anchor(1, startY + 1), {
-        id=baseId .. ".progressFrame",
+    local mainFrame = ui.TabbedFrame(ui.a.Anchor(1, startY + 1), {
+        id=baseId .. ".mainFrame",
         fillHorizontal=true,
         fillVertical=true,
         border=0,
         fillColor=colors.black,
-        textColor=colors.white
+        textColor=colors.white,
+        primaryTabId="progress"
     })
-    self.screen:add(progressFrame)
-    progressFrame:add(ui.ProgressBar(ui.a.TopLeft(), {
-        id=baseId .. ".totalBar", label="Total", displayTotal=self.progress.job.levels, fillColor=colors.lightGray
-    }))
-    progressFrame:add(ui.ProgressBar(ui.a.Left(4), {
-        id=baseId .. ".levelBar", label="Level", total=1, fillColor=colors.lightGray
-    }))
-    progressFrame:add(ui.Text(ui.a.Center(7), "", {id=baseId .. ".statusText"}))
+    self:createProgressFrame(mainFrame)
+    self:createItemsFrame(mainFrame, height - startY)
+    mainFrame:setActive(self.screen.output, 1)
 
-    local haltButton = ui.Button(ui.a.Center(8, ui.c.Offset.Left, 3), "\x8f", {
-        id=baseId .. ".haltButton", fillColor=colors.red
-    })
-    haltButton:addActivateHandler(function()
-        log.info(string.format("Halting %s...", self.src.label))
-        e.TurtleRequestHaltEvent(self.src.id):send()
-    end)
-
-    local pauseButton = ui.Button(ui.a.Center(8, ui.c.Offset.Right, 1), "\x95\x95", {
-        id=baseId .. ".pauseButton", fillColor=colors.yellow
-    })
-    pauseButton:addActivateHandler(function()
-        if wrapper.paused then
-            log.info(string.format("Continuing %s...", self.src.label))
-            e.TurtleRequestContinueEvent(self.src.id):send()
-        else
-            log.info(string.format("Pausing %s...", self.src.label))
-            e.TurtleRequestPauseEvent(self.src.id):send()
-        end
-    end)
-
-    progressFrame:add(haltButton)
-    progressFrame:add(pauseButton)
-    progressFrame:add(ui.Text(ui.a.Bottom(), "", {id=baseId .. ".posText"}))
-
-    local itemsFrame = ui.Frame(ui.a.Anchor(1, startY + 1), {
-        id=baseId .. ".itemsFrame",
-        fillHorizontal=true,
-        fillVertical=true,
-        border=0,
-        fillColor=colors.black,
-        textColor=colors.white
-    })
-
-    itemsFrame:add(ui.Text(ui.a.TopLeft(), "Mined Items", {id=baseId .. ".itemsTitle"}))
-    local closeItemsButton = ui.Button(ui.a.TopRight(), "x", {
-        id=baseId .. ".closeItemsButton", fillColor=colors.red, border=0
-    })
-    closeItemsButton:addActivateHandler(function()
-        progressFrame:setVisible(true)
-        itemsFrame:setVisible(false)
-        wrapper.screen:render()
-    end)
-    itemsFrame:add(closeItemsButton)
-
-    local itemsListFrame = ui.Frame(ui.a.Anchor(1, 2), {
-        id=baseId .. ".itemsListFrame",
-        fillHorizontal=true,
-        border=0,
-        padLeft=1,
-        padTop=1,
-        fillColor=colors.lightGray,
-        textColor=colors.black,
-        scrollBar=true,
-        height=height - startY
-    })
-    itemsListFrame:add(ui.Text(ui.a.TopLeft(), {}, {id=baseId .. ".itemListText"}))
-
-    itemsFrame:add(itemsListFrame)
-    itemsFrame:setVisible(false)
-    self.screen:add(itemsFrame)
-
-
-    local itemsButton = ui.Button(ui.a.Center(8), "\x17", {
-        id=baseId .. ".itemsButton", fillColor=colors.blue
-    })
-    itemsButton:addActivateHandler(function()
-        itemsListFrame.currentScroll = 0
-        progressFrame:setVisible(false)
-        itemsFrame:setVisible(true)
-        wrapper.screen:render()
-    end)
-    progressFrame:add(itemsButton)
-
+    self.screen:add(mainFrame)
     QuarryWrapper.super.createUI(self)
 end
 
@@ -145,24 +166,12 @@ function QuarryWrapper:update(event)
 
     local baseId = self.screen.id
     self.progress = event
-    local progressFrame = self.screen:get(baseId .. ".progressFrame")
-    ---@cast progressFrame am.ui.BoundFrame
-    local itemsListFrame = self.screen:get(baseId .. ".itemsListFrame")
-    ---@cast itemsListFrame am.ui.BoundFrame
+
+    -- top section
     local nameText = self.screen:get(baseId .. ".nameText")
     ---@cast nameText am.ui.BoundText
     local titleText = self.screen:get(baseId .. ".titleText")
     ---@cast titleText am.ui.BoundText
-    local totalBar = progressFrame:get(baseId .. ".totalBar")
-    ---@cast totalBar am.ui.BoundProgressBar
-    local levelBar = progressFrame:get(baseId .. ".levelBar")
-    ---@cast levelBar am.ui.BoundProgressBar
-    local statusText = progressFrame:get(baseId .. ".statusText")
-    ---@cast statusText am.ui.BoundText
-    local posText = progressFrame:get(baseId .. ".posText")
-    ---@cast posText am.ui.BoundText
-    local listText = itemsListFrame:get(baseId .. ".itemListText")
-    ---@cast listText am.ui.BoundText
 
     if self.src.label ~= nil then
         local nameStatus = self.src.label
@@ -179,23 +188,37 @@ function QuarryWrapper:update(event)
         startY = 2
         nameText.obj.visible = true
     end
-    titleText.obj.anchor.y = startY
-    progressFrame.obj.anchor.y = startY + 1
-    local minListHeight = height - startY
-    local items = h.itemStrings(self.progress.progress.items)
-    itemsListFrame.obj.height = math.max(minListHeight, #items + 2)
-    listText:update(items)
 
     local extra = ""
+    titleText.obj.anchor.y = startY
     if self.progress.job.left ~= nil and self.progress.job.forward ~= nil then
         extra = string.format(": %d x %d (%d)", self.progress.job.left, self.progress.job.forward, self.progress.job.levels)
     end
-
     titleText:update(string.format("Quarry%s", extra))
+
+
+    local mainFrame = self.screen:get(baseId .. ".mainFrame")
+    ---@cast mainFrame am.ui.BoundTabbedFrame
+
+    -- progress tab
+    local progressFrame = mainFrame:getTab(1)
+    ---@cast progressFrame am.ui.BoundFrame
+
+    local totalBar = progressFrame:get(baseId .. ".totalBar")
+    ---@cast totalBar am.ui.BoundProgressBar
+    local levelBar = progressFrame:get(baseId .. ".levelBar")
+    ---@cast levelBar am.ui.BoundProgressBar
+    local statusText = progressFrame:get(baseId .. ".statusText")
+    ---@cast statusText am.ui.BoundText
+    local posText = progressFrame:get(baseId .. ".posText")
+    ---@cast posText am.ui.BoundText
+
     totalBar.obj.displayTotal = self.progress.job.levels
     totalBar:update(self.progress.progress.current * 100)
     if self.progress.progress.hitBedrock then
         totalBar:updateLabel("Total (Bedrock)")
+    else
+        totalBar:updateLabel("Total")
     end
     if self.progress.job.left ~= nil then
         levelBar.obj.total = self.progress.job.left
@@ -209,11 +232,22 @@ function QuarryWrapper:update(event)
     posText:update(string.format(
         posFmt, self.progress.pos.v.x, self.progress.pos.v.z, self.progress.pos.v.y, self.progress.pos.dir
     ))
+    progressFrame.obj.anchor.y = startY + 1
 
-
-    local itemsFrame = self.screen:get(baseId .. ".itemsFrame")
+    -- items tab
+    local itemsFrame = mainFrame:getTab(2)
     ---@cast itemsFrame am.ui.BoundFrame
     itemsFrame.obj.anchor.y = startY + 1
+
+    local itemsListFrame = itemsFrame:get(baseId .. ".itemsListFrame")
+    ---@cast itemsListFrame am.ui.BoundFrame
+    local listText = itemsFrame:get(baseId .. ".itemListText")
+    ---@cast listText am.ui.BoundText
+
+    local minListHeight = height - startY
+    local items = h.itemStrings(self.progress.progress.items)
+    itemsListFrame.obj.height = math.max(minListHeight, #items + 2)
+    listText:update(items)
 end
 
 ---@param status string
@@ -231,39 +265,44 @@ function QuarryWrapper:handle(event, args)
     local baseId = self.screen.id
     if event == e.c.Event.Progress.quarry then
         self:update(args[1])
-    elseif event == e.c.Event.Turtle.paused then
-        self.paused = true
-        local pauseButton = self.screen:get(baseId .. ".pauseButton")
-        ---@cast pauseButton am.ui.BoundButton
-        pauseButton.obj.fillColor = colors.green
-        pauseButton:updateLabel("\x10")
-        self.screen:render()
-    elseif event == e.c.Event.Turtle.started then
-        self.paused = false
-        local progressFrame = self.screen:get(baseId .. ".progressFrame")
+    else
+        local mainFrame = self.screen:get(baseId .. ".mainFrame")
+        ---@cast mainFrame am.ui.BoundTabbedFrame
+        local progressActive = mainFrame.obj.active == 1
+        local progressFrame = mainFrame:getTab(1)
         ---@cast progressFrame am.ui.BoundFrame
         local haltButton = progressFrame:get(baseId .. ".haltButton")
         ---@cast haltButton am.ui.BoundButton
         local pauseButton = progressFrame:get(baseId .. ".pauseButton")
         ---@cast pauseButton am.ui.BoundButton
 
-        haltButton.obj.visible = progressFrame.obj.visible
-        haltButton:updateLabel("\x8f")
-        pauseButton.obj.visible = progressFrame.obj.visible
-        pauseButton.obj.fillColor = colors.yellow
-        pauseButton:updateLabel("\x95\x95")
-        self.screen:render()
-    elseif event == e.c.Event.Turtle.exited then
-        local haltButton = self.screen:get(baseId .. ".haltButton")
-        ---@cast haltButton am.ui.BoundButton
-        local pauseButton = self.screen:get(baseId .. ".pauseButton")
-        ---@cast pauseButton am.ui.BoundButton
+        if event == e.c.Event.Turtle.paused then
+            self.paused = true
+            pauseButton.obj.fillColor = colors.green
+            pauseButton:updateLabel("\x10")
+            if progressActive then
+                mainFrame:render()
+            end
+        elseif event == e.c.Event.Turtle.started then
+            self.paused = false
 
-        haltButton.obj.visible = false
-        pauseButton.obj.visible = false
-        self.screen:render()
-    else
-        self.screen:handle({event, table.unpack(args)})
+            haltButton.obj.visible = progressActive and true or false
+            haltButton:updateLabel("\x8f")
+            pauseButton.obj.visible = progressActive and true or false
+            pauseButton.obj.fillColor = colors.yellow
+            pauseButton:updateLabel("\x95\x95")
+            if progressActive then
+                mainFrame:render()
+            end
+        elseif event == e.c.Event.Turtle.exited then
+            haltButton.obj.visible = false
+            pauseButton.obj.visible = false
+            if progressActive then
+                mainFrame:render()
+            end
+        else
+            self.screen:handle({event, table.unpack(args)})
+        end
     end
 end
 
