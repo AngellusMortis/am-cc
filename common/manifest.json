@@ -1,7 +1,7 @@
 {
   "files": {
     "apis/am/event.lua": "bed2ef359a453e347a76bb25a07c2d792977a2926766db2c8cf3c92f02175783",
-    "apis/am/progress/quarry.lua": "1f19f11275cfc38d4daeeb5288c70cceb796785412e8fc4538bdc33208242d77",
+    "apis/am/progress/quarry.lua": "69ec601038c304e10b9c12274faf436cb3336832824d02cc236fb384e161c5bb",
     "apis/am/progress/colonies.lua": "09c362f5450bd3d626add2dfdf27ac920dd37ba962a037e6f54e17d7e3b3d31a",
     "apis/am/progress/helpers.lua": "013fa136805a23494b3038f0ae0b96e0f2ab0c617ea5884bb3e09c62a87fd41d",
     "apis/am/progress/base.lua": "604539d3ea74f938580e8fda36aedf097227280f7e9d77df44091dcba2f9bd16",
