@@ -56,7 +56,6 @@ function ColoniesWrapper:createMainTab(tabs)
         border=0
     })
     citizensTabButton:addActivateHandler(function()
-        log.debug("Open Citizens")
         tabs:setActive(2)
     end)
     tab:add(citizensTabButton)
@@ -71,18 +70,58 @@ function ColoniesWrapper:createMainTab(tabs)
     rowOffset = rowOffset + 1
 
     tab:add(ui.Text(ui.a.Left(rowOffset), "Requests"))
+    local requestsTabButton = ui.Button(ui.a.Right(rowOffset), "\x17", {
+        id=baseId .. ".requestsTabButton",
+        fillColor=colors.blue,
+        textColor=colors.white,
+        border=0
+    })
+    requestsTabButton:addActivateHandler(function()
+        tabs:setActive(3)
+    end)
+    tab:add(requestsTabButton)
     tab:add(ui.Text(ui.a.Right(rowOffset, rightOffset), "", {id=baseId .. ".requests"}))
     rowOffset = rowOffset + 1
 
     tab:add(ui.Text(ui.a.Left(rowOffset), "Buildings"))
     tab:add(ui.Text(ui.a.Right(rowOffset, rightOffset), "", {id=baseId .. ".buildings"}))
+    local buildingsTabButton = ui.Button(ui.a.Right(rowOffset), "\x17", {
+        id=baseId .. ".buildingsTabButton",
+        fillColor=colors.red,
+        textColor=colors.white,
+        border=0
+    })
+    buildingsTabButton:addActivateHandler(function()
+        tabs:setActive(4)
+    end)
+    tab:add(buildingsTabButton)
     rowOffset = rowOffset + 1
 
     tab:add(ui.Text(ui.a.Left(rowOffset), "Visitors"))
     tab:add(ui.Text(ui.a.Right(rowOffset, rightOffset), "", {id=baseId .. ".visitors"}))
+    local visitorsTabButton = ui.Button(ui.a.Right(rowOffset), "\x17", {
+        id=baseId .. ".visitorsTabButton",
+        fillColor=colors.green,
+        textColor=colors.white,
+        border=0
+    })
+    visitorsTabButton:addActivateHandler(function()
+        tabs:setActive(5)
+    end)
+    tab:add(visitorsTabButton)
     rowOffset = rowOffset + 1
 
     tab:add(ui.Text(ui.a.Left(rowOffset), "Players"))
+    local playersTabButton = ui.Button(ui.a.Right(rowOffset), "\x17", {
+        id=baseId .. ".playersTabButton",
+        fillColor=colors.blue,
+        textColor=colors.white,
+        border=0
+    })
+    playersTabButton:addActivateHandler(function()
+        tabs:setActive(6)
+    end)
+    tab:add(playersTabButton)
     tab:add(ui.Text(ui.a.Right(rowOffset, rightOffset), "", {id=baseId .. ".players"}))
 end
 
@@ -105,9 +144,115 @@ function ColoniesWrapper:createCitizensTab(tabs, height)
         scrollBar=true,
         height=height-1,
         border=0,
+        padTop=1,
+        padLeft=1,
     })
     citizenListFrame:add(ui.Text(ui.a.TopLeft(), "", {id=baseId .. ".citizenList"}))
     tab:add(citizenListFrame)
+end
+
+---@param tabs am.ui.BoundTabbedFrame
+---@param height number
+function ColoniesWrapper:createRequestsTab(tabs, height)
+    local baseId = self.screen.id
+    local tab = tabs:createTab("requests")
+    tab:add(ui.Text(ui.a.TopLeft(), "Requests"))
+    local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".requestCloseButton", fillColor=colors.red, border=0})
+    closeButton:addActivateHandler(function()
+        tabs:setActive(1)
+    end)
+    tab:add(closeButton)
+    local requestListFrame = ui.Frame(ui.a.Anchor(1, 2), {
+        id=baseId .. ".requestListFrame",
+        fillColor=colors.lightGray,
+        textColor=colors.black,
+        fillHorizontal=true,
+        scrollBar=true,
+        height=height-1,
+        border=0,
+        padTop=1,
+        padLeft=1,
+    })
+    requestListFrame:add(ui.Text(ui.a.TopLeft(), "", {id=baseId .. ".requestList"}))
+    tab:add(requestListFrame)
+end
+
+---@param tabs am.ui.BoundTabbedFrame
+---@param height number
+function ColoniesWrapper:createBuildingsTab(tabs, height)
+    local baseId = self.screen.id
+    local tab = tabs:createTab("buildings")
+    tab:add(ui.Text(ui.a.TopLeft(), "Buildings"))
+    local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".buildingCloseButton", fillColor=colors.red, border=0})
+    closeButton:addActivateHandler(function()
+        tabs:setActive(1)
+    end)
+    tab:add(closeButton)
+    local buildingListFrame = ui.Frame(ui.a.Anchor(1, 2), {
+        id=baseId .. ".buildingListFrame",
+        fillColor=colors.lightGray,
+        textColor=colors.black,
+        fillHorizontal=true,
+        scrollBar=true,
+        height=height-1,
+        border=0,
+        padTop=1,
+        padLeft=1,
+    })
+    buildingListFrame:add(ui.Text(ui.a.TopLeft(), "", {id=baseId .. ".buildingList"}))
+    tab:add(buildingListFrame)
+end
+
+---@param tabs am.ui.BoundTabbedFrame
+---@param height number
+function ColoniesWrapper:createVisitorsTab(tabs, height)
+    local baseId = self.screen.id
+    local tab = tabs:createTab("visitors")
+    tab:add(ui.Text(ui.a.TopLeft(), "Visitors"))
+    local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".visitorCloseButton", fillColor=colors.red, border=0})
+    closeButton:addActivateHandler(function()
+        tabs:setActive(1)
+    end)
+    tab:add(closeButton)
+    local visitorListFrame = ui.Frame(ui.a.Anchor(1, 2), {
+        id=baseId .. ".visitorListFrame",
+        fillColor=colors.lightGray,
+        textColor=colors.black,
+        fillHorizontal=true,
+        scrollBar=true,
+        height=height-1,
+        border=0,
+        padTop=1,
+        padLeft=1,
+    })
+    visitorListFrame:add(ui.Text(ui.a.TopLeft(), "", {id=baseId .. ".visitorList"}))
+    tab:add(visitorListFrame)
+end
+
+---@param tabs am.ui.BoundTabbedFrame
+---@param height number
+function ColoniesWrapper:createPlayersTab(tabs, height)
+    local baseId = self.screen.id
+    local tab = tabs:createTab("players")
+    tab:add(ui.Text(ui.a.TopLeft(), "Players"))
+    local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".playerCloseButton", fillColor=colors.red, border=0})
+    closeButton:addActivateHandler(function()
+        tabs:setActive(1)
+    end)
+    tab:add(closeButton)
+    local playerListFrame = ui.Frame(ui.a.Anchor(1, 2), {
+        id=baseId .. ".playerListFrame",
+        fillColor=colors.lightGray,
+        textColor=colors.black,
+        fillHorizontal=true,
+        scrollBar=true,
+        height=height-1,
+        border=0,
+        padTop=1,
+        padLeft=1,
+    })
+    playerListFrame:add(ui.Text(ui.a.TopLeft(), "", {id=baseId .. ".playerList"}))
+    tab:add(playerListFrame)
 end
 
 function ColoniesWrapper:createUI()
@@ -128,6 +273,7 @@ function ColoniesWrapper:createUI()
     local tabs = ui.TabbedFrame(ui.a.Anchor(1, 3), {
         id=baseId .. ".tabsBase",
         fillColor=colors.black,
+        textColor=colors.white,
         border=0,
         fillVertical=true,
         fillHorizontal=true
@@ -136,6 +282,10 @@ function ColoniesWrapper:createUI()
 
     self:createMainTab(boundTabs)
     self:createCitizensTab(boundTabs, tabHeight)
+    self:createRequestsTab(boundTabs, tabHeight)
+    self:createBuildingsTab(boundTabs, tabHeight)
+    self:createVisitorsTab(boundTabs, tabHeight)
+    self:createPlayersTab(boundTabs, tabHeight)
     boundTabs:setActive(1)
 
     self.screen:add(tabs)
@@ -249,7 +399,121 @@ function ColoniesWrapper:updateCitizensTab(tabs, height)
         end
         citizenText[#citizenText + 1] = string.format("%s %s", job, citizen.name)
     end
+    table.sort(citizenText)
     citizenList:update(citizenText)
+end
+
+---@param tabs am.ui.BoundTabbedFrame
+---@param height number
+function ColoniesWrapper:updateRequestsTab(tabs, height)
+    local status = self.progress.status
+    ---@cast status cc.colony
+    local baseId = self.screen.id
+
+    local tab = tabs:getTab(3)
+    ---@cast tab am.ui.BoundFrame
+
+    local requestListFrame = tab:get(baseId .. ".requestListFrame")
+    ---@cast requestListFrame am.ui.BoundFrame
+    local newHeight = math.max(height - 1, #status.requests)
+    if requestListFrame.obj.height ~= newHeight then
+        requestListFrame.obj.height = newHeight
+        requestListFrame:render()
+    end
+
+    local requestList = tab:get(baseId .. ".requestList")
+    ---@cast requestList am.ui.BoundText
+    local requestText = {}
+    for _, request in pairs(status.requests) do
+        requestText[#requestText + 1] = request.desc
+    end
+    table.sort(requestText)
+    requestList:update(requestText)
+end
+
+---@param tabs am.ui.BoundTabbedFrame
+---@param height number
+function ColoniesWrapper:updateBuildingsTab(tabs, height)
+    local status = self.progress.status
+    ---@cast status cc.colony
+    local baseId = self.screen.id
+
+    local tab = tabs:getTab(4)
+    ---@cast tab am.ui.BoundFrame
+
+    local buildingListFrame = tab:get(baseId .. ".buildingListFrame")
+    ---@cast buildingListFrame am.ui.BoundFrame
+    local newHeight = math.max(height - 1, #status.buildings)
+    if buildingListFrame.obj.height ~= newHeight then
+        buildingListFrame.obj.height = newHeight
+        buildingListFrame:render()
+    end
+
+    local buildingList = tab:get(baseId .. ".buildingList")
+    ---@cast buildingList am.ui.BoundText
+    local buildingText = {}
+    for _, building in pairs(status.buildings) do
+        local buildingType = string.gsub(building.type, "^%l", string.upper)
+        buildingText[#buildingText + 1] = string.format("L%d %s", building.level, buildingType)
+    end
+    table.sort(buildingText)
+    buildingList:update(buildingText)
+end
+
+---@param tabs am.ui.BoundTabbedFrame
+---@param height number
+function ColoniesWrapper:updateVisitorsTab(tabs, height)
+    local status = self.progress.status
+    ---@cast status cc.colony
+    local baseId = self.screen.id
+
+    local tab = tabs:getTab(5)
+    ---@cast tab am.ui.BoundFrame
+
+    local visitorListFrame = tab:get(baseId .. ".visitorListFrame")
+    ---@cast visitorListFrame am.ui.BoundFrame
+    local newHeight = math.max(height - 1, status.visitorCount)
+    if visitorListFrame.obj.height ~= newHeight then
+        visitorListFrame.obj.height = newHeight
+        visitorListFrame:render()
+    end
+
+    local visitorList = tab:get(baseId .. ".visitorList")
+    ---@cast visitorList am.ui.BoundText
+    local visitorText = {}
+    for _, visitor in pairs(status.visitors) do
+        visitorText[#visitorText + 1] = visitor.name
+    end
+    table.sort(visitorText)
+    visitorList:update(visitorText)
+end
+
+---@param tabs am.ui.BoundTabbedFrame
+---@param height number
+function ColoniesWrapper:updatePlayersTab(tabs, height)
+    local status = self.progress.status
+    ---@cast status cc.colony
+    local baseId = self.screen.id
+
+    local tab = tabs:getTab(6)
+    ---@cast tab am.ui.BoundFrame
+
+    local playerListFrame = tab:get(baseId .. ".playerListFrame")
+    ---@cast playerListFrame am.ui.BoundFrame
+    local newHeight = math.max(height - 1, #status.players)
+    if playerListFrame.obj.height ~= newHeight then
+        playerListFrame.obj.height = newHeight
+        playerListFrame:render()
+    end
+
+    local playerList = tab:get(baseId .. ".playerList")
+    ---@cast playerList am.ui.BoundText
+    local playerText = {}
+    for _, player in pairs(status.players) do
+        playerText[#playerText + 1] = string.format("%s %s", player.rank, player.name)
+    end
+    table.sort(playerText)
+    playerList:update(playerText)
 end
 
 ---@param event am.e.ColoniesEvent
@@ -270,11 +534,10 @@ function ColoniesWrapper:update(event)
 
     self:updateMainTab(tabs)
     self:updateCitizensTab(tabs, height)
-end
-
----@param status string
-function ColoniesWrapper:updateStatus(status)
-
+    self:updateRequestsTab(tabs, height)
+    self:updateBuildingsTab(tabs, height)
+    self:updateVisitorsTab(tabs, height)
+    self:updatePlayersTab(tabs, height)
 end
 
 ---@param event string Event name
@@ -283,9 +546,6 @@ function ColoniesWrapper:handle(event, args)
     if event == e.c.Event.Colonies.status_poll then
         self:update(args[1])
     else
-        if event == "monitor_touch" or event == "mouse_click" or event == "ui.frame_touch" then
-            log.debug(string.format("wrapper %s", log.format({event, table.unpack(args)})))
-        end
         self.screen:handle({event, table.unpack(args)})
     end
 end

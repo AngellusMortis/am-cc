@@ -67,9 +67,9 @@ local function itemStrings(items, asc, sortCount)
         end
     else
         if asc then
-            table.sort(itemList, sortItemCountAsc)
+            table.sort(itemList, sortItemNameAsc)
         else
-            table.sort(itemList, sortItemCountDesc)
+            table.sort(itemList, sortItemNameDesc)
         end
     end
 

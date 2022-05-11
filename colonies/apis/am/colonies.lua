@@ -183,12 +183,15 @@ local function pollColony()
     status.constructionCount = c.amountOfConstructionSites()
     status.players = colony.getPlayers().players
     status.requests = colony.getRequests()
-    status.buildings = colony.getBuildings()
+    local buildings = colony.getBuildings()
+    status.buildings = {}
     status.tavernCount = 0
-    for _, building in ipairs(status.buildings) do
+    for _, building in ipairs(buildings) do
         if building.type == "tavern" and building.level > 0 then
             status.tavernCount = status.tavernCount + 1
-            break
+        end
+        if building.type ~= "postbox" and building.type ~= "stash" then
+            status.buildings[#status.buildings + 1] = building
         end
     end
 
