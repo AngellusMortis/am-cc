@@ -2,8 +2,8 @@
   "files": {
     "apis/am/event.lua": "bed2ef359a453e347a76bb25a07c2d792977a2926766db2c8cf3c92f02175783",
     "apis/am/progress/quarry.lua": "69ec601038c304e10b9c12274faf436cb3336832824d02cc236fb384e161c5bb",
-    "apis/am/progress/colonies.lua": "9b5fe4c480e42313b5d9396a1bc9db2c8bb6fdb71a4749eb98ac3837aa4c084f",
-    "apis/am/progress/helpers.lua": "013fa136805a23494b3038f0ae0b96e0f2ab0c617ea5884bb3e09c62a87fd41d",
+    "apis/am/progress/colonies.lua": "8e3b3aaf9a4ceeb5db1f2bf7d76c0ac9d31d54968eba9ceda04311c63b0bb7e3",
+    "apis/am/progress/helpers.lua": "4d6855856dac8a9bfb05f664e97f89bc76ead7a38243d4db3c2ea31cf329d2fb",
     "apis/am/progress/base.lua": "604539d3ea74f938580e8fda36aedf097227280f7e9d77df44091dcba2f9bd16",
     "apis/am/log.lua": "f0da2c32b02b23ace39e90029de869c52a5422350387966ff82031c969a6faae",
     "apis/am/progress.lua": "3db4034dd1de954789df7def012b911b02d08d1ef0b405d4dfca036cc5b46363",
