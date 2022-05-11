@@ -531,7 +531,7 @@ local function digMoveDir(moveDir, count)
     digEventDir(moveDir, count, false)
     local hasFilled = false
     for i = 1, count, 1 do
-        success = false
+        local success = false
         while not success do
             local error = false
             if detectDir(moveDir) then

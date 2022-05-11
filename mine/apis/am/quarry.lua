@@ -811,7 +811,7 @@ local function netEventLoop()
         local data = e.receive()
         if data ~= nil then
             ---@cast data am.turtle_request
-            id = os.getComputerID()
+            local id = os.getComputerID()
             if data.name == e.c.Event.Turtle.request_halt and data.event.id == id then
                 CURRENT = RunType.Halted
                 log.info("Halting...")

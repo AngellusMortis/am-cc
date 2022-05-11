@@ -130,7 +130,7 @@ end
 ---@field home cc.colony.home_location
 ---@field isAsleep boolean
 ---@field isIdle boolean
----@field work cc.colony.work_location
+---@field work cc.colony.work_location|nil
 ---@field state string
 ---@field age string
 ---@field gender string
