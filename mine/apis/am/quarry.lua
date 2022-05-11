@@ -196,6 +196,7 @@ local RunType = {
 
 local CURRENT = RunType.Running
 local RUN_EVENT_LOOP = true
+local PREVIOUS_STATUS = nil
 
 ---@param pos? am.p.TurtlePosition
 local function fireProgressEvent(pos, progress)
@@ -794,7 +795,14 @@ local function eventLoop()
         elseif event == e.c.Event.Turtle.refuel then
             setStatus("Refueling")
         elseif event == e.c.Event.Turtle.error then
+            local progress = q.s.progress.get()
+            PREVIOUS_STATUS = progress.status
             setStatus(string.format("error:%s", args[1].error))
+        elseif event == e.c.Event.Turtle.error_clear then
+            if PREVIOUS_STATUS ~= nil then
+                setStatus(PREVIOUS_STATUS)
+                PREVIOUS_STATUS = nil
+            end
         end
         p.handle(e.getComputer(), event, args)
         os.cancelTimer(timer)

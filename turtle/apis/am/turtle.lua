@@ -381,36 +381,33 @@ end
 
 ---@param moveDir number
 ---@return boolean
-local function isChestDir(moveDir)
+local function isPerherialDir(moveDir)
     v.expect(1, moveDir, "number")
     v.range(moveDir, -1, 1)
 
-    local success, data = inspectDir(moveDir)
-    if not success then
-        return false
+    local dir = "top"
+    if moveDir == e.c.Turtle.Direction.Front then
+        dir = "front"
+    elseif moveDir == e.c.Turtle.Direction.Down then
+        dir = "bottom"
     end
-
-    for _, tag in ipairs(chestTags) do
-        if data.tags[tag] ~= nil then
-            return true
-        end
-    end
-    return false
+    local perh = peripheral.wrap(dir)
+    return perh ~= nil
 end
 
 ---@return boolean
-local function isChest()
-    return isChestDir(e.c.Turtle.Direction.Front)
+local function isPerherial()
+    return isPerherialDir(e.c.Turtle.Direction.Front)
 end
 
 ---@return boolean
-local function isChestDown()
-    return isChestDir(e.c.Turtle.Direction.Down)
+local function isPerherialDown()
+    return isPerherialDir(e.c.Turtle.Direction.Down)
 end
 
 ---@return boolean
-local function isChestUp()
-    return isChestDir(e.c.Turtle.Direction.Up)
+local function isPerherialUp()
+    return isPerherialDir(e.c.Turtle.Direction.Up)
 end
 
 ---@param moveDir number
@@ -532,51 +529,61 @@ local function digMoveDir(moveDir, count)
     local hasFilled = false
     for i = 1, count, 1 do
         local success = false
+        local hadError = false
         while not success do
-            local error = false
+            local wasError = false
             if detectDir(moveDir) then
                 if not hasRoom() then
-                    error = true
+                    wasError = true
+                    hadError = true
                     emptyInventory(true)
                 end
-                if not error and isChestDir(moveDir) then
-                    error = true
-                    turtleError("Cannot Dig Chest" .. dirStr(moveDir))
+                if not wasError and isPerherialDir(moveDir) then
+                    wasError = true
+                    hadError = true
+                    turtleError("Ignored Block" .. dirStr(moveDir))
                     sleep(5)
                 end
-                if not error and not digDir(moveDir) then
+                if not wasError and not digDir(moveDir) then
                     local inspectSuccess, data = inspectDir(moveDir)
                     if inspectSuccess and data.name == "minecraft:bedrock" then
                         return false
                     end
-                    error = true
+                    wasError = true
+                    hadError = true
                     turtleError("Cannot Dig Block" .. dirStr(moveDir))
                     sleep(1)
                 end
 
-                if not error and hasFilled then
-                    error = true
+                if not wasError and hasFilled then
+                    wasError = true
+                    hadError = true
                     sleep(1)
                 end
             elseif isSourceBlockDir(moveDir) then
-                error = true
+                wasError = true
+                hadError = true
                 if hasFilled then
-                    turtleError("Cannot Remove Source Block" .. dirStr(moveDir))
+                    turtleError("Infinite Source" .. dirStr(moveDir))
                     sleep(3)
                 else
                     hasFilled = true
                     fillDir(moveDir)
                 end
             end
-            if not error and not goDir(moveDir) then
-                error = true
+            if not wasError and not goDir(moveDir) then
+                wasError = true
+                hadError = true
                 turtleError("Cannot Move" .. dirStr(moveDir))
                 sleep(1)
             end
 
-            if not error then
+            if not wasError then
                 success = true
             end
+        end
+        if hadError then
+            e.TurtleErrorClearEvent():send()
         end
     end
     digEventDir(moveDir, count, true)
@@ -617,7 +624,7 @@ local function insertDir(moveDir, count, msg, chestMsg)
         chestMsg = "No Chest For Insert" .. dirStr(moveDir)
     end
 
-    while not isChestDir(moveDir) do
+    while not isPerherialDir(moveDir) do
         turtleError(chestMsg)
         sleep(5)
     end
@@ -668,7 +675,7 @@ local function pullDir(moveDir, count, msg, chestMsg)
         chestMsg = "No Chest For Pull" .. dirStr(moveDir)
     end
 
-    while not isChestDir(moveDir) do
+    while not isPerherialDir(moveDir) do
         turtleError(chestMsg)
         sleep(5)
     end
@@ -706,9 +713,9 @@ tc.emptySlots = emptySlots
 tc.hasRoom = hasRoom
 tc.emptyInventory = emptyInventory
 tc.refuel = refuel
-tc.isChest = isChest
-tc.isChestDown = isChestDown
-tc.isChestUp = isChestUp
+tc.isPerherial = isPerherial
+tc.isPerherialDown = isPerherialDown
+tc.isPerherialUp = isPerherialUp
 tc.isSourceBlock = isSourceBlock
 tc.isSourceBlockDown = isSourceBlockDown
 tc.isSourceBlockUp = isSourceBlockUp

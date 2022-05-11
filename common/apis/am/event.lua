@@ -128,6 +128,7 @@ e.broadcastMap = {
     ["am.turtle_refuel"] = false,
     ["am.turtle_dig"] = false,
     ["am.turtle_error"] = false,
+    ["am.turtle_error_clear"] = false,
 
     ["am.colonies_warehouse_poll"] = true,
     ["am.colonies_status_poll"] = true,
@@ -163,7 +164,8 @@ e.c.Event.Turtle = {
     fetch_fill = "am.turtle_fetch_fill",
     refuel = "am.turtle_refuel",
     dig = "am.turtle_dig",
-    error = "am.turtle_error"
+    error = "am.turtle_error",
+    error_clear = "am.turtle_error_clear"
 }
 e.c.Event.Colonies = {
     warehouse_poll = "am.colonies_warehouse_poll",
@@ -449,6 +451,14 @@ function TurtleErrorEvent:init(error)
     TurtleErrorEvent.super.init(self, e.c.Event.Turtle.error)
 
     self.error = error
+    return self
+end
+
+---@class am.e.TurtleErrorClearEvent:am.e.TurtleEvent
+local TurtleErrorClearEvent = TurtleEvent:extend("am.e.TurtleErrorClearEvent")
+e.TurtleErrorClearEvent = TurtleErrorClearEvent
+function TurtleErrorClearEvent:init()
+    TurtleErrorClearEvent.super.init(self, e.c.Event.Turtle.error_clear)
     return self
 end
 
