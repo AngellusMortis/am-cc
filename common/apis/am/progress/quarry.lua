@@ -37,9 +37,9 @@ function QuarryWrapper:createProgressFrame(mainFrame)
     })
     itemsButton:addActivateHandler(function()
         mainFrame:setActive(wrapper.screen.output, 2)
-        local haltButton = progressFrame:get(baseId .. ".haltButton")
+        local haltButton = progressFrame:get(baseId .. ".haltButton", wrapper.screen.output)
         ---@cast haltButton am.ui.Button
-        local pauseButton = progressFrame:get(baseId .. ".pauseButton")
+        local pauseButton = progressFrame:get(baseId .. ".pauseButton", wrapper.screen.output)
         ---@cast pauseButton am.ui.Button
         if wrapper.completed then
             haltButton.visible = false
