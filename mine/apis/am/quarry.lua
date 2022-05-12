@@ -473,7 +473,6 @@ end
 local function digLevel(firstLevel, lastLevel)
     local job = q.s.job.get()
     ---@cast job am.q.ReadyQuarryJob
-    local progressOneLevel = 1 / job.levels
     local walls = not firstLevel and job.walls
     pf.turnTo(START_POS.dir)
 
@@ -490,7 +489,6 @@ local function digLevel(firstLevel, lastLevel)
         pos = pf.s.position.get()
         START_POS = core.copy(pos)
     end
-    resetNodes()
 
     local progress = q.s.progress.get()
     local levelsDown = pos.v.y - START_POS.v.y
@@ -523,6 +521,7 @@ local function digLevel(firstLevel, lastLevel)
     end
 
     for row = progress.completedRows + 1, job.left, 1 do
+        resetNodes()
         local isEvenRow = row % 2 == 0
         local isLastRow = row == job.left
 
