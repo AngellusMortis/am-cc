@@ -394,8 +394,8 @@ function ColoniesWrapper:updateCitizensTab(tabs, height)
     local citizenText = {}
     for _, citizen in pairs(status.citizens) do
         local job = "Unemployed"
-        if citizen.work ~= nil then
-            job = string.gsub(citizen.work.type, "^%l", string.upper)
+        if citizen.job ~= nil then
+            job = citizen.job
         end
         citizenText[#citizenText + 1] = string.format("%s %s", job, citizen.name)
     end

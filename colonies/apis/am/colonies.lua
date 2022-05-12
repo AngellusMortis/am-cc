@@ -212,22 +212,20 @@ end
 ---@field id number
 ---@field name string
 ---@field location cc.colony.location
----@field bedPos cc.colony.location
----@field betterFood boolean
+---@field bed cc.colony.location
 ---@field home cc.colony.home_location
----@field isAsleep boolean
----@field isIdle boolean
 ---@field work cc.colony.work_location|nil
----@field state string
+---@field status string
 ---@field age string
----@field gender string
+---@field sex string
 ---@field saturation number
 ---@field happiness number
 ---@field skills table<string, cc.colony.skill>
 ---@field health number
----@field maxHealth number
+---@field max_health number
 ---@field armor number
 ---@field toughness number
+---@field job string
 
 ---@class cc.colony_base
 ---@field id number
@@ -289,7 +287,7 @@ local function pollColony()
         status.visitors[visitor.id] = visitor
     end
 
-    local citizens = c.getCitizens()
+    local citizens = colony.getCitizens()
     status.citizenCount = #citizens
     status.citizens = {}
     for _, citizen in ipairs(citizens) do
