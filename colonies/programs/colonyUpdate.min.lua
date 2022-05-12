@@ -1,0 +1,1 @@
+local a=require("cc.expect")require(settings.get("ghu.base").."core/apis/ghu")local b=require("am.log")local c=require("am.colonies")local function d()while true do b.info("Emptying warehouse inventory...")c.emptyWarehouse()b.info("Completed empty warehouse")b.info("Polling colony status...")c.pollColony()b.info("Completed polling colony status")sleep(30)end end;d()
