@@ -7,6 +7,9 @@ local colonies = require("am.colonies")
 
 local function statusLoop()
     while true do
+        log.info("Emptying warehouse inventory...")
+        colonies.emptyWarehouse()
+        log.info("Completed empty warehouse")
         log.info("Polling colony status...")
         colonies.pollColony()
         log.info("Completed polling colony status")

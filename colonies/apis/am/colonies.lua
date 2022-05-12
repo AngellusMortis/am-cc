@@ -1,7 +1,10 @@
+local v = require("cc.expect")
+
 require(settings.get("ghu.base") .. "core/apis/ghu")
 
 local core = require("am.core")
 local e = require("am.event")
+local log = require("am.log")
 
 local colonies = {}
 
@@ -23,6 +26,9 @@ s.maxStacks = {
 colonies.s = core.makeSettingWrapper(s)
 
 local COLONY = nil
+local BRIDGE = nil
+local IMPORT_CHEST = peripheral.wrap("minecraft:barrel_12")
+local TRANSFER_CHEST = peripheral.wrap("minecraft:barrel_13")
 
 ---@return table
 local function getColony()
@@ -34,6 +40,87 @@ local function getColony()
     end
 
     return COLONY
+end
+
+---@return table
+local function getBridge()
+    if BRIDGE == nil then
+        BRIDGE = peripheral.find("meBridge")
+        if BRIDGE == nil then
+            error("Could not find ME Bridge")
+        end
+    end
+
+    return BRIDGE
+end
+
+---@return table[]
+local function getInventories()
+    local names = peripheral.getNames()
+    local inventories = {}
+    for _, name in ipairs(names) do
+        if name ~= "left" then
+            local p = peripheral.wrap(name)
+            if peripheral.hasType(p, "inventory") then
+                inventories[#inventories + 1] = p
+            end
+        end
+    end
+    return inventories
+end
+
+---@return table|nil
+local function getTransferChest()
+    if TRANSFER_CHEST ~= nil then
+        return TRANSFER_CHEST
+    end
+    local inventories = getInventories()
+    local notRacks = {}
+    for _, i in ipairs(inventories) do
+        if peripheral.getName(i):sub(1, 18) ~= "minecolonies:rack_" then
+            notRacks[#notRacks + 1] = i
+        end
+    end
+
+    if #notRacks == 0 then
+        return 0
+    end
+    TRANSFER_CHEST = notRacks[1]
+    return TRANSFER_CHEST
+end
+
+---@return table|nil
+local function getImportChest()
+    if IMPORT_CHEST ~= nil then
+        return IMPORT_CHEST
+    end
+    local inventories = getInventories()
+    local notRacks = {}
+    for _, i in ipairs(inventories) do
+        if peripheral.getName(i):sub(1, 18) ~= "minecolonies:rack_" then
+            notRacks[#notRacks + 1] = i
+        end
+    end
+
+    if #notRacks == 0 then
+        return 0
+    end
+    IMPORT_CHEST = notRacks[1]
+    return IMPORT_CHEST
+end
+
+---@param chest table
+---@return number|nil
+local function getEmptySlot(chest)
+    local toSlot = nil
+    local items = chest.list()
+    for i = 1, chest.size(), 1 do
+        if items[i] == nil then
+            toSlot = i
+            break
+        end
+    end
+    return toSlot
 end
 
 ---@class cc.colony.location
@@ -214,6 +301,117 @@ local function pollColony()
     return status
 end
 
+---@return table<string, cc.item.colonies>
+local function scanItems()
+    log.info("Scanning Warehouse...")
+    local peripherals = peripheral.getNames()
+    local items = {}
+    for _, name in ipairs(peripherals) do
+        if name:sub(1, 18) == "minecolonies:rack_" then
+            log.debug(string.format(".Scanning %s...", name))
+            local rack = peripheral.wrap(name)
+            for slot, item in pairs(rack.list()) do
+                ---@case item cc.item_simple
+                local key = item.name
+                if item.nbt ~= nil then
+                    key = key ..":" .. item.nbt
+                end
+
+                if items[key] == nil then
+                    item = rack.getItemDetail(slot)
+                    if item ~= nil then
+                        ---@cast item cc.item.colonies
+                        item.inventories = {[name]={slot}}
+                        items[key] = item
+                    end
+                else
+                    local existingItem = items[key]
+                    existingItem.count = existingItem.count + item.count
+                    local inventorySlots = existingItem.inventories[name]
+                    if inventorySlots == nil then
+                        inventorySlots = {slot}
+                    else
+                        inventorySlots[#inventorySlots + 1] = slot
+                    end
+                    existingItem.inventories[name] = inventorySlots
+                    items[key] = existingItem
+                end
+            end
+        end
+    end
+
+    -- e.ColoniesScanEvent(items):send()
+    return items
+end
+
+---@param item cc.item.colonies
+---@param count? number
+local function emptyItem(item, count)
+    v.expect(1, item, "table")
+    v.expect(2, count, "number", "nil")
+    if count == nil then
+        count = item.count
+    end
+
+    log.info(string.format(".Empty %s %s", item.name, count))
+    local chest = getImportChest()
+    if chest == nil then
+        error("Could not find dump chest")
+        return
+    end
+    local emptyCount = 0
+    for name, slots in pairs(item.inventories) do
+        local inventory = peripheral.wrap(name)
+        for _, slot in ipairs(slots) do
+            local emptySlot = nil
+            while emptySlot == nil do
+                emptySlot = getEmptySlot(chest)
+                if emptySlot == nil then
+                    log.info("Waiting for dump chest to empty...")
+                    sleep(5)
+                end
+            end
+            local curItem = inventory.getItemDetail(slot)
+            if curItem ~= nil and curItem.name == item.name then
+                local importCount = curItem.count
+                if importCount > count then
+                    importCount = count
+                end
+                emptyCount = emptyCount + importCount
+                chest.pullItems(name, slot, importCount, emptySlot)
+                if emptyCount >= count then
+                    break
+                end
+            end
+        end
+    end
+end
+
+---@param items table<string, cc.item.colonies>
+local function emptyItems(items)
+    log.debug("Emptying Items...")
+
+    for _, item in pairs(items) do
+        local parts = core.split(item.name, ":")
+        if not colonies.s.mods.get()[parts[1]] then
+            emptyItem(item)
+        else
+            local stacks = item.count / item.maxCount
+            local stacksToEmpty = stacks - colonies.s.maxStacks.get()
+            if stacksToEmpty > 0 then
+                emptyItem(item, stacksToEmpty * item.maxCount)
+            end
+        end
+    end
+end
+
+local function emptyWarehouse()
+    local items = scanItems()
+    emptyItems(items)
+end
+
 colonies.pollColony = pollColony
+colonies.scanItems = scanItems
+colonies.emptyWarehouse = emptyWarehouse
 
 return colonies
