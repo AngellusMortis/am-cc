@@ -93,17 +93,21 @@ local function discoverChests()
             local items = i.list()
             ---@cast items cc.item_simple[]
             local hasItems = false
+            local hasFuel = false
             for _, item in pairs(items) do
                 hasItems = true
                 if fuels[item.name] then
+                    hasFuel = true
                     fuelChest = peripheral.getName(i)
-                    break
                 end
+                break
             end
-            if hasItems then
-                fillChest = peripheral.getName(i)
-            else
-                dumpChest = peripheral.getName(i)
+            if not hasFuel then
+                if hasItems then
+                    fillChest = peripheral.getName(i)
+                else
+                    dumpChest = peripheral.getName(i)
+                end
             end
         end
 
