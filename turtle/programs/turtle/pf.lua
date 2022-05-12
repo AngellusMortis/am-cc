@@ -50,6 +50,7 @@ end
 ---@param arg3 string
 ---@param arg4 string
 local function main(op, arg1, arg2, arg3, arg4)
+    log.s.print.set(true)
     if op ~= nil then
         op = string.lower(op)
     end

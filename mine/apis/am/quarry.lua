@@ -695,6 +695,10 @@ local function runLoop()
     ---@cast job am.q.ReadyQuarryJob
 
     e.TurtleStartedEvent():send()
+    local pos = pf.s.position.get()
+    if pos.v.x == 0 and pos.v.y == 0 and pos.v.z == 0 and pos.dir ==  e.c.Turtle.Direction.Front then
+        tc.discoverChests()
+    end
     tc.emptyInventory()
     local progress = q.s.progress.get()
     local hitBedrock = false

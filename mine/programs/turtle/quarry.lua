@@ -1,5 +1,3 @@
-local v = require("cc.expect")
-
 require(settings.get("ghu.base") .. "core/apis/ghu")
 
 local core = require("am.core")

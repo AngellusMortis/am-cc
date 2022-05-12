@@ -6,12 +6,17 @@ local log = require("am.log")
 local pf = require("am.pathfind")
 local e = require("am.event")
 local h = require("am.helpers")
+local core = require("am.core")
 
 local tc = {}
 ---@type table<string, string>
-local chestTags = {
-    "forge:chests",
-    "forge:barrels",
+--- any block considered a fuel for when discovering fuel chest
+local fuels = {
+    ["minecraft:coal"] = true,
+    ["minecraft:coal_block"] = true,
+    ["minecraft:charcoal"] = true,
+    ["quark:charcoal_block"] = true,
+    ["minecraft:lava_bucket"] = true,
 }
 -- any block matching the following rules are already included
 -- * has tag `forge:ores`
@@ -20,6 +25,18 @@ local chestTags = {
 ---@type table<string, string>
 local extraOreBlock = {
 }
+
+local s = {}
+s.chestMap = {
+    name = "tc.chestMape",
+    default = {
+        fuel = "top",
+        fill = "right",
+        dump = "left",
+    },
+    type = "table"
+}
+tc.s = core.makeSettingWrapper(s)
 
 ---@param moveDir number
 ---@param count? number
@@ -42,6 +59,197 @@ local function turtleError(msg)
 
     log.info(string.format("%s. Retrying...", msg))
     e.TurtleErrorEvent(msg):send()
+end
+
+---@return table[]
+local function getInventories()
+    local names = peripheral.getNames()
+    local inventories = {}
+    for _, name in ipairs(names) do
+        local p = peripheral.wrap(name)
+        if peripheral.hasType(p, "inventory") then
+            inventories[#inventories + 1] = p
+        end
+    end
+    return inventories
+end
+
+---@return string|nil
+local function getLocalName()
+    local modem = peripheral.find("modem", function(_, p) return not p.isWireless() end)
+    if modem == nil then
+        return nil
+    end
+    return modem.getNameLocal()
+end
+
+local function discoverChests()
+    local dumpChest = nil
+    local fillChest = nil
+    local fuelChest = nil
+    while dumpChest == nil or fillChest == nil or fuelChest == nil do
+        local inventories = getInventories()
+        for _, i in ipairs(inventories) do
+            local items = i.list()
+            ---@cast items cc.item_simple[]
+            local hasItems = false
+            for _, item in pairs(items) do
+                hasItems = true
+                if fuels[item.name] then
+                    fuelChest = peripheral.getName(i)
+                    break
+                end
+            end
+            if hasItems then
+                fillChest = peripheral.getName(i)
+            else
+                dumpChest = peripheral.getName(i)
+            end
+        end
+
+        local found = true
+        if dumpChest == nil then
+            found = false
+            turtleError("No Dump Chest")
+        elseif fillChest == nil then
+            found = false
+            turtleError("No Fill Chest")
+        elseif fuelChest == nil then
+            found = false
+            turtleError("No Fuel Chest")
+        end
+
+        if not found then
+            sleep(5)
+        end
+    end
+
+    tc.s.chestMap.set({
+        fuel = fuelChest,
+        fill = fillChest,
+        dump = dumpChest,
+    })
+end
+
+---@param chestType "fuel"|"fill"|"dump"
+---@param count? number
+---@return boolean
+local function pushItem(chestType, count)
+    v.expect(2, count, "number", "nil")
+    if count ~= nil then
+        v.range(count, 0, 64)
+    end
+    if count == 0 then
+        return
+    end
+
+    local success = false
+    local chestName = tc.s.chestMap.get()[chestType]
+    if chestName == "top" then
+        success = turtle.dropUp(count)
+    elseif chestName == "bottom" then
+        success = turtle.dropDown(count)
+    elseif chestName == "left" then
+        pf.turnTo(e.c.Turtle.Direction.Left)
+        success = turtle.drop(count)
+    elseif chestName == "right" then
+        pf.turnTo(e.c.Turtle.Direction.Right)
+        success = turtle.drop(count)
+    else
+        pf.turnTo(e.c.Turtle.Direction.Front)
+        local chest = peripheral.wrap(chestName)
+        local toSlot = nil
+        local items = chest.list()
+        for i = 1, chest.size(), 1 do
+            if items[i] == nil then
+                toSlot = i
+                break
+            end
+        end
+        local fromSlot = turtle.getSelectedSlot()
+        if toSlot ~= nil then
+            success = pcall(function () chest.pullItems(getLocalName(), fromSlot, count, toSlot) end)
+        end
+    end
+    return success
+end
+
+---@param chestType "fuel"|"fill"|"dump"
+---@param count? number
+---@param msg? string
+local function pushChestType(chestType, count, msg)
+    if count == nil then
+        count = 1
+    end
+    v.expect(2, count, "number")
+
+    if msg == nil then
+        msg = string.format("Failed to Push Item (%s)", chestType)
+    end
+
+    while not pushItem(chestType, count) do
+        turtleError(msg)
+        sleep(5)
+    end
+end
+
+---@param chestType "fuel"|"fill"|"dump"
+---@param count? number
+---@return boolean
+local function pullItem(chestType, count)
+    v.expect(2, count, "number", "nil")
+    if count ~= nil then
+        v.range(count, 0, 64)
+    end
+    if count == 0 then
+        return
+    end
+
+    local success = false
+    local chestName = tc.s.chestMap.get()[chestType]
+    if chestName == "top" then
+        success = turtle.suckUp(count)
+    elseif chestName == "bottom" then
+        success = turtle.suckDown(count)
+    elseif chestName == "left" then
+        pf.turnTo(e.c.Turtle.Direction.Left)
+        success = turtle.suck(count)
+    elseif chestName == "right" then
+        pf.turnTo(e.c.Turtle.Direction.Right)
+        success = turtle.suck(count)
+    else
+        pf.turnTo(e.c.Turtle.Direction.Front)
+        local chest = peripheral.wrap(chestName)
+        local fromSlot = nil
+        for key, _ in pairs(chest.list()) do
+            fromSlot = key
+            break
+        end
+        local toSlot = turtle.getSelectedSlot()
+        if fromSlot ~= nil then
+            success = pcall(function () chest.pushItems(getLocalName(), fromSlot, count, toSlot) end)
+        end
+    end
+    return success
+end
+
+---@param chestType "fuel"|"fill"|"dump"
+---@param count? number
+---@param msg? string
+local function pullChestType(chestType, count, msg)
+    if count == nil then
+        count = 1
+    end
+    v.expect(2, count, "number")
+
+    if msg == nil then
+        msg = string.format("Failed to Pull Item (%s)", chestType)
+    end
+
+    while not pullItem(chestType, count) do
+        turtleError(msg)
+        sleep(5)
+    end
 end
 
 ---@return cc.item|nil[]
@@ -131,13 +339,12 @@ local function emptyInventoryBase()
         sleep(5)
     end
 
-    pf.turnTo(e.c.Turtle.Direction.Left)
     log.info("Emptying inventory...")
     local items = getInventory()
     for i = 2, 16, 1 do
         if turtle.getItemCount(i) > 0 then
             turtle.select(i)
-            tc.insert(nil, nil, "Missing Drop Chest")
+            pushItem("dump")
         end
     end
     local newItems = getInventoryDiff(items)
@@ -156,10 +363,8 @@ local function emptyInventoryBase()
     event:send()
     items = getInventory()
     turtle.select(1)
-    pf.turnTo(e.c.Turtle.Direction.Right)
-    tc.pull(turtle.getItemSpace(), "Failed to Pull Fill Block", "Missing Fill Chest")
+    pullItem("fill", turtle.getItemSpace())
 
-    pf.turnTo(e.c.Turtle.Direction.Front)
     newItems = getInventoryDiff(items)
     for _, item in ipairs(newItems) do
         if item ~= nil and item.count > 0 then
@@ -168,6 +373,7 @@ local function emptyInventoryBase()
             event:send()
         end
     end
+    pf.turnTo(e.c.Turtle.Direction.Front)
 end
 
 ---@param doReturn? boolean
@@ -196,11 +402,10 @@ local function refuelBase(count)
 
     local currentLevel = turtle.getFuelLevel()
     local needed = count - currentLevel
-    local chestMsg = "Missing Refuel Chest Above"
     local pullCount = nil
     turtle.select(2)
     while count > currentLevel do
-        tc.pullUp(pullCount, string.format("Need %d More Fuel", needed), chestMsg)
+        pullChestType("fuel", pullCount or 1, string.format("Need %d More Fuel", needed))
         turtle.refuel()
         if pullCount == nil then
             local fuelPer = turtle.getFuelLevel() - currentLevel
@@ -214,7 +419,7 @@ local function refuelBase(count)
         currentLevel = turtle.getFuelLevel()
         needed = count - currentLevel
     end
-    turtle.dropUp()
+    pushChestType("fuel")
     turtle.select(1)
     return true
 end
@@ -707,6 +912,7 @@ local function pullUp(count, msg, chestMsg)
     return pullDir(e.c.Turtle.Direction.Up, count, msg, chestMsg)
 end
 
+tc.discoverChests = discoverChests
 tc.error = turtleError
 tc.hasRequiredFuel = hasRequiredFuel
 tc.emptySlots = emptySlots
