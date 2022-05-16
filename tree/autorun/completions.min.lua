@@ -1,0 +1,1 @@
+local a=require("cc.shell.completion")local b=require(settings.get("ghu.base").."core/apis/ghu")local c=string.sub(b.p.ext.."AngellusMortis/am-cc/tree/programs/turtle/",2)shell.setCompletionFunction(c.."tree.lua",a.build({a.choice,{"true","false"},false}))
