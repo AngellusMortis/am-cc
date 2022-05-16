@@ -246,10 +246,11 @@ local function replant(width)
     end
 end
 
+---@param index number
 ---@param loc am.t.tree_location
-local function harvestTree(loc)
-    setStatus(string.format("Harvest: (%d, %d)", loc.start.v.x, loc.start.v.z))
-    log.info(string.format(".Harvest: (%d, %d)", loc.start.v.x, loc.start.v.z))
+local function harvestTree(index, loc)
+    setStatus(string.format("Harvest %d: (%d, %d)", index, loc.start.v.x, loc.start.v.z))
+    log.info(string.format(".Harvest %d: (%d, %d)", index, loc.start.v.x, loc.start.v.z))
     while not pf.goTo(loc.start.v.x, loc.start.v.z, loc.start.v.y, loc.start.dir) do
         tc.error("Cannot go to tree")
         sleep(5)
@@ -257,8 +258,8 @@ local function harvestTree(loc)
 
     local success, data = turtle.inspect()
     while not success or not data.tags["minecraft:logs"] do
-        setStatus(string.format("Wait Grow: (%d, %d)", loc.start.v.x, loc.start.v.z))
-        log.info("Waiting for tree to grow...")
+        setStatus(string.format("Wait Grow %d: (%d, %d)", index, loc.start.v.x, loc.start.v.z))
+        log.info(".Wait Grow %d: (%d, %d)")
         sleep(5)
         if CURRENT ~= e.c.RunType.Running then
             return
@@ -266,14 +267,14 @@ local function harvestTree(loc)
         success, data = turtle.inspect()
     end
 
-    setStatus(string.format("Harvest: (%d, %d)", loc.start.v.x, loc.start.v.z))
+    setStatus(string.format("Harvest %d: (%d, %d)", index, loc.start.v.x, loc.start.v.z))
     local isFirst = true
     while harvestLevel(isFirst, loc.width) do
         isFirst = false
     end
     local pos = pf.s.position.get()
-    setStatus(string.format("Replant: (%d, %d)", loc.start.v.x, loc.start.v.z))
-    log.info(string.format(".Replant: (%d, %d)", loc.start.v.x, loc.start.v.z))
+    setStatus(string.format("Replant %d: (%d, %d)", index, loc.start.v.x, loc.start.v.z))
+    log.info(string.format(".Replant %d: (%d, %d)", index, loc.start.v.x, loc.start.v.z))
     pf.goTo(pos.v.x, pos.v.z, 1)
     replant(loc.width)
     pf.goTo(loc.start.v.x, loc.start.v.z, loc.start.v.y)
@@ -300,8 +301,8 @@ local function treeLoop()
     log.info(string.format("Harvesting %d trees...", #trees))
     while CURRENT == e.c.RunType.Running or CURRENT == e.c.RunType.Paused do
         if CURRENT == e.c.RunType.Running then
-            for _, treeLoc in ipairs(trees) do
-                harvestTree(treeLoc)
+            for index, treeLoc in ipairs(trees) do
+                harvestTree(index, treeLoc)
                 if CURRENT ~= e.c.RunType.Running then
                     break
                 end
