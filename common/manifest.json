@@ -9,7 +9,7 @@
     "apis/am/progress/helpers.lua": "4d6855856dac8a9bfb05f664e97f89bc76ead7a38243d4db3c2ea31cf329d2fb",
     "apis/am/progress/tree.lua": "6c4047e36f2c80bed520c085065a2aa9f8dd7c655708b782101f1c599297e62d",
     "apis/am/log.lua": "f0da2c32b02b23ace39e90029de869c52a5422350387966ff82031c969a6faae",
-    "apis/am/event.lua": "e7c845a9b158eab948b2bc2a5310e7203dd5787582eafbaeca6422635b578867",
+    "apis/am/event.lua": "4e6118638a624ce58b5c1e0671b9078db98f787e53f16cfe82fe34921b028fe7",
     "programs/progress.lua": "e56c49b1ecfb4b52d655077d66adbfa106c362e4928e71369f84e413ed12dd9d"
   },
   "dependencies": [
