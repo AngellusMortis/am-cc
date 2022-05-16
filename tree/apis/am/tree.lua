@@ -297,7 +297,7 @@ local function treeLoop()
 
     tree.s.canResume.set(true)
     local trees = tree.s.trees.get()
-    tc.refuel(500)
+    tc.refuel(175 * #trees)
     log.info(string.format("Harvesting %d trees...", #trees))
     while CURRENT == e.c.RunType.Running or CURRENT == e.c.RunType.Paused do
         if CURRENT == e.c.RunType.Running then
