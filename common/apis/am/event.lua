@@ -117,6 +117,7 @@ e.c.RunType = {
 ---@type table<string, boolean>
 e.broadcastMap = {
     ["am.progress_quarry"] = true,
+    ["am.progress_tree"] = true,
 
     ["am.pathfind_position"] = false,
     ["am.pathfind_node"] = false,
@@ -145,6 +146,7 @@ e.broadcastMap = {
 e.c.Lookup = {}
 e.c.Lookup.Progress = {
     ["am.progress_quarry"] = true,
+    ["am.progress_tree"] = true,
     ["am.colonies_status_poll"] = true,
 }
 
