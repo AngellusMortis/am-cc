@@ -8,6 +8,7 @@ local core = require("am.core")
 local h = require("am.progress.helpers")
 
 local QuarryWrapper = require("am.progress.quarry")
+local TreeWrapper = require("am.progress.tree")
 local ColoniesWrapper = require("am.progress.colonies")
 
 local p = {}
@@ -40,6 +41,11 @@ local function getWrapper(src, event, output)
         if wrapper == nil then
             if event.name == e.c.Event.Progress.quarry then
                 wrapper = QuarryWrapper(src, event, output)
+                ---@cast wrapper am.progress.ProgressWrapper
+                wrapper:createUI()
+                WRAPPERS[src.id] = wrapper
+            elseif event.name == e.c.Event.Progress.tree then
+                wrapper = TreeWrapper(src, event, output)
                 ---@cast wrapper am.progress.ProgressWrapper
                 wrapper:createUI()
                 WRAPPERS[src.id] = wrapper

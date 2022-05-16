@@ -766,7 +766,7 @@ local function eventLoop()
                     end
                 end
             end
-        elseif event == e.c.Event.Progress then
+        elseif event == e.c.Event.Progress.quarry then
             p.print(e.getComputer(), args[1])
         elseif event == e.c.Event.Turtle.empty then
             setStatus("Emptying Inventory")

@@ -1,0 +1,14 @@
+tree farm.
+
+ex:
+"tree" will have the turtle discover any trees in a straight line and then start harvesting them on a loop
+"tree false" will have the turtle harvest any configured trees on a loop
+
+notes:
+Turtle expects the following inventories:
+
+* empty chest to dump items into
+* chest with fuel inside
+* chest with a sapling inside to plant
+
+Inventories can either be placed directly again turtle or connected via a modem.

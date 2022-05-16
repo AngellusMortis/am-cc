@@ -334,18 +334,26 @@ local function hasRoom()
     return emptySlots() >= 4
 end
 
-local function emptyInventoryBase()
+---@param doFill boolean
+local function emptyInventoryBase(doFill)
     local event = e.TurtleEmptyEvent(false, nil)
     event:send()
-    log.info("Returning to origin...")
-    while not pf.goToOrigin() do
-        turtleError("Cannot Return to Origin")
-        sleep(5)
+    if not pf.atOrigin() then
+        log.info("Returning to origin...")
+        while not pf.goToOrigin() do
+            turtleError("Cannot Return to Origin")
+            sleep(5)
+        end
     end
+    pf.turnTo(e.c.Turtle.Direction.Front)
 
     log.info("Emptying inventory...")
+    local startSlot = 1
+    if doFill then
+        startSlot = 2
+    end
     local items = getInventory()
-    for i = 2, 16, 1 do
+    for i = startSlot, 16, 1 do
         if turtle.getItemCount(i) > 0 then
             turtle.select(i)
             pushItem("dump")
@@ -363,31 +371,38 @@ local function emptyInventoryBase()
     event.items = placed
     event:send()
 
-    event = e.TurtleFetchFillEvent(false, nil)
-    event:send()
-    items = getInventory()
-    turtle.select(1)
-    pullItem("fill", turtle.getItemSpace())
+    if doFill then
+        event = e.TurtleFetchFillEvent(false, nil)
+        event:send()
+        items = getInventory()
+        turtle.select(1)
+        pullItem("fill", turtle.getItemSpace())
 
-    newItems = getInventoryDiff(items)
-    for _, item in ipairs(newItems) do
-        if item ~= nil and item.count > 0 then
-            event.completed = true
-            event.item = item
-            event:send()
+        newItems = getInventoryDiff(items)
+        for _, item in ipairs(newItems) do
+            if item ~= nil and item.count > 0 then
+                event.completed = true
+                event.item = item
+                event:send()
+            end
         end
     end
     pf.turnTo(e.c.Turtle.Direction.Front)
 end
 
 ---@param doReturn? boolean
-local function emptyInventory(doReturn)
+---@param doFill? boolean
+local function emptyInventory(doReturn, doFill)
     v.expect(1, doReturn, "boolean", "nil")
+    v.expect(2, doFill, "boolean", "nil")
     if doReturn == nil then
         doReturn = false
     end
+    if doFill == nil then
+        doFill = true
+    end
 
-    emptyInventoryBase()
+    emptyInventoryBase(doFill)
     local pos = pf.s.position.get()
     if doReturn and h.isOrigin(pos) then
         log.info("Returning...")

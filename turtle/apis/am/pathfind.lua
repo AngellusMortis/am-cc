@@ -86,6 +86,9 @@ end
 
 p.c = {}
 ---@type table<string, number>
+p.c.Turtle = e.c.Turtle
+
+---@type table<string, number>
 p.c.DirType = {
     Turn = 1,
     Move = 2,
@@ -581,6 +584,12 @@ local function goToReturn()
     return true
 end
 
+---@return boolean
+local function atOrigin()
+    local pos = p.s.position.get()
+    return pos.v.x == 0 and pos.v.y == 0 and pos.v.z == 0
+end
+
 p.dirFromString = dirFromString
 p.addNode = addNode
 p.getLastNode = getLastNode
@@ -603,5 +612,6 @@ p.goTo = goTo
 p.goToPreviousNode = goToPreviousNode
 p.goToOrigin = goToOrigin
 p.goToReturn = goToReturn
+p.atOrigin = atOrigin
 
 return p

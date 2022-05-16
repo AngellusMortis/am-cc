@@ -21,6 +21,7 @@ env:
     common
     control
     mine
+    tree
     turtle
 
 jobs:

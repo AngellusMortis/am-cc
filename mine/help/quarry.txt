@@ -6,5 +6,10 @@ ex:
 "quarry false 50 4 4" will dig out a a 4x4 quarry 50 block down without placing walls
 
 notes:
-block above the turtle is expected to be an inventory with fuel
-block to the left of the turtle is expected to be a dump inventory
+Turtle expects the following inventories:
+
+* empty chest to dump items into
+* chest with fuel inside
+* chest with a fill block to use for walls
+
+Inventories can either be placed directly again turtle or connected via a modem.
