@@ -36,9 +36,10 @@ local IS_RESUME = false
 local PREVIOUS_STATUS = nil
 ---@type table<number, number>
 local LOG_COUNTS = {}
-local ONE_MINUTE = 20 * 60
+local ONE_MINUTE = 60
 local ONE_HOUR = ONE_MINUTE * 60
 local CURRENT_RATE = 0
+local START_TIME = 0
 
 
 ---@class am.t.tree_location
@@ -75,12 +76,16 @@ local function addItems(event)
     end
 
     local now = os.clock()
+    local cutoff = math.max(START_TIME, now - ONE_HOUR)
+    local elapsed = now - cutoff
     local minutes = 60
-    if now < ONE_HOUR then
-        minutes = now / ONE_MINUTE
+    if elapsed < ONE_HOUR then
+        minutes = elapsed / ONE_MINUTE
     end
-    local cutoff = math.max(0, now - ONE_HOUR)
     local newCounts = {}
+    if count > 0 then
+        newCounts = {[now] = count}
+    end
     local total = count
     for time, prevCount in pairs(LOG_COUNTS) do
         if time >= cutoff then
@@ -275,6 +280,7 @@ local function harvestTree(loc)
 end
 
 local function treeLoop()
+    START_TIME = os.clock()
     e.TurtleStartedEvent():send()
     if IS_RESUME then
         pf.goToOrigin()
