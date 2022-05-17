@@ -527,6 +527,11 @@ local function digLevel(firstLevel, lastLevel)
         resetNodes()
         local isEvenRow = row % 2 == 0
         local isLastRow = row == job.left
+        local fuelForRow = job.forward * 4 + job.forward * 3
+        if not tc.hasRequiredFuel(fuelForRow) then
+            tc.refuel(job.fuelPerLevel, false)
+            tc.emptyInventory(true)
+        end
 
         startRow(row)
         local fillLeft = isLastRow and not isEvenRow
