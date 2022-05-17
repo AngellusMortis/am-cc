@@ -80,7 +80,7 @@ local function calculateRate(newCount)
     if newCount ~= nil and newCount > 0 then
         newCounts = {[now] = newCount}
     end
-    local total = newCount
+    local total = newCount or 0
     for time, prevCount in pairs(LOG_COUNTS) do
         if time >= cutoff then
             newCounts[time] = prevCount
