@@ -29,17 +29,17 @@ end
 function QuarryWrapper:createProgressFrame(mainFrame)
     local wrapper = self
     local progressFrame = mainFrame.tabs[1]
-    local baseId = self.screen.id
+    local baseId = self.frame.id
 
     --- items button
     local itemsButton = ui.Button(ui.a.Center(8), "\x17", {
         id=baseId .. ".itemsButton", fillColor=colors.blue
     })
     itemsButton:addActivateHandler(function()
-        mainFrame:setActive(wrapper.screen.output, 2)
-        local haltButton = progressFrame:get(baseId .. ".haltButton", wrapper.screen.output)
+        mainFrame:setActive(wrapper.output, 2)
+        local haltButton = progressFrame:get(baseId .. ".haltButton", wrapper.output)
         ---@cast haltButton am.ui.Button
-        local pauseButton = progressFrame:get(baseId .. ".pauseButton", wrapper.screen.output)
+        local pauseButton = progressFrame:get(baseId .. ".pauseButton", wrapper.output)
         ---@cast pauseButton am.ui.Button
         if wrapper.completed then
             haltButton.visible = false
@@ -95,7 +95,7 @@ end
 ---@param height number
 function QuarryWrapper:createItemsFrame(mainFrame, height)
     local wrapper = self
-    local baseId = self.screen.id
+    local baseId = self.frame.id
     local itemsFrame = mainFrame:createTab("items")
     itemsFrame.fillHorizontal = true
     itemsFrame.fillVertical = true
@@ -111,7 +111,7 @@ function QuarryWrapper:createItemsFrame(mainFrame, height)
         id=baseId .. ".closeItemsButton", fillColor=colors.red, border=0
     })
     closeItemsButton:addActivateHandler(function()
-        mainFrame:setActive(wrapper.screen.output, 1)
+        mainFrame:setActive(wrapper.output, 1)
     end)
     itemsFrame:add(closeItemsButton)
 
@@ -134,26 +134,26 @@ function QuarryWrapper:createItemsFrame(mainFrame, height)
 end
 
 function QuarryWrapper:createUI()
-    local baseId = self.screen.id
+    local baseId = self.frame.id
 
     local startY = 2
     local nameText = ui.Text(ui.a.Top(), "", {id=baseId .. ".nameText"})
-    local _, height = self.screen.output.getSize()
+    local _, height = self.output.getSize()
     if height <= 12 then
         startY = 1
         nameText.visible = false
     end
 
-    if _G.RUN_PROGRESS and ui.h.isTerm(self.screen.output) then
+    if _G.RUN_PROGRESS and ui.h.isTerm(self.output) then
         local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".closeButton", fillColor=colors.red, border=0})
         closeButton:addActivateHandler(function()
             _G.RUN_PROGRESS = false
         end)
-        self.screen:add(closeButton)
+        self.frame:add(closeButton)
     end
 
-    self.screen:add(nameText)
-    self.screen:add(ui.Text(ui.a.Center(startY), "", {id=baseId .. ".titleText"}))
+    self.frame:add(nameText)
+    self.frame:add(ui.Text(ui.a.Center(startY), "", {id=baseId .. ".titleText"}))
     local mainFrame = ui.TabbedFrame(ui.a.Anchor(1, startY + 1), {
         id=baseId .. ".mainFrame",
         fillHorizontal=true,
@@ -165,23 +165,23 @@ function QuarryWrapper:createUI()
     })
     self:createProgressFrame(mainFrame)
     self:createItemsFrame(mainFrame, height - startY)
-    mainFrame:setActive(self.screen.output, 1)
+    mainFrame:setActive(self.output, 1)
 
-    self.screen:add(mainFrame)
+    self.frame:add(mainFrame)
     QuarryWrapper.super.createUI(self)
 end
 
 ---@param event am.e.QuarryProgressEvent
 function QuarryWrapper:update(event)
-    local width, height = self.screen.output.getSize()
+    local width, height = self.output.getSize()
 
-    local baseId = self.screen.id
+    local baseId = self.frame.id
     self.progress = event
 
     -- top section
-    local nameText = self.screen:get(baseId .. ".nameText")
+    local nameText = self.frame:get(baseId .. ".nameText")
     ---@cast nameText am.ui.BoundText
-    local titleText = self.screen:get(baseId .. ".titleText")
+    local titleText = self.frame:get(baseId .. ".titleText")
     ---@cast titleText am.ui.BoundText
 
     if self.src.label ~= nil then
@@ -208,7 +208,7 @@ function QuarryWrapper:update(event)
     titleText:update(string.format("Quarry%s", extra))
 
 
-    local mainFrame = self.screen:get(baseId .. ".mainFrame")
+    local mainFrame = self.frame:get(baseId .. ".mainFrame")
     ---@cast mainFrame am.ui.BoundTabbedFrame
 
     -- progress tab
@@ -263,8 +263,8 @@ end
 
 ---@param status string
 function QuarryWrapper:updateStatus(status)
-    local baseId = self.screen.id
-    local statusText = self.screen:get(baseId .. ".statusText")
+    local baseId = self.frame.id
+    local statusText = self.frame:get(baseId .. ".statusText")
     ---@cast statusText am.ui.BoundText
 
     statusText:update(status)
@@ -273,11 +273,11 @@ end
 ---@param event string Event name
 ---@param args table
 function QuarryWrapper:handle(event, args)
-    local baseId = self.screen.id
+    local baseId = self.frame.id
     if event == e.c.Event.Progress.quarry then
         self:update(args[1])
     else
-        local mainFrame = self.screen:get(baseId .. ".mainFrame")
+        local mainFrame = self.frame:get(baseId .. ".mainFrame")
         ---@cast mainFrame am.ui.BoundTabbedFrame
         local progressActive = mainFrame.obj.active == 1
         local progressFrame = mainFrame:getTab(1)
@@ -316,7 +316,7 @@ function QuarryWrapper:handle(event, args)
                 mainFrame:render()
             end
         else
-            self.screen:handle({event, table.unpack(args)})
+            self.frame:handle(self.output, {event, table.unpack(args)})
         end
     end
 end

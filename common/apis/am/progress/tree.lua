@@ -25,33 +25,33 @@ function TreeWrapper:init(src, progress, output)
 end
 
 function TreeWrapper:createUI()
-    local baseId = self.screen.id
+    local baseId = self.frame.id
     local wrapper = self
 
     local startY = 2
     local nameText = ui.Text(ui.a.Top(), "", {id=baseId .. ".nameText"})
-    local _, height = self.screen.output.getSize()
+    local _, height = self.output.getSize()
     if height <= 12 then
         startY = 1
         nameText.visible = false
     end
 
-    if _G.RUN_PROGRESS and ui.h.isTerm(self.screen.output) then
+    if _G.RUN_PROGRESS and ui.h.isTerm(self.output) then
         local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".closeButton", fillColor=colors.red, border=0})
         closeButton:addActivateHandler(function()
             _G.RUN_PROGRESS = false
         end)
-        self.screen:add(closeButton)
+        self.frame:add(closeButton)
     end
 
-    self.screen:add(nameText)
-    self.screen:add(ui.Text(ui.a.Center(startY), "", {id=baseId .. ".titleText"}))
+    self.frame:add(nameText)
+    self.frame:add(ui.Text(ui.a.Center(startY), "", {id=baseId .. ".titleText"}))
 
     -- rate text
-    self.screen:add(ui.Text(ui.a.Center(startY + 2), "", {id=baseId .. ".rateText"}))
+    self.frame:add(ui.Text(ui.a.Center(startY + 2), "", {id=baseId .. ".rateText"}))
 
     -- status text
-    self.screen:add(ui.Text(ui.a.Center(startY + 4), "", {id=baseId .. ".statusText"}))
+    self.frame:add(ui.Text(ui.a.Center(startY + 4), "", {id=baseId .. ".statusText"}))
 
     --- halt button
     local haltButton = ui.Button(ui.a.Center(startY + 5, ui.c.Offset.Left, 1), "\x8f", {
@@ -61,7 +61,7 @@ function TreeWrapper:createUI()
         log.info(string.format("Halting %s...", self.src.label))
         e.TurtleRequestHaltEvent(self.src.id):send()
     end)
-    self.screen:add(haltButton)
+    self.frame:add(haltButton)
 
     --- pause button
     local pauseButton = ui.Button(ui.a.Center(startY + 5, ui.c.Offset.Right, 1), "\x95\x95", {
@@ -76,23 +76,23 @@ function TreeWrapper:createUI()
             e.TurtleRequestPauseEvent(self.src.id):send()
         end
     end)
-    self.screen:add(pauseButton)
+    self.frame:add(pauseButton)
 
-    self.screen:add(ui.Text(ui.a.Bottom(), "", {id=baseId .. ".posText"}))
+    self.frame:add(ui.Text(ui.a.Bottom(), "", {id=baseId .. ".posText"}))
     TreeWrapper.super.createUI(self)
 end
 
 ---@param event am.e.QuarryProgressEvent
 function TreeWrapper:update(event)
-    local width, height = self.screen.output.getSize()
+    local width, height = self.output.getSize()
 
-    local baseId = self.screen.id
+    local baseId = self.frame.id
     self.progress = event
 
     -- top section
-    local nameText = self.screen:get(baseId .. ".nameText")
+    local nameText = self.frame:get(baseId .. ".nameText")
     ---@cast nameText am.ui.BoundText
-    local titleText = self.screen:get(baseId .. ".titleText")
+    local titleText = self.frame:get(baseId .. ".titleText")
     ---@cast titleText am.ui.BoundText
 
     if self.src.label ~= nil then
@@ -118,11 +118,11 @@ function TreeWrapper:update(event)
     end
     titleText:update(string.format("Tree%s", extra))
 
-    local rateText = self.screen:get(baseId .. ".rateText")
+    local rateText = self.frame:get(baseId .. ".rateText")
     ---@cast rateText am.ui.BoundText
-    local statusText = self.screen:get(baseId .. ".statusText")
+    local statusText = self.frame:get(baseId .. ".statusText")
     ---@cast statusText am.ui.BoundText
-    local posText = self.screen:get(baseId .. ".posText")
+    local posText = self.frame:get(baseId .. ".posText")
     ---@cast posText am.ui.BoundText
 
     rateText.obj.anchor.y = startY + 2
@@ -141,8 +141,8 @@ end
 
 ---@param status string
 function TreeWrapper:updateStatus(status)
-    local baseId = self.screen.id
-    local statusText = self.screen:get(baseId .. ".statusText")
+    local baseId = self.frame.id
+    local statusText = self.frame:get(baseId .. ".statusText")
     ---@cast statusText am.ui.BoundText
 
     statusText:update(status)
@@ -151,13 +151,13 @@ end
 ---@param event string Event name
 ---@param args table
 function TreeWrapper:handle(event, args)
-    local baseId = self.screen.id
+    local baseId = self.frame.id
     if event == e.c.Event.Progress.quarry then
         self:update(args[1])
     else
-        local haltButton = self.screen:get(baseId .. ".haltButton")
+        local haltButton = self.frame:get(baseId .. ".haltButton")
         ---@cast haltButton am.ui.BoundButton
-        local pauseButton = self.screen:get(baseId .. ".pauseButton")
+        local pauseButton = self.frame:get(baseId .. ".pauseButton")
         ---@cast pauseButton am.ui.BoundButton
 
         if event == e.c.Event.Turtle.paused then
@@ -165,7 +165,7 @@ function TreeWrapper:handle(event, args)
             self.completed = false
             pauseButton.obj.fillColor = colors.green
             pauseButton:updateLabel("\x10")
-            self.screen:render()
+            self:render()
         elseif event == e.c.Event.Turtle.started then
             self.paused = false
             self.completed = false
@@ -175,15 +175,15 @@ function TreeWrapper:handle(event, args)
             pauseButton.obj.visible = true
             pauseButton.obj.fillColor = colors.yellow
             pauseButton:updateLabel("\x95\x95")
-            self.screen:render()
+            self:render()
         elseif event == e.c.Event.Turtle.exited then
             self.completed = true
             self.paused = false
             haltButton.obj.visible = false
             pauseButton.obj.visible = false
-            self.screen:render()
+            self:render()
         else
-            self.screen:handle({event, table.unpack(args)})
+            self.frame:handle(self.output, {event, table.unpack(args)})
         end
     end
 end

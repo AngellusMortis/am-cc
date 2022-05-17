@@ -15,6 +15,18 @@ local p = {}
 local WRAPPERS = {}
 
 ---@param src am.net.src
+local function createFrame(src)
+    return ui.Frame(ui.a.Anchor(1, 1), {
+        id="frame." + src.id,
+        fillHorizontal=true,
+        fillVertical=true,
+        border=0,
+        backgroundColor=colors.black,
+        textColor=colors.white,
+    })
+end
+
+---@param src am.net.src
 ---@param event? am.e.ProgressEvent
 ---@param output? cc.output
 ---@return am.progress.ProgressWrapper?, boolean
@@ -40,18 +52,18 @@ local function getWrapper(src, event, output)
         end
         if wrapper == nil then
             if event.name == e.c.Event.Progress.quarry then
-                wrapper = QuarryWrapper(src, event, output)
+                wrapper = QuarryWrapper(src, event, output, createFrame(src))
                 ---@cast wrapper am.progress.ProgressWrapper
                 wrapper:createUI()
                 WRAPPERS[src.id] = wrapper
             elseif event.name == e.c.Event.Progress.tree then
-                wrapper = TreeWrapper(src, event, output)
+                wrapper = TreeWrapper(src, event, output, createFrame(src))
                 ---@cast wrapper am.progress.ProgressWrapper
                 wrapper:createUI()
                 WRAPPERS[src.id] = wrapper
             elseif event.name == e.c.Event.Colonies.status_poll then
                 ---@cast event am.e.ColoniesScanEvent
-                wrapper = ColoniesWrapper(src, event.status.id, output)
+                wrapper = ColoniesWrapper(src, event.status.id, output, createFrame(src))
                 ---@cast wrapper am.progress.ColoniesWrapper
                 wrapper.progress.status = event.status
                 wrapper:createUI()

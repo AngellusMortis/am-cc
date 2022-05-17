@@ -39,6 +39,11 @@
         "colony"
     ],
     "Lua.runtime.version": "Lua 5.2",
+    "Lua.workspace.ignoreDir": [
+        ".vscode",
+        "hmac.lua",
+        "hmac.min.lua"
+    ],
     "Lua.workspace.library": [
         "../cc-updater/src/apis",
         "../cc-render/src/apis"

@@ -9,25 +9,35 @@ local ui = require("am.ui")
 ---@class am.progress.ProgressWrapper:am.ui.b.BaseObject
 ---@field src am.net.src
 ---@field progress am.e.ProgressEvent
----@field screen am.ui.Screen
+---@field output cc.output
+---@field frame am.ui.Frame
 ---@field names table<string, boolean>
 local ProgressWrapper = BaseObject:extend("am.progress.ProgressWrapper")
-function ProgressWrapper:init(src, progress, output)
+---@param src am.net.src
+---@param progress am.e.ProgressEvent
+---@param output cc.output
+---@param frame am.ui.Frame
+function ProgressWrapper:init(src, progress, output, frame)
     v.expect(1, src, "table")
     v.expect(2, progress, "table")
     v.expect(3, output, "table")
+    v.expect(4, frame, "table")
     ProgressWrapper.super.init(self)
 
     self.src = src
     self.progress = progress
-    self.screen = ui.Screen(output, {id="screen." .. src.id, backgroundColor=colors.black, textColor=colors.white})
+    self.frame = frame
     self.names = {}
     return self
 end
 
+function ProgressWrapper:render()
+    self.frame:render(self.output)
+end
+
 function ProgressWrapper:createUI()
     self:update(self.progress)
-    self.screen:render()
+    self:render()
 end
 
 ---@param event am.e.ProgressEvent

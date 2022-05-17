@@ -6,7 +6,6 @@ local BaseObject = require("am.ui.base").BaseObject
 local ui = require("am.ui")
 
 local e = require("am.event")
-local log = require("am.log")
 
 local ProgressWrapper = require("am.progress.base")
 
@@ -35,7 +34,7 @@ end
 
 ---@param tabs am.ui.BoundTabbedFrame
 function ColoniesWrapper:createMainTab(tabs)
-    local baseId = self.screen.id
+    local baseId = self.frame.id
     local tab = tabs:getTab(1)
     local rightOffset = 3
     local rowOffset = 1
@@ -128,7 +127,7 @@ end
 ---@param tabs am.ui.BoundTabbedFrame
 ---@param height number
 function ColoniesWrapper:createCitizensTab(tabs, height)
-    local baseId = self.screen.id
+    local baseId = self.frame.id
     local tab = tabs:createTab("citizens")
     tab:add(ui.Text(ui.a.TopLeft(), "Citizens"))
     local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".citizenCloseButton", fillColor=colors.red, border=0})
@@ -154,7 +153,7 @@ end
 ---@param tabs am.ui.BoundTabbedFrame
 ---@param height number
 function ColoniesWrapper:createRequestsTab(tabs, height)
-    local baseId = self.screen.id
+    local baseId = self.frame.id
     local tab = tabs:createTab("requests")
     tab:add(ui.Text(ui.a.TopLeft(), "Requests"))
     local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".requestCloseButton", fillColor=colors.red, border=0})
@@ -180,7 +179,7 @@ end
 ---@param tabs am.ui.BoundTabbedFrame
 ---@param height number
 function ColoniesWrapper:createBuildingsTab(tabs, height)
-    local baseId = self.screen.id
+    local baseId = self.frame.id
     local tab = tabs:createTab("buildings")
     tab:add(ui.Text(ui.a.TopLeft(), "Buildings"))
     local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".buildingCloseButton", fillColor=colors.red, border=0})
@@ -206,7 +205,7 @@ end
 ---@param tabs am.ui.BoundTabbedFrame
 ---@param height number
 function ColoniesWrapper:createVisitorsTab(tabs, height)
-    local baseId = self.screen.id
+    local baseId = self.frame.id
     local tab = tabs:createTab("visitors")
     tab:add(ui.Text(ui.a.TopLeft(), "Visitors"))
     local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".visitorCloseButton", fillColor=colors.red, border=0})
@@ -232,7 +231,7 @@ end
 ---@param tabs am.ui.BoundTabbedFrame
 ---@param height number
 function ColoniesWrapper:createPlayersTab(tabs, height)
-    local baseId = self.screen.id
+    local baseId = self.frame.id
     local tab = tabs:createTab("players")
     tab:add(ui.Text(ui.a.TopLeft(), "Players"))
     local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".playerCloseButton", fillColor=colors.red, border=0})
@@ -256,18 +255,18 @@ function ColoniesWrapper:createPlayersTab(tabs, height)
 end
 
 function ColoniesWrapper:createUI()
-    local baseId = self.screen.id
-    local _, height = self.screen.output.getSize()
+    local baseId = self.frame.id
+    local _, height = self.output.getSize()
     local tabHeight = height - 2
 
-    self.screen:add(ui.Text(ui.a.Top(), "", {id=baseId .. ".titleText"}))
+    self.frame:add(ui.Text(ui.a.Top(), "", {id=baseId .. ".titleText"}))
 
-    if _G.RUN_PROGRESS and ui.h.isTerm(self.screen.output) then
+    if _G.RUN_PROGRESS and ui.h.isTerm(self.output) then
         local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".closeButton", fillColor=colors.red, border=0})
         closeButton:addActivateHandler(function()
             _G.RUN_PROGRESS = false
         end)
-        self.screen:add(closeButton)
+        self.frame:add(closeButton)
     end
 
     local tabs = ui.TabbedFrame(ui.a.Anchor(1, 3), {
@@ -278,7 +277,7 @@ function ColoniesWrapper:createUI()
         fillVertical=true,
         fillHorizontal=true
     })
-    local boundTabs = tabs:bind(self.screen.output)
+    local boundTabs = tabs:bind(self.output)
 
     self:createMainTab(boundTabs)
     self:createCitizensTab(boundTabs, tabHeight)
@@ -288,7 +287,7 @@ function ColoniesWrapper:createUI()
     self:createPlayersTab(boundTabs, tabHeight)
     boundTabs:setActive(1)
 
-    self.screen:add(tabs)
+    self.frame:add(tabs)
     ColoniesWrapper.super.createUI(self)
 end
 
@@ -296,7 +295,7 @@ end
 function ColoniesWrapper:updateMainTab(tabs)
     local status = self.progress.status
     ---@cast status cc.colony
-    local baseId = self.screen.id
+    local baseId = self.frame.id
 
     local tab = tabs:getTab(1)
     ---@cast tab am.ui.BoundFrame
@@ -376,7 +375,7 @@ end
 function ColoniesWrapper:updateCitizensTab(tabs, height)
     local status = self.progress.status
     ---@cast status cc.colony
-    local baseId = self.screen.id
+    local baseId = self.frame.id
 
     local tab = tabs:getTab(2)
     ---@cast tab am.ui.BoundFrame
@@ -408,7 +407,7 @@ end
 function ColoniesWrapper:updateRequestsTab(tabs, height)
     local status = self.progress.status
     ---@cast status cc.colony
-    local baseId = self.screen.id
+    local baseId = self.frame.id
 
     local tab = tabs:getTab(3)
     ---@cast tab am.ui.BoundFrame
@@ -436,7 +435,7 @@ end
 function ColoniesWrapper:updateBuildingsTab(tabs, height)
     local status = self.progress.status
     ---@cast status cc.colony
-    local baseId = self.screen.id
+    local baseId = self.frame.id
 
     local tab = tabs:getTab(4)
     ---@cast tab am.ui.BoundFrame
@@ -465,7 +464,7 @@ end
 function ColoniesWrapper:updateVisitorsTab(tabs, height)
     local status = self.progress.status
     ---@cast status cc.colony
-    local baseId = self.screen.id
+    local baseId = self.frame.id
 
     local tab = tabs:getTab(5)
     ---@cast tab am.ui.BoundFrame
@@ -493,7 +492,7 @@ end
 function ColoniesWrapper:updatePlayersTab(tabs, height)
     local status = self.progress.status
     ---@cast status cc.colony
-    local baseId = self.screen.id
+    local baseId = self.frame.id
 
     local tab = tabs:getTab(6)
     ---@cast tab am.ui.BoundFrame
@@ -518,18 +517,18 @@ end
 
 ---@param event am.e.ColoniesEvent
 function ColoniesWrapper:update(event)
-    local _, height = self.screen.output.getSize()
+    local _, height = self.output.getSize()
 
     if event.name == e.c.Event.Colonies.status_poll then
         ---@cast event am.e.ColoniesScanEvent
         self.progress.status = event.status
     end
 
-    local titleText = self.screen:get(self.screen.id .. ".titleText")
+    local titleText = self.frame:get(self.frame.id .. ".titleText")
     ---@cast titleText am.ui.BoundText
     titleText:update(self.progress.status.name)
 
-    local tabs = self.screen:get(self.screen.id .. ".tabsBase")
+    local tabs = self.frame:get(self.frame.id .. ".tabsBase")
     ---@cast tabs am.ui.BoundTabbedFrame
 
     self:updateMainTab(tabs)
@@ -546,7 +545,7 @@ function ColoniesWrapper:handle(event, args)
     if event == e.c.Event.Colonies.status_poll then
         self:update(args[1])
     else
-        self.screen:handle({event, table.unpack(args)})
+        self.frame:handle(self.output, {event, table.unpack(args)})
     end
 end
 
