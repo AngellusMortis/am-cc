@@ -4,8 +4,6 @@ require(settings.get("ghu.base") .. "core/apis/ghu")
 
 local BaseObject = require("am.ui.base").BaseObject
 
-local ui = require("am.ui")
-
 ---@class am.progress.ProgressWrapper:am.ui.b.BaseObject
 ---@field src am.net.src
 ---@field progress am.e.ProgressEvent
@@ -27,12 +25,21 @@ function ProgressWrapper:init(src, progress, output, frame)
     self.src = src
     self.progress = progress
     self.frame = frame
+    self.output = output
     self.names = {}
     return self
 end
 
+function ProgressWrapper:getBaseId()
+    return self.frame.id .. ".i"
+end
+
 function ProgressWrapper:render()
-    self.frame:render(self.output)
+    if self.frame.visible then
+        local fs = self.frame:makeScreen(self.output)
+        fs.clear()
+        self.frame:render(self.output)
+    end
 end
 
 function ProgressWrapper:createUI()

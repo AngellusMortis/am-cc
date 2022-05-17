@@ -2,8 +2,6 @@ local v = require("cc.expect")
 
 require(settings.get("ghu.base") .. "core/apis/ghu")
 
-local BaseObject = require("am.ui.base").BaseObject
-
 local ui = require("am.ui")
 local e = require("am.event")
 local log = require("am.log")
@@ -16,8 +14,12 @@ local ProgressWrapper = require("am.progress.base")
 ---@field completed boolean
 ---@field paused boolean
 local QuarryWrapper = ProgressWrapper:extend("am.progress.QuarryWrapper")
-function QuarryWrapper:init(src, progress, output)
-    QuarryWrapper.super.init(self, src, progress, output)
+---@param src am.net.src
+---@param progress am.e.ProgressEvent
+---@param output cc.output
+---@param frame am.ui.Frame
+function QuarryWrapper:init(src, progress, output, frame)
+    QuarryWrapper.super.init(self, src, progress, output, frame)
 
     self.completed = false
     self.paused = false
@@ -29,7 +31,7 @@ end
 function QuarryWrapper:createProgressFrame(mainFrame)
     local wrapper = self
     local progressFrame = mainFrame.tabs[1]
-    local baseId = self.frame.id
+    local baseId = self:getBaseId()
 
     --- items button
     local itemsButton = ui.Button(ui.a.Center(8), "\x17", {
@@ -95,7 +97,7 @@ end
 ---@param height number
 function QuarryWrapper:createItemsFrame(mainFrame, height)
     local wrapper = self
-    local baseId = self.frame.id
+    local baseId = self:getBaseId()
     local itemsFrame = mainFrame:createTab("items")
     itemsFrame.fillHorizontal = true
     itemsFrame.fillVertical = true
@@ -134,7 +136,7 @@ function QuarryWrapper:createItemsFrame(mainFrame, height)
 end
 
 function QuarryWrapper:createUI()
-    local baseId = self.frame.id
+    local baseId = self:getBaseId()
 
     local startY = 2
     local nameText = ui.Text(ui.a.Top(), "", {id=baseId .. ".nameText"})
@@ -175,13 +177,13 @@ end
 function QuarryWrapper:update(event)
     local width, height = self.output.getSize()
 
-    local baseId = self.frame.id
+    local baseId = self:getBaseId()
     self.progress = event
 
     -- top section
-    local nameText = self.frame:get(baseId .. ".nameText")
+    local nameText = self.frame:get(baseId .. ".nameText", self.output)
     ---@cast nameText am.ui.BoundText
-    local titleText = self.frame:get(baseId .. ".titleText")
+    local titleText = self.frame:get(baseId .. ".titleText", self.output)
     ---@cast titleText am.ui.BoundText
 
     if self.src.label ~= nil then
@@ -197,7 +199,7 @@ function QuarryWrapper:update(event)
         nameText.obj.visible = false
     else
         startY = 2
-        nameText.obj.visible = true
+        nameText.obj.visible = self.frame.visible
     end
 
     local extra = ""
@@ -208,7 +210,7 @@ function QuarryWrapper:update(event)
     titleText:update(string.format("Quarry%s", extra))
 
 
-    local mainFrame = self.frame:get(baseId .. ".mainFrame")
+    local mainFrame = self.frame:get(baseId .. ".mainFrame", self.output)
     ---@cast mainFrame am.ui.BoundTabbedFrame
 
     -- progress tab
@@ -263,8 +265,8 @@ end
 
 ---@param status string
 function QuarryWrapper:updateStatus(status)
-    local baseId = self.frame.id
-    local statusText = self.frame:get(baseId .. ".statusText")
+    local baseId = self:getBaseId()
+    local statusText = self.frame:get(baseId .. ".statusText", self.output)
     ---@cast statusText am.ui.BoundText
 
     statusText:update(status)
@@ -273,11 +275,11 @@ end
 ---@param event string Event name
 ---@param args table
 function QuarryWrapper:handle(event, args)
-    local baseId = self.frame.id
+    local baseId = self:getBaseId()
     if event == e.c.Event.Progress.quarry then
         self:update(args[1])
     else
-        local mainFrame = self.frame:get(baseId .. ".mainFrame")
+        local mainFrame = self.frame:get(baseId .. ".mainFrame", self.output)
         ---@cast mainFrame am.ui.BoundTabbedFrame
         local progressActive = mainFrame.obj.active == 1
         local progressFrame = mainFrame:getTab(1)

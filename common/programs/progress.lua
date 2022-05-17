@@ -185,7 +185,7 @@ local function netEventLoop()
             if e.c.Lookup.Progress[data.name] then
                 output = getDisplay(data.src)
                 if output ~= nil then
-                    p.print(data.src, data.event, output)
+                    p.print(data.src, data.event, output, AUTO_DISCOVER)
                     if TIMEOUT_MAP[data.src.id] ~= -1 then
                         TIMEOUT_MAP[data.src.id] = os.clock() + settings.get(s.timeout.name)
                     end

@@ -2,12 +2,9 @@ local v = require("cc.expect")
 
 require(settings.get("ghu.base") .. "core/apis/ghu")
 
-local BaseObject = require("am.ui.base").BaseObject
-
 local ui = require("am.ui")
 local e = require("am.event")
 local log = require("am.log")
-local h = require("am.progress.helpers")
 
 local ProgressWrapper = require("am.progress.base")
 
@@ -16,8 +13,12 @@ local ProgressWrapper = require("am.progress.base")
 ---@field completed boolean
 ---@field paused boolean
 local TreeWrapper = ProgressWrapper:extend("am.progress.TreeWrapper")
-function TreeWrapper:init(src, progress, output)
-    TreeWrapper.super.init(self, src, progress, output)
+---@param src am.net.src
+---@param progress am.e.ProgressEvent
+---@param output cc.output
+---@param frame am.ui.Frame
+function TreeWrapper:init(src, progress, output, frame)
+    TreeWrapper.super.init(self, src, progress, output, frame)
 
     self.paused = false
     self.names[progress.name] = true
@@ -25,7 +26,7 @@ function TreeWrapper:init(src, progress, output)
 end
 
 function TreeWrapper:createUI()
-    local baseId = self.frame.id
+    local baseId = self:getBaseId()
     local wrapper = self
 
     local startY = 2
@@ -86,13 +87,13 @@ end
 function TreeWrapper:update(event)
     local width, height = self.output.getSize()
 
-    local baseId = self.frame.id
+    local baseId = self:getBaseId()
     self.progress = event
 
     -- top section
-    local nameText = self.frame:get(baseId .. ".nameText")
+    local nameText = self.frame:get(baseId .. ".nameText", self.output)
     ---@cast nameText am.ui.BoundText
-    local titleText = self.frame:get(baseId .. ".titleText")
+    local titleText = self.frame:get(baseId .. ".titleText", self.output)
     ---@cast titleText am.ui.BoundText
 
     if self.src.label ~= nil then
@@ -108,7 +109,7 @@ function TreeWrapper:update(event)
         nameText.obj.visible = false
     else
         startY = 2
-        nameText.obj.visible = true
+        nameText.obj.visible = self.frame.visible
     end
 
     local extra = ""
@@ -118,11 +119,11 @@ function TreeWrapper:update(event)
     end
     titleText:update(string.format("Tree%s", extra))
 
-    local rateText = self.frame:get(baseId .. ".rateText")
+    local rateText = self.frame:get(baseId .. ".rateText", self.output)
     ---@cast rateText am.ui.BoundText
-    local statusText = self.frame:get(baseId .. ".statusText")
+    local statusText = self.frame:get(baseId .. ".statusText", self.output)
     ---@cast statusText am.ui.BoundText
-    local posText = self.frame:get(baseId .. ".posText")
+    local posText = self.frame:get(baseId .. ".posText", self.output)
     ---@cast posText am.ui.BoundText
 
     rateText.obj.anchor.y = startY + 2
@@ -141,8 +142,8 @@ end
 
 ---@param status string
 function TreeWrapper:updateStatus(status)
-    local baseId = self.frame.id
-    local statusText = self.frame:get(baseId .. ".statusText")
+    local baseId = self:getBaseId()
+    local statusText = self.frame:get(baseId .. ".statusText", self.output)
     ---@cast statusText am.ui.BoundText
 
     statusText:update(status)
@@ -151,13 +152,14 @@ end
 ---@param event string Event name
 ---@param args table
 function TreeWrapper:handle(event, args)
-    local baseId = self.frame.id
+    local baseId = self:getBaseId()
+    local wrapper = self
     if event == e.c.Event.Progress.quarry then
         self:update(args[1])
     else
-        local haltButton = self.frame:get(baseId .. ".haltButton")
+        local haltButton = self.frame:get(baseId .. ".haltButton", self.output)
         ---@cast haltButton am.ui.BoundButton
-        local pauseButton = self.frame:get(baseId .. ".pauseButton")
+        local pauseButton = self.frame:get(baseId .. ".pauseButton", self.output)
         ---@cast pauseButton am.ui.BoundButton
 
         if event == e.c.Event.Turtle.paused then
@@ -170,9 +172,9 @@ function TreeWrapper:handle(event, args)
             self.paused = false
             self.completed = false
 
-            haltButton.obj.visible = true
+            haltButton.obj.visible = wrapper.frame.visible
             haltButton:updateLabel("\x8f")
-            pauseButton.obj.visible = true
+            pauseButton.obj.visible = wrapper.frame.visible
             pauseButton.obj.fillColor = colors.yellow
             pauseButton:updateLabel("\x95\x95")
             self:render()
