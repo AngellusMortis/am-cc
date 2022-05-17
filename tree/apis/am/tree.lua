@@ -40,6 +40,8 @@ local ONE_MINUTE = 60
 local ONE_HOUR = ONE_MINUTE * 60
 local CURRENT_RATE = 0
 local START_TIME = 0
+local UPDATE_RATE = ONE_MINUTE * 5
+local RATE_TIMER = nil
 
 
 ---@class am.t.tree_location
@@ -65,6 +67,31 @@ local function fireProgressEvent(pos)
     e.TreeProgressEvent(pos, tree.s.trees.get(), tree.s.status.get(), CURRENT_RATE):send()
 end
 
+---@param newCount? number
+local function calculateRate(newCount)
+    local now = os.clock()
+    local cutoff = math.max(START_TIME, now - ONE_HOUR)
+    local elapsed = now - cutoff
+    local minutes = 60
+    if elapsed < ONE_HOUR then
+        minutes = elapsed / ONE_MINUTE
+    end
+    local newCounts = {}
+    if newCount ~= nil and newCount > 0 then
+        newCounts = {[now] = newCount}
+    end
+    local total = newCount
+    for time, prevCount in pairs(LOG_COUNTS) do
+        if time >= cutoff then
+            newCounts[time] = prevCount
+            total = total + prevCount
+        end
+    end
+    CURRENT_RATE = total / minutes
+    LOG_COUNTS = newCounts
+    fireProgressEvent()
+end
+
 ---@param event am.e.TurtleEmptyEvent
 local function addItems(event)
     local count = 0
@@ -75,27 +102,7 @@ local function addItems(event)
         end
     end
 
-    local now = os.clock()
-    local cutoff = math.max(START_TIME, now - ONE_HOUR)
-    local elapsed = now - cutoff
-    local minutes = 60
-    if elapsed < ONE_HOUR then
-        minutes = elapsed / ONE_MINUTE
-    end
-    local newCounts = {}
-    if count > 0 then
-        newCounts = {[now] = count}
-    end
-    local total = count
-    for time, prevCount in pairs(LOG_COUNTS) do
-        if time >= cutoff then
-            newCounts[time] = prevCount
-            total = total + prevCount
-        end
-    end
-    CURRENT_RATE = total / minutes
-    LOG_COUNTS = newCounts
-    fireProgressEvent()
+    calculateRate(count)
 end
 
 ---@param msg string
@@ -327,12 +334,18 @@ local function treeLoop()
 end
 
 local function eventLoop()
+    RATE_TIMER = os.startTimer(UPDATE_RATE)
     while RUN_EVENT_LOOP do
         -- timeout timer
         local timer = os.startTimer(3)
         local event, args = core.cleanEventArgs(os.pullEvent())
 
-        if event == e.c.Event.Pathfind.position then
+        if event == "timer" then
+            if args[1] == RATE_TIMER then
+                calculateRate()
+                RATE_TIMER = os.startTimer(UPDATE_RATE)
+            end
+        elseif event == e.c.Event.Pathfind.position then
             local pos = pf.TurtlePosition.deserialize(nil, args[1].position)
             fireProgressEvent(pos)
         elseif event == e.c.Event.Pathfind.go_to then
