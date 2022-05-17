@@ -21,6 +21,7 @@ local q = {}
 ---@field walls boolean
 ---@field refuelTarget number
 ---@field refuelLevel number
+---@field fuelPerLevel number
 ---@field percentPerLevel number
 local QuarryJob = BaseObject:extend("am.q.QuarryJob")
 q.QuarryJob = QuarryJob
@@ -77,6 +78,7 @@ function QuarryJob:calculateExtra()
         end
     end
 
+    self.fuelPerLevel = fuelPerLevel
     self.refuelTarget = requiredFuel
     self.refuelLevel = refuelLevel
     self.percentPerLevel = 1 / self.levels
@@ -703,7 +705,7 @@ local function runLoop()
     local hitBedrock = false
     while progress.completedLevels < job.levels and (CURRENT == RunType.Running or CURRENT == RunType.Paused) do
         if CURRENT == RunType.Running then
-            if progress.completedLevels % job.refuelLevel == 0 then
+            if progress.completedLevels % job.refuelLevel == 0 or not tc.hasRequiredFuel(job.fuelPerLevel) then
                tc.refuel(job.refuelTarget, progress.completedLevels ~= 0)
             end
             if not digLevel(progress.completedLevels == 0, (progress.completedLevels + 1) == job.levels) then
@@ -845,6 +847,7 @@ local function runJob(resume)
         resume = false
     end
 
+    log.s.print.set(false)
     e.initNetwork()
     local job = q.s.job.get()
     term.clear()
