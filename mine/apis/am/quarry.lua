@@ -91,6 +91,7 @@ function QuarryJob:deserialize(raw)
     job.refuelTarget = raw.refuelTarget
     job.refuelLevel = raw.refuelLevel
     job.percentPerLevel = raw.percentPerLevel
+    job.fuelPerLevel = raw.fuelPerLevel
 
     return job
 end
