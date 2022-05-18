@@ -42,8 +42,13 @@
     "Lua.workspace.ignoreDir": [
         ".vscode",
         "hmac.lua",
-        "hmac.min.lua"
+        "*.min.lua"
     ],
+    "Lua.IntelliSense.traceLocalSet": true,
+    "Lua.IntelliSense.traceReturn": true,
+    "Lua.IntelliSense.traceBeSetted": true,
+    "Lua.IntelliSense.traceFieldInject": true,
+    "Lua.diagnostics.libraryFiles": "Enable",
     "Lua.workspace.library": [
         "../cc-updater/src/apis",
         "../cc-render/src/apis"

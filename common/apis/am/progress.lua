@@ -39,7 +39,7 @@ local function createFrame(src, tabbed)
             textColor=colors.white,
             primaryTabId=tostring(src.id)
         })
-        ---@cast TABS ui.TabbedFrame
+        ---@cast TABS am.ui.TabbedFrame
 
         return TABS.tabs[1]
     end
@@ -79,9 +79,7 @@ local function getWrapper(src, event, output, tabbed)
         if wrapper == nil then
             tabbed = tabbed and ui.h.isTerm(output)
             if event.name == e.c.Event.Progress.quarry then
-                local log = require("am.log")
                 wrapper = QuarryWrapper(src, event, output, createFrame(src, tabbed))
-                log.debug(wrapper.frame.id)
                 ---@cast wrapper am.progress.ProgressWrapper
                 wrapper:createUI()
                 WRAPPERS[src.id] = wrapper
