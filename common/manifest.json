@@ -2,7 +2,7 @@
   "files": {
     "apis/ext/hmac.lua": "4e87d8940e470893e9d885ca84023bc426f901c3877600839d5b43bbe58bb2ce",
     "apis/am/helpers.lua": "331a67eeb7c7086a5c736d73ffed64243cd9ff995f696d8d315beddf4e1baa3b",
-    "apis/am/progress.lua": "5816f73ba994ff187948262aad704c0ecb21d0249d354ab499396b35f5ee4e65",
+    "apis/am/progress.lua": "df6be04d5ae3114018cf28dce838e168864a147636308f8d88e60b2b5a7e793e",
     "apis/am/progress/base.lua": "aa7853d2675e68bd88c40fa86c1609427c98730a564e1f7648d45ed80dc51893",
     "apis/am/progress/quarry.lua": "2092565f7fb7032b7b00f99d0cbbd83573f900a7a2c21fc6bd611741adea984a",
     "apis/am/progress/colonies.lua": "4516c8c5f56edc543aa5f38c2c7d03d092e2d1c87a3811b5e704da978876afb8",
