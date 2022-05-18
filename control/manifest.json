@@ -1,6 +1,6 @@
 {
   "files": {
-    "autorun/startProgress.lua": "985523c00e84bd726e669090a92b78ca5c606e868ae70831dee0563c9a0684f6"
+    "autorun/startProgress.lua": "fc127f57799486d9123fb68c64969848358d2cdbd7bb8c1f1c8f306fa29b3414"
   },
   "dependencies": [
     "AngellusMortis/am-cc:/common"

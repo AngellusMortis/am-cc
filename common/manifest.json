@@ -10,7 +10,7 @@
     "apis/am/progress/tree.lua": "057d86393c2da206c3849b9b8c6da69fc84293ae1946e0c77f9a4e85eee32220",
     "apis/am/log.lua": "f0da2c32b02b23ace39e90029de869c52a5422350387966ff82031c969a6faae",
     "apis/am/event.lua": "4e6118638a624ce58b5c1e0671b9078db98f787e53f16cfe82fe34921b028fe7",
-    "programs/progress.lua": "510bed33918efb073f2570a6356708f1ab81064ed4977197d1be39045bba01d2"
+    "programs/progress.lua": "5f4192ef08f578532a19e277093bda449dedfcf0668d05a698e6c97e6b83362d"
   },
   "dependencies": [
     "AngellusMortis/cc-render"
