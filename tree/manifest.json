@@ -1,5 +1,6 @@
 {
   "files": {
+    "help/tree.txt": "1722dc3592c1d4de03646d86df5fb2f918cecd8ff82f7a211b66c6bb6552c038",
     "apis/am/tree.lua": "966d54537744f2ee795ae65ec06e753a2c39d0a1daf16d83a7e03612e4b2b947",
     "autorun/resumeTree.lua": "32c5200e109705c750acda4e255d258d962c085f5cddf55e5d549fd12bf32a98",
     "autorun/completions.lua": "5be8103fca632e0d91ead34a078b74f449f2db53288d161014235dff40e19fe4",

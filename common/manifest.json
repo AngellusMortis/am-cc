@@ -1,5 +1,6 @@
 {
   "files": {
+    "help/progress.txt": "c72732cea9706a32512a52f3595a1e13d16ac4ac33b5e67ed94ffb4bd59a4627",
     "apis/ext/hmac.lua": "4e87d8940e470893e9d885ca84023bc426f901c3877600839d5b43bbe58bb2ce",
     "apis/am/helpers.lua": "331a67eeb7c7086a5c736d73ffed64243cd9ff995f696d8d315beddf4e1baa3b",
     "apis/am/progress.lua": "df6be04d5ae3114018cf28dce838e168864a147636308f8d88e60b2b5a7e793e",

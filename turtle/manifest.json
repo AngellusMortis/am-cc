@@ -1,5 +1,7 @@
 {
   "files": {
+    "help/pf.txt": "55739f91fb86ee99079c10a3db11cf01b67e40c13261c7e6bdf6a2bfc487f9b5",
+    "help/tc.txt": "01da41f918071129e3c4f087c17f773a940d58206c666de0656f70f9d9b61be0",
     "apis/am/turtle.lua": "eecda32fecc40fece078265fae988037d3517194675bcbda6578df39545ac129",
     "apis/am/pathfind.lua": "55a773670b29edde9259a443337d52e3d86db53af58dc1aea26d46f1db6bc7a7",
     "autorun/completions.lua": "aab1740bdf52457af391a966878b2a98c89cb7a52d516b14de50d27ff74b9f61",
