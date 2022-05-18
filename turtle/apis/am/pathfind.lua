@@ -328,27 +328,39 @@ end
 
 ---@param dir number
 ---@param count? number
+---@param dig? boolean
 ---@return boolean
-local function goDir(dir, count)
+local function goDir(dir, count, dig)
     v.expect(1, dir, "number")
     v.expect(2, count, "number", "nil")
+    v.expect(3, dig, "boolean", "nil")
     if count == nil then
         count = 1
     end
+    if dig == nil then
+        dig = false
+    end
 
     local callable
+    local digCallable = nil
     if dir == e.c.Turtle.Direction.Up then
         callable = up
+        digCallable = turtle.digUp
     elseif dir == e.c.Turtle.Direction.Down then
         callable = down
+        digCallable = turtle.digDown
     elseif dir == e.c.Turtle.Direction.Front then
         callable = forward
+        digCallable = turtle.dig
     else
         callable = back
     end
 
     local success = false
     while count > 0 do
+        if dig and digCallable ~= nil then
+            digCallable()
+        end
         success = callable()
         if not success then
             return false
@@ -359,10 +371,12 @@ local function goDir(dir, count)
 end
 
 ---@param count? number
+---@param dig? boolean
 ---@return boolean
-local function goForward(count)
+local function goForward(count, dig)
     v.expect(1, count, "number", "nil")
-    return goDir(e.c.Turtle.Direction.Front, count)
+    v.expect(2, dig, "boolean", "nil")
+    return goDir(e.c.Turtle.Direction.Front, count, dig)
 end
 
 ---@param count? number
@@ -373,46 +387,63 @@ local function goBack(count)
 end
 
 ---@param count? number
+---@param dig? boolean
 ---@return boolean
-local function goUp(count)
+local function goUp(count, dig)
     v.expect(1, count, "number", "nil")
-    return goDir(e.c.Turtle.Direction.Up, count)
+    v.expect(2, dig, "boolean", "nil")
+    return goDir(e.c.Turtle.Direction.Up, count, dig)
 end
 
 ---@param count? number
+---@param dig? boolean
 ---@return boolean
-local function goDown(count)
+local function goDown(count, dig)
     v.expect(1, count, "number", "nil")
-    return goDir(e.c.Turtle.Direction.Down, count)
+    v.expect(2, dig, "boolean", "nil")
+    if dig == nil then
+        dig = false
+    end
+    return goDir(e.c.Turtle.Direction.Down, count, dig)
 end
 
 ---@param count? number
+---@param dig? boolean
 ---@return boolean
-local function goHorizontal(count)
+local function goHorizontal(count, dig)
     v.expect(1, count, "number", "nil")
+    v.expect(2, dig, "boolean", "nil")
     if count == nil then
         count = 1
     end
+    if dig == nil then
+        dig = false
+    end
 
     if count > 0 then
-        return goForward(count)
+        return goForward(count, dig)
     else
         return goBack(math.abs(count))
     end
 end
 
 ---@param count? number
+---@param dig? boolean
 ---@return boolean
-local function goVertical(count)
+local function goVertical(count, dig)
     v.expect(1, count, "number", "nil")
+    v.expect(2, dig, "boolean", "nil")
     if count == nil then
         count = 1
     end
+    if dig == nil then
+        dig = false
+    end
 
     if count > 0 then
-        return goUp(count)
+        return goUp(count, dig)
     else
-        return goDown(math.abs(count))
+        return goDown(math.abs(count), dig)
     end
 end
 
@@ -420,14 +451,19 @@ end
 ---@param z number
 ---@param y? number
 ---@param dir? number
+---@param dig? boolean
 ---@return boolean
-local function goTo(x, z, y, dir)
+local function goTo(x, z, y, dir, dig)
     v.expect(1, x, "number")
     v.expect(2, z, "number")
     v.expect(3, y, "number", "nil")
     v.expect(4, dir, "number", "nil")
+    v.expect(5, dig, "boolean", "nil")
     if dir ~= nil then
         v.range(dir, 1, 4)
+    end
+    if dig == nil then
+        dig = false
     end
 
     local startPos = p.s.position.get()
@@ -447,7 +483,7 @@ local function goTo(x, z, y, dir)
             turnTo(e.c.Turtle.Direction.Left)
             xDiff = -xDiff
         end
-        success = goHorizontal(xDiff) and success
+        success = goHorizontal(xDiff, dig) and success
     end
 
     local zDiff = -(startPos.v.z - z)
@@ -458,12 +494,12 @@ local function goTo(x, z, y, dir)
             turnTo(e.c.Turtle.Direction.Back)
             zDiff = -zDiff
         end
-        success = goHorizontal(zDiff) and success
+        success = goHorizontal(zDiff, dig) and success
     end
 
     local yDiff = -(startPos.v.y - y)
     if yDiff ~= 0 then
-        success = goVertical(yDiff) and success
+        success = goVertical(yDiff, dig) and success
     end
 
     if not success then

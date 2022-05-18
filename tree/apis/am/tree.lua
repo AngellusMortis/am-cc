@@ -258,7 +258,7 @@ end
 local function harvestTree(index, loc)
     setStatus(string.format("Harvest %d: (%d, %d)", index, loc.start.v.x, loc.start.v.z))
     log.info(string.format(".Harvest %d: (%d, %d)", index, loc.start.v.x, loc.start.v.z))
-    while not pf.goTo(loc.start.v.x, loc.start.v.z, loc.start.v.y, loc.start.dir) do
+    while not pf.goTo(loc.start.v.x, loc.start.v.z, loc.start.v.y, loc.start.dir, true) do
         tc.error("Cannot go to tree")
         sleep(5)
     end
@@ -304,16 +304,17 @@ local function treeLoop()
 
     tree.s.canResume.set(true)
     local trees = tree.s.trees.get()
-    tc.refuel(175 * #trees)
     log.info(string.format("Harvesting %d trees...", #trees))
     while CURRENT == e.c.RunType.Running or CURRENT == e.c.RunType.Paused do
         if CURRENT == e.c.RunType.Running then
+            tc.refuel(175 * #trees)
             for index, treeLoc in ipairs(trees) do
                 harvestTree(index, treeLoc)
                 if CURRENT ~= e.c.RunType.Running then
                     break
                 end
             end
+            pf.goTo(0, 0, 0, nil, true)
             tc.emptyInventory()
 
             if CURRENT == e.c.RunType.Paused then
