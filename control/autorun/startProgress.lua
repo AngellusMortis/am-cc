@@ -14,4 +14,5 @@ end
 
 if not isRunning() then
     shell.run("bg progress")
+    multishell.setFocus(2)
 end

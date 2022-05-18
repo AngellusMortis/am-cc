@@ -9,6 +9,11 @@ local p = require("am.progress")
 local core = require("am.core")
 
 local s = {}
+s.autoDiscover = {
+    name = "progress.autoDiscover",
+    default = true,
+    type = "boolean"
+}
 s.outputMap = {
     name = "progress.outputMap",
     default = {},
@@ -21,7 +26,6 @@ s.timeout = {
 }
 s = core.makeSettingWrapper(s)
 
-local AUTO_DISCOVER = true
 local MIN_SIZE = {width=13, height=7}
 local BASE_SIZE = {width=25, height=13}
 local TIMEOUT_MAP = {}
@@ -78,7 +82,12 @@ local function saveOutputMap(outputMap)
     v.expect(1, outputMap, "table")
     local outputNameMap = {}
     for id, output in pairs(outputMap) do
-        local outputName = peripheral.getName(output)
+        local outputName
+        if ui.h.isTerm(output) then
+            outputName = "term"
+        else
+            outputName = peripheral.getName(output)
+        end
         outputNameMap[id] = outputName
     end
     s.outputMap.set(outputNameMap)
@@ -123,7 +132,7 @@ local function getDisplay(src, autoDiscovery)
     v.expect(1, src, "table")
     v.expect(2, autoDiscovery, "boolean", "nil")
     if autoDiscovery == nil then
-        autoDiscovery = AUTO_DISCOVER
+        autoDiscovery = s.autoDiscover.get()
     end
 
     if DATA.outputMap == nil or DATA.computerMap == nil then
@@ -185,7 +194,7 @@ local function netEventLoop()
             if e.c.Lookup.Progress[data.name] then
                 output = getDisplay(data.src)
                 if output ~= nil then
-                    p.print(data.src, data.event, output, AUTO_DISCOVER)
+                    p.print(data.src, data.event, output, s.autoDiscover.get())
                     if TIMEOUT_MAP[data.src.id] ~= -1 then
                         TIMEOUT_MAP[data.src.id] = os.clock() + settings.get(s.timeout.name)
                     end
@@ -245,9 +254,10 @@ local function main(name, outputName)
         v.expect(2, outputObj, "table")
 
         name = string.lower(name)
-        AUTO_DISCOVER = false
+        s.autoDiscover.set(false)
         outputMap[name] = outputObj
         computerMap[outputName] = name
+        saveOutputMap(outputMap)
     else
         outputMap, computerMap = getOutputMap()
         if isRunning() then
