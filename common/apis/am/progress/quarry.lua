@@ -30,7 +30,8 @@ end
 ---@param mainFrame am.ui.TabbedFrame
 function QuarryWrapper:createProgressFrame(mainFrame)
     local wrapper = self
-    local progressFrame = mainFrame.tabs[1]
+    local progressFrame = mainFrame:getTab("progress")
+    ---@cast progressFrame am.ui.Frame
     local baseId = self:getBaseId()
 
     --- items button
@@ -38,7 +39,7 @@ function QuarryWrapper:createProgressFrame(mainFrame)
         id=baseId .. ".itemsButton", fillColor=colors.blue
     })
     itemsButton:addActivateHandler(function()
-        mainFrame:setActive(wrapper.output, 2)
+        mainFrame:setActive(wrapper.output, "items")
         local haltButton = progressFrame:get(baseId .. ".haltButton", wrapper.output)
         ---@cast haltButton am.ui.Button
         local pauseButton = progressFrame:get(baseId .. ".pauseButton", wrapper.output)
@@ -113,7 +114,7 @@ function QuarryWrapper:createItemsFrame(mainFrame, height)
         id=baseId .. ".closeItemsButton", fillColor=colors.red, border=0
     })
     closeItemsButton:addActivateHandler(function()
-        mainFrame:setActive(wrapper.output, 1)
+        mainFrame:setActive(wrapper.output, "progress")
     end)
     itemsFrame:add(closeItemsButton)
 
@@ -167,7 +168,7 @@ function QuarryWrapper:createUI()
     })
     self:createProgressFrame(mainFrame)
     self:createItemsFrame(mainFrame, height - startY)
-    mainFrame:setActive(self.output, 1)
+    mainFrame:setActive(self.output, "progress")
 
     self.frame:add(mainFrame)
     QuarryWrapper.super.createUI(self)
@@ -214,7 +215,7 @@ function QuarryWrapper:update(event)
     ---@cast mainFrame am.ui.BoundTabbedFrame
 
     -- progress tab
-    local progressFrame = mainFrame:getTab(1)
+    local progressFrame = mainFrame:getTab("progress")
     ---@cast progressFrame am.ui.BoundFrame
 
     local totalBar = progressFrame:get(baseId .. ".totalBar")
@@ -248,7 +249,7 @@ function QuarryWrapper:update(event)
     progressFrame.obj.anchor.y = startY + 1
 
     -- items tab
-    local itemsFrame = mainFrame:getTab(2)
+    local itemsFrame = mainFrame:getTab("items")
     ---@cast itemsFrame am.ui.BoundFrame
     itemsFrame.obj.anchor.y = startY + 1
 
@@ -282,7 +283,7 @@ function QuarryWrapper:handle(event, args)
         local mainFrame = self.frame:get(baseId .. ".mainFrame", self.output)
         ---@cast mainFrame am.ui.BoundTabbedFrame
         local progressActive = mainFrame.obj.active == 1
-        local progressFrame = mainFrame:getTab(1)
+        local progressFrame = mainFrame:getTab("progress")
         ---@cast progressFrame am.ui.BoundFrame
         local haltButton = progressFrame:get(baseId .. ".haltButton")
         ---@cast haltButton am.ui.BoundButton

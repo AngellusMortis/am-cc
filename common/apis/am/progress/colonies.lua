@@ -39,7 +39,7 @@ end
 ---@param tabs am.ui.BoundTabbedFrame
 function ColoniesWrapper:createMainTab(tabs)
     local baseId = self:getBaseId()
-    local tab = tabs:getTab(1)
+    local tab = tabs:getTab("main").obj
     local rightOffset = 3
     local rowOffset = 1
     tab:add(ui.Text(ui.a.Left(rowOffset), "Raid"))
@@ -59,7 +59,7 @@ function ColoniesWrapper:createMainTab(tabs)
         border=0
     })
     citizensTabButton:addActivateHandler(function()
-        tabs:setActive(2)
+        tabs:setActive("citizens")
     end)
     tab:add(citizensTabButton)
     rowOffset = rowOffset + 1
@@ -80,7 +80,7 @@ function ColoniesWrapper:createMainTab(tabs)
         border=0
     })
     requestsTabButton:addActivateHandler(function()
-        tabs:setActive(3)
+        tabs:setActive("requests")
     end)
     tab:add(requestsTabButton)
     tab:add(ui.Text(ui.a.Right(rowOffset, rightOffset), "", {id=baseId .. ".requests"}))
@@ -95,7 +95,7 @@ function ColoniesWrapper:createMainTab(tabs)
         border=0
     })
     buildingsTabButton:addActivateHandler(function()
-        tabs:setActive(4)
+        tabs:setActive("buildings")
     end)
     tab:add(buildingsTabButton)
     rowOffset = rowOffset + 1
@@ -109,7 +109,7 @@ function ColoniesWrapper:createMainTab(tabs)
         border=0
     })
     visitorsTabButton:addActivateHandler(function()
-        tabs:setActive(5)
+        tabs:setActive("visitors")
     end)
     tab:add(visitorsTabButton)
     rowOffset = rowOffset + 1
@@ -122,7 +122,7 @@ function ColoniesWrapper:createMainTab(tabs)
         border=0
     })
     playersTabButton:addActivateHandler(function()
-        tabs:setActive(6)
+        tabs:setActive("players")
     end)
     tab:add(playersTabButton)
     tab:add(ui.Text(ui.a.Right(rowOffset, rightOffset), "", {id=baseId .. ".players"}))
@@ -136,7 +136,7 @@ function ColoniesWrapper:createCitizensTab(tabs, height)
     tab:add(ui.Text(ui.a.TopLeft(), "Citizens"))
     local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".citizenCloseButton", fillColor=colors.red, border=0})
     closeButton:addActivateHandler(function()
-        tabs:setActive(1)
+        tabs:setActive("main")
     end)
     tab:add(closeButton)
     local citizenListFrame = ui.Frame(ui.a.Anchor(1, 2), {
@@ -162,7 +162,7 @@ function ColoniesWrapper:createRequestsTab(tabs, height)
     tab:add(ui.Text(ui.a.TopLeft(), "Requests"))
     local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".requestCloseButton", fillColor=colors.red, border=0})
     closeButton:addActivateHandler(function()
-        tabs:setActive(1)
+        tabs:setActive("main")
     end)
     tab:add(closeButton)
     local requestListFrame = ui.Frame(ui.a.Anchor(1, 2), {
@@ -188,7 +188,7 @@ function ColoniesWrapper:createBuildingsTab(tabs, height)
     tab:add(ui.Text(ui.a.TopLeft(), "Buildings"))
     local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".buildingCloseButton", fillColor=colors.red, border=0})
     closeButton:addActivateHandler(function()
-        tabs:setActive(1)
+        tabs:setActive("main")
     end)
     tab:add(closeButton)
     local buildingListFrame = ui.Frame(ui.a.Anchor(1, 2), {
@@ -214,7 +214,7 @@ function ColoniesWrapper:createVisitorsTab(tabs, height)
     tab:add(ui.Text(ui.a.TopLeft(), "Visitors"))
     local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".visitorCloseButton", fillColor=colors.red, border=0})
     closeButton:addActivateHandler(function()
-        tabs:setActive(1)
+        tabs:setActive("main")
     end)
     tab:add(closeButton)
     local visitorListFrame = ui.Frame(ui.a.Anchor(1, 2), {
@@ -240,7 +240,7 @@ function ColoniesWrapper:createPlayersTab(tabs, height)
     tab:add(ui.Text(ui.a.TopLeft(), "Players"))
     local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".playerCloseButton", fillColor=colors.red, border=0})
     closeButton:addActivateHandler(function()
-        tabs:setActive(1)
+        tabs:setActive("main")
     end)
     tab:add(closeButton)
     local playerListFrame = ui.Frame(ui.a.Anchor(1, 2), {
@@ -289,7 +289,7 @@ function ColoniesWrapper:createUI()
     self:createBuildingsTab(boundTabs, tabHeight)
     self:createVisitorsTab(boundTabs, tabHeight)
     self:createPlayersTab(boundTabs, tabHeight)
-    boundTabs:setActive(1)
+    boundTabs:setActive("main")
 
     self.frame:add(tabs)
     ColoniesWrapper.super.createUI(self)
@@ -301,7 +301,7 @@ function ColoniesWrapper:updateMainTab(tabs)
     ---@cast status cc.colony
     local baseId = self:getBaseId()
 
-    local tab = tabs:getTab(1)
+    local tab = tabs:getTab("main")
     ---@cast tab am.ui.BoundFrame
 
     local raidStatus = tab:get(baseId .. ".raid")
@@ -381,7 +381,7 @@ function ColoniesWrapper:updateCitizensTab(tabs, height)
     ---@cast status cc.colony
     local baseId = self:getBaseId()
 
-    local tab = tabs:getTab(2)
+    local tab = tabs:getTab("citizens")
     ---@cast tab am.ui.BoundFrame
 
     local citizenListFrame = tab:get(baseId .. ".citizenListFrame")
@@ -413,7 +413,7 @@ function ColoniesWrapper:updateRequestsTab(tabs, height)
     ---@cast status cc.colony
     local baseId = self:getBaseId()
 
-    local tab = tabs:getTab(3)
+    local tab = tabs:getTab("requests")
     ---@cast tab am.ui.BoundFrame
 
     local requestListFrame = tab:get(baseId .. ".requestListFrame")
@@ -441,7 +441,7 @@ function ColoniesWrapper:updateBuildingsTab(tabs, height)
     ---@cast status cc.colony
     local baseId = self:getBaseId()
 
-    local tab = tabs:getTab(4)
+    local tab = tabs:getTab("buildings")
     ---@cast tab am.ui.BoundFrame
 
     local buildingListFrame = tab:get(baseId .. ".buildingListFrame")
@@ -470,7 +470,7 @@ function ColoniesWrapper:updateVisitorsTab(tabs, height)
     ---@cast status cc.colony
     local baseId = self:getBaseId()
 
-    local tab = tabs:getTab(5)
+    local tab = tabs:getTab("visitors")
     ---@cast tab am.ui.BoundFrame
 
     local visitorListFrame = tab:get(baseId .. ".visitorListFrame")
@@ -498,7 +498,7 @@ function ColoniesWrapper:updatePlayersTab(tabs, height)
     ---@cast status cc.colony
     local baseId = self:getBaseId()
 
-    local tab = tabs:getTab(6)
+    local tab = tabs:getTab("players")
     ---@cast tab am.ui.BoundFrame
 
     local playerListFrame = tab:get(baseId .. ".playerListFrame")

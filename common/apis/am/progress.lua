@@ -12,6 +12,7 @@ local TreeWrapper = require("am.progress.tree")
 local ColoniesWrapper = require("am.progress.colonies")
 
 local p = {}
+---@type table<string, am.progress.ProgressWrapper>
 local WRAPPERS = {}
 local TABS = nil
 
@@ -20,7 +21,7 @@ local TABS = nil
 local function createFrame(src, tabbed)
     if not tabbed then
         return ui.Frame(ui.a.Anchor(1, 1), {
-            id=string.format("main.1.%d", src.id),
+            id=string.format("progressFrame.%d", src.id),
             fillHorizontal=true,
             fillVertical=true,
             border=0,
@@ -31,7 +32,7 @@ local function createFrame(src, tabbed)
 
     if TABS == nil then
         TABS = ui.TabbedFrame(ui.a.Anchor(1, 1), {
-            id="main",
+            id="progressFrame",
             fillHorizontal=true,
             fillVertical=true,
             border=0,
@@ -71,13 +72,20 @@ local function getWrapper(src, event, output, tabbed)
         ---@cast output cc.output
         ---@cast event am.e.ProgressEvent
         if wrapper ~= nil then
-            if not wrapper.names[event.name] or not ui.h.isSameScreen(wrapper.output, output) then
+            local wrapperOutput = wrapper.output
+            if ui.h.isFrameScreen(wrapperOutput) then
+                wrapperOutput = ui.h.getFrameScreen(wrapperOutput).output
+            end
+            if not wrapper.names[event.name] or not ui.h.isSameScreen(wrapperOutput, output) then
                 WRAPPERS[src.id] = nil
                 wrapper = nil
             end
         end
         if wrapper == nil then
             tabbed = tabbed and ui.h.isTerm(output)
+            if tabbed then
+                output = TABS:makeScreen(output)
+            end
             if event.name == e.c.Event.Progress.quarry then
                 wrapper = QuarryWrapper(src, event, output, createFrame(src, tabbed))
                 ---@cast wrapper am.progress.ProgressWrapper
@@ -110,7 +118,12 @@ end
 ---@return am.net.src
 local function getSrcFromOutput(output)
     for id, wrapper in pairs(WRAPPERS) do
-        if ui.h.isSameScreen(output, wrapper.output) then
+        local wrapperOutput = wrapper.output
+        if ui.h.isFrameScreen(wrapperOutput) then
+            wrapperOutput = ui.h.getFrameScreen(wrapperOutput).output
+        end
+
+        if ui.h.isSameScreen(output, wrapperOutput) then
             return {id=id}
         end
     end
@@ -171,9 +184,9 @@ local function handle(src, event, args)
         return
     elseif ui.c.l.Events.UI[event] then
         local parts = core.split(args[1].objId, ".")
-        if parts[1] == "main" and parts[2] == "1" then
+        if parts[1] == "progressFrame" then
             newSrc = {
-                id=tonumber(parts[3])
+                id=tonumber(parts[2])
             }
         end
     elseif ui.c.l.Events.Terminal[event] then
