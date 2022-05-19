@@ -38,7 +38,10 @@ local function createFrame(src, tabbed)
             border=0,
             backgroundColor=colors.black,
             textColor=colors.white,
-            primaryTabId=tostring(src.id)
+            primaryTabId=tostring(src.id),
+            showTabs=true,
+            activeTabFillColor=colors.lightGray,
+            tabFillColor=colors.gray
         })
         ---@cast TABS am.ui.TabbedFrame
 
@@ -82,32 +85,38 @@ local function getWrapper(src, event, output, tabbed)
             end
         end
         if wrapper == nil then
-            tabbed = tabbed and ui.h.isTerm(output)
-            if tabbed then
-                output = TABS:makeScreen(output)
+            if (
+                event.name == e.c.Event.Progress.quarry or
+                event.name == e.c.Event.Progress.tree or
+                event.name == e.c.Event.Colonies.status_poll
+            ) then
+                local frame = createFrame(src, tabbed)
+                local frameOutput = output
+                if tabbed then
+                    frameOutput = TABS:makeScreen(output)
+                end
+                if event.name == e.c.Event.Progress.quarry then
+                    wrapper = QuarryWrapper(src, event, frameOutput, frame)
+                    ---@cast wrapper am.progress.ProgressWrapper
+                elseif event.name == e.c.Event.Progress.tree then
+                    wrapper = TreeWrapper(src, event, frameOutput, frame)
+                    ---@cast wrapper am.progress.ProgressWrapper
+                elseif event.name == e.c.Event.Colonies.status_poll then
+                    ---@cast event am.e.ColoniesScanEvent
+                    wrapper = ColoniesWrapper(src, event.status.id, frameOutput, frame)
+                    ---@cast wrapper am.progress.ColoniesWrapper
+                    wrapper.progress.status = event.status
+                end
             end
-            if event.name == e.c.Event.Progress.quarry then
-                wrapper = QuarryWrapper(src, event, output, createFrame(src, tabbed))
-                ---@cast wrapper am.progress.ProgressWrapper
+
+            if wrapper ~= nil then
                 wrapper:createUI()
                 WRAPPERS[src.id] = wrapper
-            elseif event.name == e.c.Event.Progress.tree then
-                wrapper = TreeWrapper(src, event, output, createFrame(src, tabbed))
-                ---@cast wrapper am.progress.ProgressWrapper
-                wrapper:createUI()
-                WRAPPERS[src.id] = wrapper
-            elseif event.name == e.c.Event.Colonies.status_poll then
-                ---@cast event am.e.ColoniesScanEvent
-                wrapper = ColoniesWrapper(src, event.status.id, output, createFrame(src, tabbed))
-                ---@cast wrapper am.progress.ColoniesWrapper
-                wrapper.progress.status = event.status
-                wrapper:createUI()
-                WRAPPERS[src.id] = wrapper
+                if TABS ~= nil then
+                    TABS:setActive(output, TABS.active)
+                end
             end
             created = wrapper ~= nil
-            if wrapper ~= nil and TABS ~= nil then
-                TABS:setActive(output, TABS.active)
-            end
         end
     end
 

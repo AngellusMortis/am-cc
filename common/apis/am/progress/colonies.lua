@@ -265,7 +265,7 @@ function ColoniesWrapper:createUI()
 
     self.frame:add(ui.Text(ui.a.Top(), "", {id=baseId .. ".titleText"}))
 
-    if _G.RUN_PROGRESS and ui.h.isTerm(self.output) then
+    if _G.PROGRESS_SHOW_CLOSE then
         local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".closeButton", fillColor=colors.red, border=0})
         closeButton:addActivateHandler(function()
             _G.RUN_PROGRESS = false

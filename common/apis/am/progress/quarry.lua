@@ -2,10 +2,10 @@ local v = require("cc.expect")
 
 require(settings.get("ghu.base") .. "core/apis/ghu")
 
-local ui = require("am.ui")
 local e = require("am.event")
-local log = require("am.log")
 local h = require("am.progress.helpers")
+local log = require("am.log")
+local ui = require("am.ui")
 
 local ProgressWrapper = require("am.progress.base")
 
@@ -147,7 +147,7 @@ function QuarryWrapper:createUI()
         nameText.visible = false
     end
 
-    if _G.RUN_PROGRESS and ui.h.isTerm(self.output) then
+    if _G.PROGRESS_SHOW_CLOSE then
         local closeButton = ui.Button(ui.a.TopRight(), "x", {id=baseId .. ".closeButton", fillColor=colors.red, border=0})
         closeButton:addActivateHandler(function()
             _G.RUN_PROGRESS = false
@@ -213,6 +213,7 @@ function QuarryWrapper:update(event)
 
     local mainFrame = self.frame:get(baseId .. ".mainFrame", self.output)
     ---@cast mainFrame am.ui.BoundTabbedFrame
+    mainFrame.obj.anchor.y = startY + 1
 
     -- progress tab
     local progressFrame = mainFrame:getTab("progress")
@@ -246,12 +247,10 @@ function QuarryWrapper:update(event)
     posText:update(string.format(
         posFmt, self.progress.pos.v.x, self.progress.pos.v.z, self.progress.pos.v.y, self.progress.pos.dir
     ))
-    progressFrame.obj.anchor.y = startY + 1
 
     -- items tab
     local itemsFrame = mainFrame:getTab("items")
     ---@cast itemsFrame am.ui.BoundFrame
-    itemsFrame.obj.anchor.y = startY + 1
 
     local itemsListFrame = itemsFrame:get(baseId .. ".itemsListFrame")
     ---@cast itemsListFrame am.ui.BoundFrame

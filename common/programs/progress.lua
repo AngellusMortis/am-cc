@@ -30,7 +30,9 @@ local MIN_SIZE = {width=13, height=7}
 local BASE_SIZE = {width=25, height=13}
 local TIMEOUT_MAP = {}
 local DATA = {}
+local TABBED = false
 _G.RUN_PROGRESS = true
+_G.PROGRESS_SHOW_CLOSE = false
 
 ---@return table<string, cc.output>
 local function getAllMonitors()
@@ -135,6 +137,10 @@ local function getDisplay(src, autoDiscovery)
         autoDiscovery = s.autoDiscover.get()
     end
 
+    if TABBED then
+        return term
+    end
+
     if DATA.outputMap == nil or DATA.computerMap == nil then
         DATA.outputMap, DATA.computerMap = getOutputMap()
     end
@@ -169,7 +175,7 @@ end
 
 ---@param computerMap table<string, number>
 local function initTerm(computerMap)
-    if computerMap["term"] ~= nil then
+    if computerMap["term"] ~= nil or _G.PROGRESS_SHOW_CLOSE then
         log.s.print.set(false)
     else
         log.s.print.set(true)
@@ -194,7 +200,7 @@ local function netEventLoop()
             if e.c.Lookup.Progress[data.name] then
                 output = getDisplay(data.src)
                 if output ~= nil then
-                    p.print(data.src, data.event, output, s.autoDiscover.get())
+                    p.print(data.src, data.event, output, TABBED)
                     if TIMEOUT_MAP[data.src.id] ~= -1 then
                         TIMEOUT_MAP[data.src.id] = os.clock() + settings.get(s.timeout.name)
                     end
@@ -258,8 +264,18 @@ local function main(name, outputName)
         outputMap[name] = outputObj
         computerMap[outputName] = name
         saveOutputMap(outputMap)
+
+        if outputName == "term" then
+            _G.PROGRESS_SHOW_CLOSE = true
+        end
     else
-        outputMap, computerMap = getOutputMap()
+        local monitors = getAllMonitors()
+        if #monitors == 0 then
+            TABBED = true
+            _G.PROGRESS_SHOW_CLOSE = true
+        else
+            outputMap, computerMap = getOutputMap()
+        end
         if isRunning() then
             error("Auto-discovery progress already running")
             return
