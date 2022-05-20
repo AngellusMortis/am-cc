@@ -148,6 +148,18 @@ local function getSrcFromOutput(output)
 end
 
 ---@param src am.net.src
+---@param pos am.p.TurtlePosition
+local function updatePosition(src, pos)
+    v.expect(1, src, "table")
+    v.expect(2, pos, "table")
+
+    local wrapper = getWrapper(src)
+    if wrapper ~= nil then
+        wrapper:updatePosition(pos)
+    end
+end
+
+---@param src am.net.src
 ---@param status string
 local function updateStatus(src, status)
     v.expect(1, src, "table")
@@ -214,6 +226,9 @@ local function handle(src, event, args)
         newSrc = getSrcFromOutput(term)
     elseif ui.c.l.Events.Monitor[event] then
         newSrc = getSrcFromOutput(peripheral.wrap(args[1]))
+    elseif event == e.c.Event.Pathfind.position then
+        updatePosition(src, args[1].position)
+        return
     end
 
     if newSrc ~= nil then
@@ -231,6 +246,7 @@ local function handle(src, event, args)
 end
 
 p.updateStatus = updateStatus
+p.updatePosition = updatePosition
 p.print = printProgress
 p.handle = handle
 p.itemStrings = h.itemStrings

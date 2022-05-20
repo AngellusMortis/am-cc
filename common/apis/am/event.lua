@@ -119,7 +119,7 @@ e.broadcastMap = {
     ["am.progress_quarry"] = true,
     ["am.progress_tree"] = true,
 
-    ["am.pathfind_position"] = false,
+    ["am.pathfind_position"] = true,
     ["am.pathfind_node"] = false,
     ["am.pathfind_reset_nodes"] = false,
     ["am.pathfind_reset"] = false,

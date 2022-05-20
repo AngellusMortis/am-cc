@@ -123,20 +123,30 @@ function TreeWrapper:update(event)
     ---@cast rateText am.ui.BoundText
     local statusText = self.frame:get(baseId .. ".statusText", self.output)
     ---@cast statusText am.ui.BoundText
-    local posText = self.frame:get(baseId .. ".posText", self.output)
-    ---@cast posText am.ui.BoundText
 
     rateText.obj.anchor.y = startY + 2
     rateText:update(string.format("%.1f log/min", self.progress.rate))
 
     statusText.obj.anchor.y = startY + 4
     statusText:update(self.progress.status)
+    self:updatePosition(self.progress.pos)
+end
+
+---@param pos am.p.TurtlePosition
+function ProgressWrapper:updatePosition(pos)
+    self.progress.pos = pos
+
+    local width, _ = self.output.getSize()
+    local baseId = self:getBaseId()
+    local posText = self.frame:get(baseId .. ".posText", self.output)
+    ---@cast posText am.ui.BoundText
+
     local posFmt = "pos (%d, %d) e: %d, d: %d"
     if width < 30 then
         posFmt = "(%d,%d) e:%d, d:%d"
     end
     posText:update(string.format(
-        posFmt, self.progress.pos.v.x, self.progress.pos.v.z, self.progress.pos.v.y, self.progress.pos.dir
+        posFmt, pos.v.x, pos.v.z, pos.v.y, pos.dir
     ))
 end
 

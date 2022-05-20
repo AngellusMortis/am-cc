@@ -225,8 +225,6 @@ function QuarryWrapper:update(event)
     ---@cast levelBar am.ui.BoundProgressBar
     local statusText = progressFrame:get(baseId .. ".statusText")
     ---@cast statusText am.ui.BoundText
-    local posText = progressFrame:get(baseId .. ".posText")
-    ---@cast posText am.ui.BoundText
 
     totalBar.obj.displayTotal = self.progress.job.levels
     totalBar:update(self.progress.progress.current * 100)
@@ -240,13 +238,7 @@ function QuarryWrapper:update(event)
     end
     levelBar:update(self.progress.progress.completedRows)
     statusText:update(self.progress.progress.status)
-    local posFmt = "pos (%d, %d) e: %d, d: %d"
-    if width < 30 then
-        posFmt = "(%d,%d) e:%d, d:%d"
-    end
-    posText:update(string.format(
-        posFmt, self.progress.pos.v.x, self.progress.pos.v.z, self.progress.pos.v.y, self.progress.pos.dir
-    ))
+    self:updatePosition(self.progress.pos)
 
     -- items tab
     local itemsFrame = mainFrame:getTab("items")
@@ -261,6 +253,24 @@ function QuarryWrapper:update(event)
     local items = h.itemStrings(self.progress.progress.items)
     itemsListFrame.obj.height = math.max(minListHeight, #items + 2)
     listText:update(items)
+end
+
+---@param pos am.p.TurtlePosition
+function ProgressWrapper:updatePosition(pos)
+    self.progress.pos = pos
+
+    local width, _ = self.output.getSize()
+    local baseId = self:getBaseId()
+    local posText = self.frame:get(baseId .. ".posText", self.output)
+    ---@cast posText am.ui.BoundText
+
+    local posFmt = "pos (%d, %d) e: %d, d: %d"
+    if width < 30 then
+        posFmt = "(%d,%d) e:%d, d:%d"
+    end
+    posText:update(string.format(
+        posFmt, pos.v.x, pos.v.z, pos.v.y, pos.dir
+    ))
 end
 
 ---@param status string

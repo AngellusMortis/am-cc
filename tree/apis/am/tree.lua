@@ -348,7 +348,7 @@ local function eventLoop()
             end
         elseif event == e.c.Event.Pathfind.position then
             local pos = pf.TurtlePosition.deserialize(nil, args[1].position)
-            fireProgressEvent(pos)
+            p.updatePosition(e.getComputer(), pos)
         elseif event == e.c.Event.Pathfind.go_to then
             local eventObj = args[1]
             ---@cast eventObj am.e.PathfindGoToEvent

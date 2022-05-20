@@ -52,6 +52,10 @@ function ProgressWrapper:update(event)
     self.progress = event
 end
 
+---@param pos am.p.TurtlePosition
+function ProgressWrapper:updatePosition(pos)
+end
+
 ---@param status string
 function ProgressWrapper:updateStatus(status)
 end
