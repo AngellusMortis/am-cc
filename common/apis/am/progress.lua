@@ -41,14 +41,15 @@ local function createFrame(src, tabbed)
             primaryTabId=tostring(src.id),
             showTabs=true,
             activeTabFillColor=colors.lightGray,
-            tabFillColor=colors.gray
+            tabFillColor=colors.gray,
+            tabPadTop=1,
         })
         ---@cast TABS am.ui.TabbedFrame
 
         return TABS.tabs[1]
     end
 
-    return TABS:createTab(src.id)
+    return TABS:createTab(tostring(src.id))
 end
 
 ---@param src am.net.src
@@ -113,7 +114,11 @@ local function getWrapper(src, event, output, tabbed)
                 wrapper:createUI()
                 WRAPPERS[src.id] = wrapper
                 if TABS ~= nil then
-                    TABS:setActive(output, TABS.active)
+                    TABS:setActive(output, #TABS.tabs)
+                    if #TABS.tabs == 1 then
+                        output.clear()
+                        TABS:render(output)
+                    end
                 end
             end
             created = wrapper ~= nil
@@ -178,8 +183,12 @@ end
 ---@param event string Event name
 ---@param args table
 local function handleAll(event, args)
-    for _, wrapper in pairs(WRAPPERS) do
-        wrapper:handle(event, args)
+    if TABS ~= nil then
+        TABS:handle(term, event, table.unpack(args))
+    else
+        for _, wrapper in pairs(WRAPPERS) do
+            wrapper:handle(event, args)
+        end
     end
 end
 
@@ -208,9 +217,13 @@ local function handle(src, event, args)
         src = newSrc
     end
 
-    local wrapper, _ = getWrapper(src)
-    if wrapper ~= nil then
-        wrapper:handle(event, args)
+    if TABS ~= nil then
+        TABS:handle(term, event, table.unpack(args))
+    else
+        local wrapper, _ = getWrapper(src)
+        if wrapper ~= nil then
+            wrapper:handle(event, args)
+        end
     end
 end
 
