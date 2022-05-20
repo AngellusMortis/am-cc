@@ -269,16 +269,21 @@ local function main(name, outputName)
             _G.PROGRESS_SHOW_CLOSE = true
         end
     else
-        local monitors = getAllMonitors()
-        if #monitors == 0 then
-            TABBED = true
-            _G.PROGRESS_SHOW_CLOSE = true
+        if s.autoDiscover.get() then
+            local monitors = getAllMonitors()
+            if #monitors == 0 then
+                TABBED = true
+                _G.PROGRESS_SHOW_CLOSE = true
+            else
+                outputMap, computerMap = getOutputMap()
+            end
+            if isRunning() then
+                error("Auto-discovery progress already running")
+                return
+            end
         else
             outputMap, computerMap = getOutputMap()
-        end
-        if isRunning() then
-            error("Auto-discovery progress already running")
-            return
+            _G.PROGRESS_SHOW_CLOSE = true
         end
     end
 
