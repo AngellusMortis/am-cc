@@ -230,7 +230,7 @@ function DistributedEvent:validate(message)
     local valid = provided == actual
     if not valid then
         log.debug(string.format(
-            "bad message: mismatch: %s %s %s", message.src, provided, actual
+            "bad message: mismatch: %s %s %s", log.format(message.src), provided, actual
         ))
     end
     return valid

@@ -40,9 +40,12 @@ local function createFrame(src, tabbed)
             textColor=colors.white,
             primaryTabId=tostring(src.id),
             showTabs=true,
-            activeTabFillColor=colors.lightGray,
             tabFillColor=colors.gray,
+            tabTextColor=colors.black,
+            activeTabFillColor=colors.black,
+            activeTabTextColor=colors.yellow,
             tabPadTop=1,
+            tabPadBottom=0
         })
         ---@cast TABS am.ui.TabbedFrame
 
