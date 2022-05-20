@@ -25,7 +25,7 @@ s.psk = {
 s = core.makeSettingWrapper(s)
 
 local INITALIZED_NETWORK = false
-local MESSAGE_LIFE = 5000
+local MESSAGE_LIFE = 72000 * 3 -- 3 seconds of "game time"
 e.online = false
 e.type = "am.net"
 
@@ -83,8 +83,6 @@ local function receive()
     if data ~= nil and data.type == e.type then
         if e.DistributedEvent.validate(nil, core.copy(data, false)) then
             return data
-        else
-            log.debug(string.format("bad signature: %s", log.format(data)))
         end
     end
     return nil
@@ -203,23 +201,39 @@ function DistributedEvent:validate(message)
         return true
     end
 
-    if not e.online or message.signature == nil or message.epoch == nil then
+    if not e.online then
+        log.debug("bad message: offline")
+        return false
+    end
+
+    if message.signature == nil or message.epoch == nil then
+        log.debug("bad message: missing signature")
         return false
     end
 
     if type(message.signature) ~= "string" or type(message.epoch) ~= "number" then
+        log.debug("bad message: invalid signature")
         return false
     end
 
     local now = os.epoch()
     if message.epoch > now or (now - MESSAGE_LIFE) > message.epoch then
+        log.debug(string.format(
+            "bad message: outdated signature: %s %s %s", message.src, now, message.epoch
+        ))
         return false
     end
 
     local provided = message.signature
     message.signature = nil
     local actual = hmac.hmac(hmac.sha256, s.psk.get(), log.format(message))
-    return provided == actual
+    local valid = provided == actual
+    if not valid then
+        log.debug(string.format(
+            "bad message: mismatch: %s %s %s", message.src, provided, actual
+        ))
+    end
+    return valid
 end
 
 ---@param message am.raw
