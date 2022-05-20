@@ -277,13 +277,13 @@ local function main(name, outputName)
             else
                 outputMap, computerMap = getOutputMap()
             end
-            if isRunning() then
-                error("Auto-discovery progress already running")
-                return
-            end
         else
             outputMap, computerMap = getOutputMap()
             _G.PROGRESS_SHOW_CLOSE = true
+        end
+        if isRunning() then
+            error("Auto-Progress already running")
+            return
         end
     end
 
