@@ -16,6 +16,7 @@ local fuels = {
     ["minecraft:coal_block"] = true,
     ["minecraft:charcoal"] = true,
     ["quark:charcoal_block"] = true,
+    ["mekanism:block_charcoal"] = true,
     ["minecraft:lava_bucket"] = true,
 }
 -- any block matching the following rules are already included
