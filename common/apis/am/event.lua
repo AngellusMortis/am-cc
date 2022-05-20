@@ -24,7 +24,8 @@ s.psk = {
 }
 s = core.makeSettingWrapper(s)
 
-local initalizedNetwork = false
+local INITALIZED_NETWORK = false
+local MESSAGE_LIFE = 5000
 e.online = false
 e.type = "am.net"
 
@@ -39,13 +40,14 @@ e.type = "am.net"
 ---@field event am.e.DistributedEvent
 
 ---@class am.net:am.raw
----@field signature string
+---@field signature string|nil
+---@field epoch number|nil
 
 ---@class am.turtle_request:am.net
 ---@field event am.e.TurtleRequestHaltEvent|am.e.TurtleRequestPauseEvent|am.e.TurtleRequestContinueEvent
 
 local function initNetwork()
-    if initalizedNetwork then
+    if INITALIZED_NETWORK then
         return
     end
 
@@ -60,7 +62,7 @@ local function initNetwork()
             e.online = true
         end
     end
-    initalizedNetwork = true
+    INITALIZED_NETWORK = true
 end
 
 ---@return am.net.src
@@ -201,9 +203,19 @@ function DistributedEvent:validate(message)
         return true
     end
 
-    if not e.online or message.signature == nil then
+    if not e.online or message.signature == nil or message.epoch == nil then
         return false
     end
+
+    if type(message.signature) ~= "string" or type(message.epoch) ~= "number" then
+        return false
+    end
+
+    local now = os.epoch()
+    if message.epoch > now or (now - MESSAGE_LIFE) > message.epoch then
+        return false
+    end
+
     local provided = message.signature
     message.signature = nil
     local actual = hmac.hmac(hmac.sha256, s.psk.get(), log.format(message))
@@ -216,6 +228,7 @@ function DistributedEvent:sign(message)
     if not s.signing.get() then
         return message
     end
+    message.epoch = os.epoch()
     local signature = hmac.hmac(hmac.sha256, s.psk.get(), log.format(message))
     message.signature = signature
     return message
