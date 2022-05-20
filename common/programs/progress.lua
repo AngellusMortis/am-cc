@@ -210,7 +210,11 @@ local function netEventLoop()
                 output = getDisplay(data.src, false)
             end
             if output ~= nil then
-                if data.event.name == e.c.Event.Turtle.turtle_started then
+                if data.event.name == e.c.Event.Pathfind.position then
+                    if TIMEOUT_MAP[data.src.id] ~= -1 then
+                        TIMEOUT_MAP[data.src.id] = os.clock() + settings.get(s.timeout.name)
+                    end
+                elseif data.event.name == e.c.Event.Turtle.turtle_started then
                     TIMEOUT_MAP[data.src.id] = os.clock() + settings.get(s.timeout.name)
                 elseif data.event.name == e.c.Event.Turtle.paused or data.event.name == e.c.Event.Turtle.exited then
                     TIMEOUT_MAP[data.src.id] = -1
