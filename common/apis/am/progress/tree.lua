@@ -125,8 +125,8 @@ function TreeWrapper:update(event)
     ---@cast statusText am.ui.BoundText
 
     rateText.obj.anchor.y = startY + 2
-    local logName = self.progress.rates[0].item.displayName
-    local rate = self.progress.rates[0].rate
+    local logName = self.progress.rates[1].item.displayName
+    local rate = self.progress.rates[1].rate
     rateText:update(string.format("%.1f %s/min", rate, logName))
 
     statusText.obj.anchor.y = startY + 4
