@@ -77,22 +77,28 @@ local function calculateRate(newCount)
     if elapsed < ONE_HOUR then
         minutes = elapsed / ONE_MINUTE
     end
+    local addedCounts = false
     local newCounts = {[now] = {}}
     ---@cast newCounts table<number, table<string, cc.item>>
     local totals = {}
     ---@cast totals table<string, cc.item>
     if newCount ~= nil then
         for _, count in pairs(newCount) do
+            addedCounts = true
             if count.count > 0 then
-                newCounts[now][count.name] = count
-                totals[count.name] = count
+                newCounts[now][count.name] = core.copy(count)
+                totals[count.name] = core.copy(count)
             end
         end
+    end
+    if not addedCounts then
+        newCounts = {}
+        ---@cast newCounts table<number, table<string, cc.item>>
     end
 
     for time, prevCounts in pairs(LOG_COUNTS) do
         if time >= cutoff then
-            newCounts[time] = prevCounts
+            newCounts[time] = core.copy(prevCounts)
             for _, prevCount in pairs(prevCounts) do
                 local total = totals[prevCount.name]
                 if total == nil then
@@ -108,6 +114,7 @@ local function calculateRate(newCount)
     RATES = {}
     for _, total in pairs(totals) do
         local item = core.copy(total)
+        item.count = 0
         RATES[#RATES + 1] = {item=item, rate=total.count / minutes}
     end
     LOG_COUNTS = newCounts
