@@ -7,7 +7,7 @@
     "apis/am/progress/helpers.lua": "4d6855856dac8a9bfb05f664e97f89bc76ead7a38243d4db3c2ea31cf329d2fb",
     "apis/am/progress/quarry.lua": "6786add4458db71e1e2ccb12ef366ae32bdfda579ef19c133411e11d19c165b4",
     "apis/am/progress/base.lua": "b56ab6bded7ffede4cc224de2f25456b61c9b339c14a891c31c03a6ceff3fa1e",
-    "apis/am/progress/tree.lua": "0cc04e89bc50b6f9ab75a17394fa8a63ec6bc01ced2365173b9d10ce45c84120",
+    "apis/am/progress/tree.lua": "985c3d4bdf9f06ebf77a829eda37a66385a1bbac6918b59a7bea68e66ff8cea5",
     "apis/am/progress/colonies.lua": "bc2dc122e0a10a58f94ec53a72a639eb94158439faef85fa5f66bec41440a551",
     "apis/am/progress.lua": "6156fe40689d5286dea67d16d76c6e578ea6e83dd101210488d9ba1af3aae016",
     "apis/am/event.lua": "544590099a0b29366f90d67f9334666a6dd3155172a98627bc3f4fb189b33353",
