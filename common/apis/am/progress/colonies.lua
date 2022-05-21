@@ -519,8 +519,9 @@ function ColoniesWrapper:updatePlayersTab(tabs, height)
     playerList:update(playerText)
 end
 
+---@param src am.net.src
 ---@param event am.e.ColoniesEvent
-function ColoniesWrapper:update(event)
+function ColoniesWrapper:update(src, event)
     local _, height = self.output.getSize()
 
     if event.name == e.c.Event.Colonies.status_poll then
@@ -543,11 +544,12 @@ function ColoniesWrapper:update(event)
     self:updatePlayersTab(tabs, height)
 end
 
+---@param src am.net.src
 ---@param event string Event name
 ---@param args table
-function ColoniesWrapper:handle(event, args)
+function ColoniesWrapper:handle(src, event, args)
     if event == e.c.Event.Colonies.status_poll then
-        self:update(args[1])
+        self:update(src, args[1])
     else
         self.frame:handle(self.output, {event, table.unpack(args)})
     end

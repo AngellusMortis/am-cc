@@ -43,26 +43,30 @@ function ProgressWrapper:render()
 end
 
 function ProgressWrapper:createUI()
-    self:update(self.progress)
+    self:update(self.src, self.progress)
     self:render()
 end
 
+---@param src am.net.src
 ---@param event am.e.ProgressEvent
-function ProgressWrapper:update(event)
+function ProgressWrapper:update(src, event)
     self.progress = event
 end
 
+---@param src am.net.src
 ---@param pos am.p.TurtlePosition
-function ProgressWrapper:updatePosition(pos)
+function ProgressWrapper:updatePosition(src, pos)
 end
 
+---@param src am.net.src
 ---@param status string
-function ProgressWrapper:updateStatus(status)
+function ProgressWrapper:updateStatus(src, status)
 end
 
+---@param src am.net.src
 ---@param event string Event name
 ---@param args table
-function ProgressWrapper:handle(event, args)
+function ProgressWrapper:handle(src, event, args)
 end
 
 return ProgressWrapper

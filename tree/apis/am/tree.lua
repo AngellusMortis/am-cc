@@ -34,18 +34,12 @@ local CURRENT = e.c.RunType.Running
 local RUN_EVENT_LOOP = true
 local IS_RESUME = false
 local PREVIOUS_STATUS = nil
----@type table<number, number>
+---@type table<number, table<string, cc.item>>
 local LOG_COUNTS = {}
 local ONE_MINUTE = 60
 local ONE_HOUR = ONE_MINUTE * 60
-local CURRENT_RATE = 0
-local LOG_TYPE = {
-    name = "minecraft:oak_log",
-    count = 0,
-    displayName = "Oak Log",
-    maxCount = 64,
-    tags = {["minecraft:logs"] = true},
-}
+---@type am.collect_rate[]
+local RATES = {}
 local START_TIME = 0
 local UPDATE_RATE = ONE_MINUTE * 5
 local RATE_TIMER = nil
@@ -71,14 +65,10 @@ local function fireProgressEvent(pos)
     if pos == nil then
         pos = pf.s.position.get()
     end
-    local rates = {
-        {item = LOG_TYPE, rate = CURRENT_RATE}
-    }
-
-    e.TreeProgressEvent(pos, tree.s.trees.get(), tree.s.status.get(), rates):send()
+    e.TreeProgressEvent(pos, tree.s.trees.get(), tree.s.status.get(), RATES):send()
 end
 
----@param newCount? number
+---@param newCount? table<string, cc.item>
 local function calculateRate(newCount)
     local now = os.clock()
     local cutoff = math.max(START_TIME, now - ONE_HOUR)
@@ -87,37 +77,60 @@ local function calculateRate(newCount)
     if elapsed < ONE_HOUR then
         minutes = elapsed / ONE_MINUTE
     end
-    local newCounts = {}
-    if newCount ~= nil and newCount > 0 then
-        newCounts = {[now] = newCount}
-    end
-    local total = newCount or 0
-    for time, prevCount in pairs(LOG_COUNTS) do
-        if time >= cutoff then
-            newCounts[time] = prevCount
-            total = total + prevCount
+    local newCounts = {[now] = {}}
+    ---@cast newCounts table<number, table<string, cc.item>>
+    local totals = {}
+    ---@cast totals table<string, cc.item>
+    if newCount ~= nil then
+        for _, count in pairs(newCount) do
+            if count.count > 0 then
+                newCounts[now][count.name] = count
+                totals[count.name] = count
+            end
         end
     end
-    CURRENT_RATE = total / minutes
+
+    for time, prevCounts in pairs(LOG_COUNTS) do
+        if time >= cutoff then
+            newCounts[time] = prevCounts
+            for _, prevCount in pairs(prevCounts) do
+                local total = totals[prevCount.name]
+                if total == nil then
+                    total = core.copy(prevCount)
+                else
+                    total.count = total.count + prevCount.count
+                end
+                totals[prevCount.name] = total
+            end
+        end
+    end
+
+    RATES = {}
+    for _, total in pairs(totals) do
+        local item = core.copy(total)
+        RATES[#RATES + 1] = {item=item, rate=total.count / minutes}
+    end
     LOG_COUNTS = newCounts
     fireProgressEvent()
 end
 
 ---@param event am.e.TurtleEmptyEvent
 local function addItems(event)
-    local count = 0
+    local newCount = {}
     for _, item in ipairs(event.items) do
         ---@cast item cc.item
-        if LOG_TYPE == nil then
-            LOG_TYPE = core.copy(item)
-            LOG_TYPE.count = 0
-        end
         if item.tags["minecraft:logs"] then
-            count = count + item.count
+            local count = newCount[item.name]
+            if count == nil then
+                count = core.copy(item)
+            else
+                count.count = count.count + item.count
+            end
+            newCount[item.name] = count
         end
     end
 
-    calculateRate(count)
+    calculateRate(newCount)
 end
 
 ---@param msg string

@@ -155,7 +155,7 @@ local function updatePosition(src, pos)
 
     local wrapper = getWrapper(src)
     if wrapper ~= nil then
-        wrapper:updatePosition(pos)
+        wrapper:updatePosition(src, pos)
     end
 end
 
@@ -167,7 +167,7 @@ local function updateStatus(src, status)
 
     local wrapper = getWrapper(src)
     if wrapper ~= nil then
-        wrapper:updateStatus(status)
+        wrapper:updateStatus(src, status)
     end
 end
 
@@ -191,7 +191,7 @@ local function printProgress(src, event, output, tabbed)
 
     local wrapper, created = getWrapper(src, event, output, tabbed)
     if wrapper ~= nil and not created then
-        wrapper:update(event)
+        wrapper:update(src, event)
     end
 end
 
@@ -202,7 +202,7 @@ local function handleAll(event, args)
         TABS:handle(term, event, table.unpack(args))
     else
         for _, wrapper in pairs(WRAPPERS) do
-            wrapper:handle(event, args)
+            wrapper:handle(e.getComputer(), event, args)
         end
     end
 end
@@ -240,7 +240,7 @@ local function handle(src, event, args)
     else
         local wrapper, _ = getWrapper(src)
         if wrapper ~= nil then
-            wrapper:handle(event, args)
+            wrapper:handle(src, event, args)
         end
     end
 end

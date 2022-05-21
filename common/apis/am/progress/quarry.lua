@@ -174,8 +174,9 @@ function QuarryWrapper:createUI()
     QuarryWrapper.super.createUI(self)
 end
 
+---@param src am.net.src
 ---@param event am.e.QuarryProgressEvent
-function QuarryWrapper:update(event)
+function QuarryWrapper:update(src, event)
     local width, height = self.output.getSize()
 
     local baseId = self:getBaseId()
@@ -238,7 +239,7 @@ function QuarryWrapper:update(event)
     end
     levelBar:update(self.progress.progress.completedRows)
     statusText:update(self.progress.progress.status)
-    self:updatePosition(self.progress.pos)
+    self:updatePosition(self.src, self.progress.pos)
 
     -- items tab
     local itemsFrame = mainFrame:getTab("items")
@@ -255,8 +256,9 @@ function QuarryWrapper:update(event)
     listText:update(items)
 end
 
+---@param src am.net.src
 ---@param pos am.p.TurtlePosition
-function ProgressWrapper:updatePosition(pos)
+function ProgressWrapper:updatePosition(src, pos)
     self.progress.pos = pos
 
     local width, _ = self.output.getSize()
@@ -273,8 +275,9 @@ function ProgressWrapper:updatePosition(pos)
     ))
 end
 
+---@param src am.net.src
 ---@param status string
-function QuarryWrapper:updateStatus(status)
+function QuarryWrapper:updateStatus(src, status)
     local baseId = self:getBaseId()
     local statusText = self.frame:get(baseId .. ".statusText", self.output)
     ---@cast statusText am.ui.BoundText
@@ -282,12 +285,13 @@ function QuarryWrapper:updateStatus(status)
     statusText:update(status)
 end
 
+---@param src am.net.src
 ---@param event string Event name
 ---@param args table
-function QuarryWrapper:handle(event, args)
+function QuarryWrapper:handle(src, event, args)
     local baseId = self:getBaseId()
     if event == e.c.Event.Progress.quarry then
-        self:update(args[1])
+        self:update(src, args[1])
     else
         local mainFrame = self.frame:get(baseId .. ".mainFrame", self.output)
         ---@cast mainFrame am.ui.BoundTabbedFrame

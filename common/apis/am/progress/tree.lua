@@ -1,31 +1,120 @@
-local v = require("cc.expect")
-
 require(settings.get("ghu.base") .. "core/apis/ghu")
 
 local ui = require("am.ui")
 local e = require("am.event")
 local log = require("am.log")
+local object = require("ext.object")
 
 local ProgressWrapper = require("am.progress.base")
 
----@class am.progress.TreeWrapper:am.progress.ProgressWrapper
----@field progress am.e.TreeProgressEvent
+---@class am.progress.CollectWrapper:am.progress.ProgressWrapper
+---@field src_map table<number, am.net.src>
+---@field progress table<number, am.e.CollectProgressEvent>
 ---@field completed boolean
 ---@field paused boolean
-local TreeWrapper = ProgressWrapper:extend("am.progress.TreeWrapper")
+---@field position am.p.TurtlePosition|nil
+local CollectWrapper = ProgressWrapper:extend("am.progress.CollectWrapper")
 ---@param src am.net.src
----@param progress am.e.ProgressEvent
+---@param progress am.e.CollectProgressEvent
 ---@param output cc.output
 ---@param frame am.ui.Frame
-function TreeWrapper:init(src, progress, output, frame)
-    TreeWrapper.super.init(self, src, progress, output, frame)
+function CollectWrapper:init(src, progress, output, frame)
+    CollectWrapper.super.init(self, src, {[src.id]=progress}, output, frame)
 
+    self.src_map = {[src.id] = src}
+    self.position = nil
     self.paused = false
-    self.names[progress.name] = true
+    self.names = {
+        [e.c.Event.Progress.collect] = true,
+        [e.c.Event.Progress.tree] = true,
+    }
     return self
 end
 
-function TreeWrapper:createUI()
+
+---@return am.e.CollectProgressEvent, number
+function CollectWrapper:getEvent()
+    local count = 0
+    local event = nil
+    for _, progressEvent in pairs(self.progress) do
+        count = count + 1
+        event = progressEvent
+    end
+
+    return event, count
+end
+
+---@param event? am.e.CollectProgressEvent
+---@param count? number
+---@return boolean
+function CollectWrapper:isTree(event, count)
+    if count == nil then
+        event, count = self:getEvent()
+    end
+    ---@cast event am.e.CollectProgressEvent
+    return count == 1 and event ~= nil and event.name == e.c.Event.Progress.tree
+end
+
+---@return string
+function CollectWrapper:getTitle()
+    local event, count = self:getEvent()
+    if self:isTree(event, count) then
+        ---@cast event am.e.TreeProgressEvent
+        local extra = ""
+        if #event.trees > 0 then
+            extra = string.format(" (%d)", #event.trees)
+        end
+        return string.format("Tree%s", extra)
+    end
+
+    return "Collect"
+end
+
+---@class am.progress_status
+---@field label string
+---@field status string
+
+---@return am.progress_status[]
+function CollectWrapper:getStatus()
+    local status = {}
+
+    for id, event in pairs(self.progress) do
+        if event.name == e.c.Event.Progress.tree then
+            ---@cast event am.e.TreeProgressEvent
+            status[#status + 1] = {label = self.src_map[id].label or id, status = event.status}
+        else
+            status[#status + 1] = {label = self.src_map[id].label or id, status = ""}
+        end
+    end
+
+    return status
+end
+
+---@return string[]
+function CollectWrapper:getItems()
+    local items = {}
+    ---@cast items table<string, am.collect_rate>
+
+    for _, event in pairs(self.progress) do
+        for _, rate in ipairs(event.rates) do
+            if items[rate.item.name] == nil then
+                items[rate.item.name] = rate
+            else
+                local existingRate = items[rate.item.name]
+                existingRate.rate = existingRate.rate + rate.rate
+                items[rate.item.name] = existingRate
+            end
+        end
+    end
+
+    local rates = {}
+    for _, item in pairs(items) do
+        rates[#rates + 1] = string.format("%.1f %s/min", item.rate, item.item.displayName)
+    end
+    return rates
+end
+
+function CollectWrapper:createUI()
     local baseId = self:getBaseId()
     local wrapper = self
 
@@ -80,15 +169,20 @@ function TreeWrapper:createUI()
     self.frame:add(pauseButton)
 
     self.frame:add(ui.Text(ui.a.Bottom(), "", {id=baseId .. ".posText"}))
-    TreeWrapper.super.createUI(self)
+
+    local event = self:getEvent()
+    self:update(self.src, event)
+    self:render()
 end
 
----@param event am.e.TreeProgressEvent
-function TreeWrapper:update(event)
+---@param src am.net.src
+---@param event am.e.CollectProgressEvent
+function CollectWrapper:update(src, event)
     local _, height = self.output.getSize()
 
     local baseId = self:getBaseId()
-    self.progress = event
+    self.src_map[src.id] = src
+    self.progress[src.id] = event
 
     -- top section
     local nameText = self.frame:get(baseId .. ".nameText", self.output)
@@ -112,12 +206,8 @@ function TreeWrapper:update(event)
         nameText.obj.visible = self.frame.visible
     end
 
-    local extra = ""
     titleText.obj.anchor.y = startY
-    if #self.progress.trees > 0 then
-        extra = string.format(" (%d)", #self.progress.trees)
-    end
-    titleText:update(string.format("Tree%s", extra))
+    titleText:update(self:getTitle())
 
     local rateText = self.frame:get(baseId .. ".rateText", self.output)
     ---@cast rateText am.ui.BoundText
@@ -125,24 +215,36 @@ function TreeWrapper:update(event)
     ---@cast statusText am.ui.BoundText
 
     rateText.obj.anchor.y = startY + 2
-    local logName = self.progress.rates[1].item.displayName
-    local rate = self.progress.rates[1].rate
-    rateText:update(string.format("%.1f %s/min", rate, logName))
+    rateText:update(self:getItems())
 
     statusText.obj.anchor.y = startY + 4
-    statusText:update(self.progress.status)
-    self:updatePosition(self.progress.pos)
+    local status = self:getStatus()
+    statusText:update(status[1].status)
+
+    local progressEvent, count = self:getEvent()
+    if self:isTree(progressEvent, count) then
+        ---@cast progressEvent am.e.TreeProgressEvent
+        self:updatePosition(src, progressEvent.pos)
+    else
+        self:updatePosition(src, nil)
+    end
 end
 
----@param pos am.p.TurtlePosition
-function ProgressWrapper:updatePosition(pos)
-    self.progress.pos = pos
-
-    local width, _ = self.output.getSize()
+---@param src am.net.src
+---@param pos? am.p.TurtlePosition
+function ProgressWrapper:updatePosition(src, pos)
+    self.position = pos
     local baseId = self:getBaseId()
     local posText = self.frame:get(baseId .. ".posText", self.output)
     ---@cast posText am.ui.BoundText
 
+    if pos == nil then
+        posText.visible = false
+        posText:update("")
+        return
+    end
+
+    local width, _ = self.output.getSize()
     local posFmt = "pos (%d, %d) e: %d, d: %d"
     if width < 30 then
         posFmt = "(%d,%d) e:%d, d:%d"
@@ -152,8 +254,9 @@ function ProgressWrapper:updatePosition(pos)
     ))
 end
 
+---@param src am.net.src
 ---@param status string
-function TreeWrapper:updateStatus(status)
+function CollectWrapper:updateStatus(src, status)
     local baseId = self:getBaseId()
     local statusText = self.frame:get(baseId .. ".statusText", self.output)
     ---@cast statusText am.ui.BoundText
@@ -161,13 +264,14 @@ function TreeWrapper:updateStatus(status)
     statusText:update(status)
 end
 
+---@param src am.net.src
 ---@param event string Event name
 ---@param args table
-function TreeWrapper:handle(event, args)
+function CollectWrapper:handle(src, event, args)
     local baseId = self:getBaseId()
     local wrapper = self
     if event == e.c.Event.Progress.quarry then
-        self:update(args[1])
+        self:update(src, args[1])
     else
         local haltButton = self.frame:get(baseId .. ".haltButton", self.output)
         ---@cast haltButton am.ui.BoundButton
@@ -202,4 +306,4 @@ function TreeWrapper:handle(event, args)
     end
 end
 
-return TreeWrapper
+return CollectWrapper
