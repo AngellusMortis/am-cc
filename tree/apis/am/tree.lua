@@ -39,6 +39,13 @@ local LOG_COUNTS = {}
 local ONE_MINUTE = 60
 local ONE_HOUR = ONE_MINUTE * 60
 local CURRENT_RATE = 0
+local LOG_TYPE = {
+    name = "minecraft:oak_log",
+    count = 0,
+    displayName = "Oak Log",
+    maxCount = 64,
+    tags = {["minecraft:logs"] = true},
+}
 local START_TIME = 0
 local UPDATE_RATE = ONE_MINUTE * 5
 local RATE_TIMER = nil
@@ -64,7 +71,11 @@ local function fireProgressEvent(pos)
     if pos == nil then
         pos = pf.s.position.get()
     end
-    e.TreeProgressEvent(pos, tree.s.trees.get(), tree.s.status.get(), CURRENT_RATE):send()
+    local rates = {
+        {item = LOG_TYPE, rate = CURRENT_RATE}
+    }
+
+    e.TreeProgressEvent(pos, tree.s.trees.get(), tree.s.status.get(), rates):send()
 end
 
 ---@param newCount? number
@@ -97,6 +108,10 @@ local function addItems(event)
     local count = 0
     for _, item in ipairs(event.items) do
         ---@cast item cc.item
+        if LOG_TYPE == nil then
+            LOG_TYPE = core.copy(item)
+            LOG_TYPE.count = 0
+        end
         if item.tags["minecraft:logs"] then
             count = count + item.count
         end

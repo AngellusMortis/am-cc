@@ -117,6 +117,7 @@ e.c.RunType = {
 ---@type table<string, boolean>
 e.broadcastMap = {
     ["am.progress_quarry"] = true,
+    ["am.progress_collect"] = true,
     ["am.progress_tree"] = true,
 
     ["am.pathfind_position"] = true,
@@ -146,6 +147,7 @@ e.broadcastMap = {
 e.c.Lookup = {}
 e.c.Lookup.Progress = {
     ["am.progress_quarry"] = true,
+    ["am.progress_collect"] = true,
     ["am.progress_tree"] = true,
     ["am.colonies_status_poll"] = true,
 }
@@ -154,7 +156,8 @@ e.c.Event = {}
 ---@type table<string, string>
 e.c.Event.Progress = {
     quarry = "am.progress_quarry",
-    tree = "am.progress_tree"
+    collect = "am.progress_collect",
+    tree = "am.progress_tree",
 }
 e.c.Event.Pathfind = {
     position = "am.pathfind_position",
@@ -275,29 +278,47 @@ function ProgressEvent:init(name)
     return self
 end
 
----@class am.e.TreeProgressEvent:am.e.ProgressEvent
+---@class am.collect_rate
+---@field item cc.item
+---@field rate number
+
+---@class am.e.CollectProgressEvent:am.e.ProgressEvent
+---@field rates am.collect_rate[]
+local CollectProgressEvent = ProgressEvent:extend("am.e.CollectProgressEvent")
+e.CollectProgressEvent = CollectProgressEvent
+---@param rates am.collect_rate[]
+function CollectProgressEvent:init(rates)
+    v.expect(1, rates, "table")
+    CollectProgressEvent.super.init(self, e.c.Event.Progress.collect)
+
+    self.rates = rates
+
+    return self
+end
+
+
+---@class am.e.TreeProgressEvent:am.e.CollectProgressEvent
 ---@field pos am.p.TurtlePosition
 ---@field trees am.t.tree_location[]
 ---@field status string
----@field rate number
-local TreeProgressEvent = ProgressEvent:extend("am.e.TreeProgressEvent")
+local TreeProgressEvent = CollectProgressEvent:extend("am.e.TreeProgressEvent")
 e.TreeProgressEvent = TreeProgressEvent
 ---@param pos am.p.TurtlePosition
 ---@param trees am.t.tree_location[]
 ---@param status string
----@param rate number
-function TreeProgressEvent:init(pos, trees, status, rate)
+---@param rates am.collect_rate[]
+function TreeProgressEvent:init(pos, trees, status, rates)
     v.expect(1, pos, "table")
     v.expect(2, trees, "table")
     v.expect(3, status, "string")
-    v.expect(4, rate, "number")
+    v.expect(4, rates, "table")
     h.requirePosition(1, pos)
-    TreeProgressEvent.super.init(self, e.c.Event.Progress.tree)
+    TreeProgressEvent.super.init(self, rates)
 
+    self.name = e.c.Event.Progress.tree
     self.pos = pos
     self.trees = trees
     self.status = status
-    self.rate = rate
 
     return self
 end

@@ -83,9 +83,9 @@ function TreeWrapper:createUI()
     TreeWrapper.super.createUI(self)
 end
 
----@param event am.e.QuarryProgressEvent
+---@param event am.e.TreeProgressEvent
 function TreeWrapper:update(event)
-    local width, height = self.output.getSize()
+    local _, height = self.output.getSize()
 
     local baseId = self:getBaseId()
     self.progress = event
@@ -125,7 +125,9 @@ function TreeWrapper:update(event)
     ---@cast statusText am.ui.BoundText
 
     rateText.obj.anchor.y = startY + 2
-    rateText:update(string.format("%.1f log/min", self.progress.rate))
+    local logName = self.progress.rates[0].item.displayName
+    local rate = self.progress.rates[0].rate
+    rateText:update(string.format("%.1f %s/min", rate, logName))
 
     statusText.obj.anchor.y = startY + 4
     statusText:update(self.progress.status)
