@@ -1,7 +1,7 @@
 {
   "files": {
     "help/tree.txt": "1722dc3592c1d4de03646d86df5fb2f918cecd8ff82f7a211b66c6bb6552c038",
-    "apis/am/tree.lua": "a3a565d0b16a366cb348a35591fa72cf5d6a9bc11f1b728987e4ecd1b1d9655b",
+    "apis/am/tree.lua": "26694858e280980dbd097daebef4558abe912a546a6e72168817dfef969efa63",
     "programs/turtle/tree.lua": "99e8a4e698446e467b2d1ff566cd0a59de563850fd461d56734018723d8abafb",
     "autorun/completions.lua": "5be8103fca632e0d91ead34a078b74f449f2db53288d161014235dff40e19fe4",
     "autorun/resumeTree.lua": "32c5200e109705c750acda4e255d258d962c085f5cddf55e5d549fd12bf32a98"
