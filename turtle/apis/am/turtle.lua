@@ -355,9 +355,10 @@ local function emptyInventoryBase(doFill)
     end
     local items = getInventory()
     for i = startSlot, 16, 1 do
-        if turtle.getItemCount(i) > 0 then
+        local dumpCount = turtle.getItemCount(i)
+        if dumpCount > 0 then
             turtle.select(i)
-            pushChestType("dump")
+            pushChestType("dump", dumpCount)
         end
     end
     local newItems = getInventoryDiff(items)
@@ -442,7 +443,10 @@ local function refuelBase(count)
         currentLevel = turtle.getFuelLevel()
         needed = count - currentLevel
     end
-    pushChestType("fuel")
+    local dumpCount = turtle.getItemCount(2)
+    if dumpCount > 0 then
+        pushChestType("fuel", dumpCount)
+    end
     turtle.select(1)
     return true
 end
