@@ -377,7 +377,10 @@ local function emptyInventoryBase(doFill)
         event:send()
         items = getInventory()
         turtle.select(1)
-        pullChestType("fill", turtle.getItemSpace())
+        local neededFill = turtle.getItemSpace()
+        if neededFill > 0 then
+            pullChestType("fill", neededFill)
+        end
 
         newItems = getInventoryDiff(items)
         for _, item in ipairs(newItems) do
