@@ -444,15 +444,24 @@ local function resumeLevel(rowNum, isLast)
         else
             currentZ = START_POS.v.z + forwardCount
         end
-        pf.goTo(currentX, currentZ)
+        while not pf.goTo(currentX, currentZ) do
+            tc.error("Cannot Resume Level")
+            sleep(3)
+        end
     end
 
     local leftCount = leftMod * (rowNum - 1)
     log.info(string.format("..Resume: left %d", rowNum - 1))
     if rotated then
-        pf.goTo(currentX, currentZ + leftCount, nil, START_POS.dir)
+        while not pf.goTo(currentX, currentZ + leftCount, nil, START_POS.dir) do
+            tc.error("Cannot Resume Level")
+            sleep(3)
+        end
     else
-        pf.goTo(currentX + leftCount, currentZ, nil, START_POS.dir)
+        while not pf.goTo(currentX + leftCount, currentZ, nil, START_POS.dir) do
+            tc.error("Cannot Resume Level")
+            sleep(3)
+        end
     end
 
     pf.turnLeft()
