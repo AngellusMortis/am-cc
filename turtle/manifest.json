@@ -3,7 +3,7 @@
     "help/pf.txt": "55739f91fb86ee99079c10a3db11cf01b67e40c13261c7e6bdf6a2bfc487f9b5",
     "help/tc.txt": "01da41f918071129e3c4f087c17f773a940d58206c666de0656f70f9d9b61be0",
     "apis/am/pathfind.lua": "ff494beafbf1dd7878236c6f68bbd22982933206348f2e3b17410809c385bc00",
-    "apis/am/turtle.lua": "0ac266a680d3620da33fb4b68f7870d2d83fbe165585ef3a364cc4270c79afd3",
+    "apis/am/turtle.lua": "c38dc63f1869c85094ce913e51bbf5785257b6a1614f3d39e95f047692666aad",
     "programs/turtle/pf.lua": "c18da520943f654925594434f0e94119b8dffd74eae52bcd53a1c4e0646a29d7",
     "programs/turtle/tc.lua": "35ba858edfd5efe115b73d584ef79e8c29ba5850c5efabca386b83edc7411735",
     "autorun/completions.lua": "aab1740bdf52457af391a966878b2a98c89cb7a52d516b14de50d27ff74b9f61"
