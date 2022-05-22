@@ -357,7 +357,7 @@ local function emptyInventoryBase(doFill)
     for i = startSlot, 16, 1 do
         if turtle.getItemCount(i) > 0 then
             turtle.select(i)
-            pushItem("dump")
+            pushChestType("dump")
         end
     end
     local newItems = getInventoryDiff(items)
@@ -377,7 +377,7 @@ local function emptyInventoryBase(doFill)
         event:send()
         items = getInventory()
         turtle.select(1)
-        pullItem("fill", turtle.getItemSpace())
+        pullChestType("fill", turtle.getItemSpace())
 
         newItems = getInventoryDiff(items)
         for _, item in ipairs(newItems) do
