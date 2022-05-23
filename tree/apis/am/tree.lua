@@ -9,6 +9,7 @@ local log = require("am.log")
 local e = require("am.event")
 local h = require("am.helpers")
 local p = require("am.progress")
+local pc = require("am.peripheral")
 
 local tree = {}
 
@@ -35,13 +36,8 @@ local RUN_EVENT_LOOP = true
 local IS_RESUME = false
 local PREVIOUS_STATUS = nil
 ---@type table<number, table<string, cc.item>>
-local LOG_COUNTS = {}
-local ONE_MINUTE = 60
-local ONE_HOUR = ONE_MINUTE * 60
 ---@type am.collect_rate[]
-local RATES = {}
-local START_TIME = 0
-local UPDATE_RATE = ONE_MINUTE * 5
+local UPDATE_RATE = 300
 local RATE_TIMER = nil
 
 
@@ -65,79 +61,7 @@ local function fireProgressEvent(pos)
     if pos == nil then
         pos = pf.s.position.get()
     end
-    e.TreeProgressEvent(pos, tree.s.trees.get(), tree.s.status.get(), RATES):send()
-end
-
----@param newCount? table<string, cc.item>
-local function calculateRate(newCount)
-    local now = os.clock()
-    local cutoff = math.max(START_TIME, now - ONE_HOUR)
-    local elapsed = now - cutoff
-    local minutes = 60
-    if elapsed < ONE_HOUR then
-        minutes = elapsed / ONE_MINUTE
-    end
-    local addedCounts = false
-    local newCounts = {[now] = {}}
-    ---@cast newCounts table<number, table<string, cc.item>>
-    local totals = {}
-    ---@cast totals table<string, cc.item>
-    if newCount ~= nil then
-        for _, count in pairs(newCount) do
-            addedCounts = true
-            if count.count > 0 then
-                newCounts[now][count.name] = core.copy(count)
-                totals[count.name] = core.copy(count)
-            end
-        end
-    end
-    if not addedCounts then
-        newCounts = {}
-        ---@cast newCounts table<number, table<string, cc.item>>
-    end
-
-    for time, prevCounts in pairs(LOG_COUNTS) do
-        if time >= cutoff then
-            newCounts[time] = core.copy(prevCounts)
-            for _, prevCount in pairs(prevCounts) do
-                local total = totals[prevCount.name]
-                if total == nil then
-                    total = core.copy(prevCount)
-                else
-                    total.count = total.count + prevCount.count
-                end
-                totals[prevCount.name] = total
-            end
-        end
-    end
-
-    RATES = {}
-    for _, total in pairs(totals) do
-        local item = core.copy(total)
-        item.count = 0
-        RATES[#RATES + 1] = {item=item, rate=total.count / minutes}
-    end
-    LOG_COUNTS = newCounts
-    fireProgressEvent()
-end
-
----@param event am.e.TurtleEmptyEvent
-local function addItems(event)
-    local newCount = {}
-    for _, item in ipairs(event.items) do
-        ---@cast item cc.item
-        if item.tags["minecraft:logs"] then
-            local count = newCount[item.name]
-            if count == nil then
-                count = core.copy(item)
-            else
-                count.count = count.count + item.count
-            end
-            newCount[item.name] = count
-        end
-    end
-
-    calculateRate(newCount)
+    e.TreeProgressEvent(pos, tree.s.trees.get(), tree.s.status.get(), pc.getRates()):send()
 end
 
 ---@param msg string
@@ -378,7 +302,8 @@ local function eventLoop()
 
         if event == "timer" then
             if args[1] == RATE_TIMER then
-                calculateRate()
+                pc.calculateRates()
+                fireProgressEvent()
                 RATE_TIMER = os.startTimer(UPDATE_RATE)
             end
         elseif event == e.c.Event.Pathfind.position then
@@ -397,7 +322,8 @@ local function eventLoop()
         elseif event == e.c.Event.Turtle.empty then
             setStatus("Emptying Inventory")
             if args[1].completed then
-                addItems(args[1])
+                pc.addItems(args[1].items)
+                fireProgressEvent()
             end
         elseif event == e.c.Event.Turtle.exited then
             setStatus("error:Stopped")

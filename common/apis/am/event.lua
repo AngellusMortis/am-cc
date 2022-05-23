@@ -335,12 +335,11 @@ function TreeProgressEvent:init(pos, trees, status, rates)
     v.expect(3, status, "string")
     v.expect(4, rates, "table")
     h.requirePosition(1, pos)
-    TreeProgressEvent.super.init(self, rates)
+    TreeProgressEvent.super.init(self, status, rates)
 
     self.name = e.c.Event.Progress.tree
     self.pos = pos
     self.trees = trees
-    self.status = status
 
     return self
 end
