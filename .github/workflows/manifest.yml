@@ -17,6 +17,7 @@ on:
 
 env:
   MODULES: |-
+    collect
     colonies
     common
     control

@@ -25,6 +25,11 @@ local q = {}
 ---@field percentPerLevel number
 local QuarryJob = BaseObject:extend("am.q.QuarryJob")
 q.QuarryJob = QuarryJob
+---@param left number|nil
+---@param forward number|nil
+---@param levels number
+---@param walls boolean
+---@param restore boolean
 function QuarryJob:init(left, forward, levels, walls, restore)
     v.expect(1, left, "number", "nil")
     v.expect(2, forward, "number", "nil")

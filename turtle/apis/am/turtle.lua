@@ -163,6 +163,8 @@ local function pushItem(chestType, count)
     else
         pf.turnTo(e.c.Turtle.Direction.Front)
         local chest = peripheral.wrap(chestName)
+        local fromSlot = turtle.getSelectedSlot()
+
         local toSlot = nil
         local items = chest.list()
         for i = 1, chest.size(), 1 do
@@ -171,7 +173,6 @@ local function pushItem(chestType, count)
                 break
             end
         end
-        local fromSlot = turtle.getSelectedSlot()
         if toSlot ~= nil then
             success = pcall(function () chest.pullItems(getLocalName(), fromSlot, count, toSlot) end)
         end
@@ -224,13 +225,14 @@ local function pullItem(chestType, count)
         success = turtle.suck(count)
     else
         pf.turnTo(e.c.Turtle.Direction.Front)
+        local toSlot = turtle.getSelectedSlot()
+
         local chest = peripheral.wrap(chestName)
         local fromSlot = nil
         for key, _ in pairs(chest.list()) do
             fromSlot = key
             break
         end
-        local toSlot = turtle.getSelectedSlot()
         if fromSlot ~= nil then
             success = pcall(function () chest.pushItems(getLocalName(), fromSlot, count, toSlot) end)
         end
