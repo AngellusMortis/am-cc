@@ -185,6 +185,23 @@ local function initTerm(computerMap)
     end
 end
 
+---@param id number
+local function pauseTimeout(id)
+    TIMEOUT_MAP[id] = -1
+end
+
+---@param id number
+---@param clearPause? boolean
+local function resetTimeout(id, clearPause)
+    if clearPause == nil then
+        clearPause = false
+    end
+
+    if TIMEOUT_MAP[id] ~= -1 or clearPause then
+        TIMEOUT_MAP[id] = os.clock() + settings.get(s.timeout.name)
+    end
+end
+
 local function eventLoop()
     while _G.RUN_PROGRESS do
         local event, args = core.cleanEventArgs(os.pullEvent())
@@ -201,9 +218,7 @@ local function netEventLoop()
                 output = getDisplay(data.src)
                 if output ~= nil then
                     p.print(data.src, data.event, output, TABBED)
-                    if TIMEOUT_MAP[data.src.id] ~= -1 then
-                        TIMEOUT_MAP[data.src.id] = os.clock() + settings.get(s.timeout.name)
-                    end
+                    resetTimeout(data.src.id)
                 end
             end
             if output == nil then
@@ -211,13 +226,11 @@ local function netEventLoop()
             end
             if output ~= nil then
                 if data.event.name == e.c.Event.Pathfind.position then
-                    if TIMEOUT_MAP[data.src.id] ~= -1 then
-                        TIMEOUT_MAP[data.src.id] = os.clock() + settings.get(s.timeout.name)
-                    end
+                    resetTimeout(data.src.id)
                 elseif data.event.name == e.c.Event.Turtle.turtle_started then
-                    TIMEOUT_MAP[data.src.id] = os.clock() + settings.get(s.timeout.name)
+                    resetTimeout(data.src.id, true)
                 elseif data.event.name == e.c.Event.Turtle.paused or data.event.name == e.c.Event.Turtle.exited then
-                    TIMEOUT_MAP[data.src.id] = -1
+                    pauseTimeout(data.src.id)
                 end
                 p.handle(data.src, data.event.name, {data.event})
             end
