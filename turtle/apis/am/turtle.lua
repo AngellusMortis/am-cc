@@ -365,6 +365,7 @@ local function emptyInventoryBase(doFill)
     end
     local newItems = getInventoryDiff(items)
     local placed = {}
+    ---@cast placed cc.item[]
     for _, item in pairs(newItems) do
         if item ~= nil and item.count < 0 then
             item.count = math.abs(item.count)
