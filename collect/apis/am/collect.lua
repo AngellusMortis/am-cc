@@ -41,84 +41,13 @@ c.s = core.makeSettingWrapper(s)
 
 local CURRENT = e.c.RunType.Running
 local RUN_EVENT_LOOP = true
-local PREVIOUS_STATUS = nil
 ---@type table<number, table<string, cc.item>>
-local ITEM_COUNTS = {}
-local ONE_MINUTE = 60
-local ONE_HOUR = ONE_MINUTE * 60
 ---@type am.collect_rate[]
-local RATES = {}
-local START_TIME = 0
-local UPDATE_RATE = ONE_MINUTE * 5
 local RATE_TIMER = nil
+local UPDATE_RATE = 300
 
----@param newCount? table<string, cc.item>
-local function calculateRate(newCount)
-    local now = os.clock()
-    local cutoff = math.max(START_TIME, now - ONE_HOUR)
-    local elapsed = now - cutoff
-    local minutes = 60
-    if elapsed < ONE_HOUR then
-        minutes = elapsed / ONE_MINUTE
-    end
-    local addedCounts = false
-    local newCounts = {[now] = {}}
-    ---@cast newCounts table<number, table<string, cc.item>>
-    local totals = {}
-    ---@cast totals table<string, cc.item>
-    if newCount ~= nil then
-        for _, count in pairs(newCount) do
-            addedCounts = true
-            if count.count > 0 then
-                newCounts[now][count.name] = core.copy(count)
-                totals[count.name] = core.copy(count)
-            end
-        end
-    end
-    if not addedCounts then
-        newCounts = {}
-        ---@cast newCounts table<number, table<string, cc.item>>
-    end
-
-    for time, prevCounts in pairs(LOG_COUNTS) do
-        if time >= cutoff then
-            newCounts[time] = core.copy(prevCounts)
-            for _, prevCount in pairs(prevCounts) do
-                local total = totals[prevCount.name]
-                if total == nil then
-                    total = core.copy(prevCount)
-                else
-                    total.count = total.count + prevCount.count
-                end
-                totals[prevCount.name] = total
-            end
-        end
-    end
-
-    RATES = {}
-    for _, total in pairs(totals) do
-        local item = core.copy(total)
-        item.count = 0
-        RATES[#RATES + 1] = {item=item, rate=total.count / minutes}
-    end
-    LOG_COUNTS = newCounts
-end
-
----@param items cc.item[]
-local function addItems(items)
-    local newCount = {}
-    for _, item in ipairs(items) do
-        ---@cast item cc.item
-        local count = newCount[item.name]
-        if count == nil then
-            count = core.copy(item)
-        else
-            count.count = count.count + item.count
-        end
-        newCount[item.name] = count
-    end
-
-    calculateRate(newCount)
+local function sendEvent()
+    e.CollectProgressEvent(pc.getRates()):send()
 end
 
 ---@return cc.inventory, cc.inventory
@@ -139,7 +68,7 @@ local function getInventories()
 end
 
 local function runLoop()
-    START_TIME = os.clock()
+    pc.setStartTime()
     e.TurtleStartedEvent():send()
 
     local job = c.s.job.get()
@@ -158,7 +87,8 @@ local function runLoop()
                 items[#items + 1] = item
             end
             if #items > 0 then
-                addItems(items)
+                pc.addItems(items)
+                sendEvent()
             end
             sleep(job.interval)
         else
@@ -180,7 +110,8 @@ local function eventLoop()
 
         if event == "timer" then
             if args[1] == RATE_TIMER then
-                calculateRate()
+                pc.calculateRate()
+                sendEvent()
                 RATE_TIMER = os.startTimer(UPDATE_RATE)
             end
         end

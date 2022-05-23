@@ -29,6 +29,15 @@ local function getLocalName()
     return modem.getNameLocal()
 end
 
+local function setStartTime()
+    START_TIME = os.clock()
+end
+
+---@return am.collect_rate[]
+local function getRates()
+    return RATES
+end
+
 ---@param newCount? table<string, cc.item>
 local function calculateRates(newCount)
     local now = os.clock()
@@ -264,6 +273,8 @@ local function getInventoryLookup()
     return inventories
 end
 
+pc.setStartTime = setStartTime
+pc.getRates = getRates
 pc.getLocalName = getLocalName
 pc.addItems = addItems
 pc.calculateRates = calculateRates

@@ -8,7 +8,7 @@ local core = require("am.core")
 local h = require("am.progress.helpers")
 
 local QuarryWrapper = require("am.progress.quarry")
-local TreeWrapper = require("am.progress.tree")
+local CollectWrapper = require("am.progress.collect")
 local ColoniesWrapper = require("am.progress.colonies")
 
 local p = {}
@@ -102,8 +102,8 @@ local function getWrapper(src, event, output, tabbed)
                 if event.name == e.c.Event.Progress.quarry then
                     wrapper = QuarryWrapper(src, event, frameOutput, frame)
                     ---@cast wrapper am.progress.ProgressWrapper
-                elseif event.name == e.c.Event.Progress.tree then
-                    wrapper = TreeWrapper(src, event, frameOutput, frame)
+                elseif event.name == e.c.Event.Progress.collect or event.name == e.c.Event.Progress.tree then
+                    wrapper = CollectWrapper(src, event, frameOutput, frame)
                     ---@cast wrapper am.progress.ProgressWrapper
                 elseif event.name == e.c.Event.Colonies.status_poll then
                     ---@cast event am.e.ColoniesScanEvent

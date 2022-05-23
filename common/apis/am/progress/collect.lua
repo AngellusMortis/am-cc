@@ -3,7 +3,6 @@ require(settings.get("ghu.base") .. "core/apis/ghu")
 local ui = require("am.ui")
 local e = require("am.event")
 local log = require("am.log")
-local object = require("ext.object")
 
 local ProgressWrapper = require("am.progress.base")
 
