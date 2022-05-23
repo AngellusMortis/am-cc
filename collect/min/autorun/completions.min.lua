@@ -1,0 +1,1 @@
+local a=require("cc.shell.completion")local b=require(settings.get("ghu.base").."core/apis/ghu")local c=string.sub(b.p.ext.."AngellusMortis/am-cc/collect/programs/",2)local d=require("am.peripheral")shell.setCompletionFunction(c.."collect.lua",a.build({a.choice,d.getInventoryNames(),true},{a.choice,d.getInventoryNames(),true},nil))
