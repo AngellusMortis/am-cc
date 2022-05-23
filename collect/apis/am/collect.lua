@@ -6,6 +6,7 @@ local core = require("am.core")
 local log = require("am.log")
 local e = require("am.event")
 local pc = require("am.peripheral")
+local p = require("am.progress")
 
 local c = {}
 
@@ -34,7 +35,6 @@ local s = {}
 s.job = {
     name = "collect.job",
     default = nil,
-    type = "table"
 }
 c.s = core.makeSettingWrapper(s)
 
@@ -44,9 +44,16 @@ local RUN_EVENT_LOOP = true
 ---@type am.collect_rate[]
 local RATE_TIMER = nil
 local UPDATE_RATE = 300
+local CURRENT_STATUS = ""
 
 local function sendEvent()
-    e.CollectProgressEvent(pc.getRates()):send()
+    e.CollectProgressEvent(CURRENT_STATUS, pc.getRates()):send()
+end
+
+---@param msg string
+local function setStatus(msg)
+    CURRENT_STATUS = msg
+    sendEvent()
 end
 
 ---@return cc.inventory, cc.inventory
@@ -73,6 +80,8 @@ local function runLoop()
     local job = c.s.job.get()
     local from, _ = getInventories()
     while CURRENT == e.c.RunType.Running or CURRENT == e.c.RunType.Paused do
+        setStatus("")
+        local sleepTime = 5
         if CURRENT == e.c.RunType.Running then
             local items = {}
             ---@cast items cc.item[]
@@ -80,7 +89,7 @@ local function runLoop()
                 item = from.getItemDetail(slot)
                 ---@cast item cc.item
                 if not pc.pullItem(job.from, job.to, item.count, nil, slot) then
-                    -- tc.error("Could not pull item")
+                    e.ErrorEvent("Could not move item"):send()
                     break
                 end
                 items[#items + 1] = item
@@ -88,10 +97,18 @@ local function runLoop()
             if #items > 0 then
                 pc.addItems(items)
                 sendEvent()
+                sleepTime = job.interval
             end
-            sleep(job.interval)
-        else
-            sleep(5)
+        end
+
+        local startState = CURRENT
+        while sleepTime > 0 and CURRENT == startState do
+            sleepTime = sleepTime - 0.5
+            sleep(0.5)
+        end
+
+        if startState == e.c.RunType.Running and CURRENT == e.c.RunType.Paused then
+            e.TurtlePausedEvent():send()
         end
     end
 
@@ -109,12 +126,31 @@ local function eventLoop()
 
         if event == "timer" then
             if args[1] == RATE_TIMER then
-                pc.calculateRate()
+                pc.calculateRates()
                 sendEvent()
                 RATE_TIMER = os.startTimer(UPDATE_RATE)
             end
+        elseif event == e.c.Event.Common.error then
+            setStatus(string.format("error:%s", args[1].error))
+        elseif event == e.c.Event.Turtle.exited then
+            setStatus("error:Stopped")
+            CURRENT = e.c.RunType.Halted
+        elseif event == e.c.Event.Turtle.request_pause then
+            CURRENT = e.c.RunType.Paused
+            log.info("Pausing...")
+        elseif event == e.c.Event.Turtle.request_halt then
+            CURRENT = e.c.RunType.Halted
+            log.info("Halting...")
+        elseif event == e.c.Event.Turtle.request_continue then
+            CURRENT = e.c.RunType.Running
+            log.info("Unpausing...")
+            e.TurtleStartedEvent():send()
+        elseif event == e.c.Event.Turtle.paused then
+            setStatus("warning:Paused")
+        elseif event == e.c.Event.Progress.collect then
+            p.print(e.getComputer(), args[1])
         end
-        -- p.handle(e.getComputer(), event, args)
+        p.handle(e.getComputer(), event, args)
         os.cancelTimer(timer)
     end
 end
@@ -150,6 +186,7 @@ local function collect()
     parallel.waitForAll(runLoop, eventLoop, netEventLoop)
     log.s.print.set(true)
     c.s.job.set(nil)
+    term.clear()
 end
 
 c.CollectJob = CollectJob

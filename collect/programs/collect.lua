@@ -23,6 +23,7 @@ local function main(from, to, interval)
     end
 
     c.s.job.set(c.CollectJob(from, to, interval))
+    c.collect()
 end
 
 main(arg[1], arg[2], arg[3])

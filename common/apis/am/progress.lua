@@ -91,6 +91,7 @@ local function getWrapper(src, event, output, tabbed)
         if wrapper == nil then
             if (
                 event.name == e.c.Event.Progress.quarry or
+                event.name == e.c.Event.Progress.collect or
                 event.name == e.c.Event.Progress.tree or
                 event.name == e.c.Event.Colonies.status_poll
             ) then

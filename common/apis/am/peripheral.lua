@@ -38,6 +38,17 @@ local function getRates()
     return RATES
 end
 
+---@param item cc.item
+---@return string
+local function getItemIdentifer(item)
+    local key = item.name
+    if item.nbt ~= nil then
+        key = key ..":" .. item.nbt
+    end
+
+    return key
+end
+
 ---@param newCount? table<string, cc.item>
 local function calculateRates(newCount)
     local now = os.clock()
@@ -56,8 +67,9 @@ local function calculateRates(newCount)
         for _, count in pairs(newCount) do
             addedCounts = true
             if count.count > 0 then
-                newCounts[now][count.name] = core.copy(count)
-                totals[count.name] = core.copy(count)
+                local key = getItemIdentifer(count)
+                newCounts[now][key] = core.copy(count)
+                totals[key] = core.copy(count)
             end
         end
     end
@@ -70,13 +82,14 @@ local function calculateRates(newCount)
         if time >= cutoff then
             newCounts[time] = core.copy(prevCounts)
             for _, prevCount in pairs(prevCounts) do
-                local total = totals[prevCount.name]
+                local key = getItemIdentifer(prevCount)
+                local total = totals[key]
                 if total == nil then
                     total = core.copy(prevCount)
                 else
                     total.count = total.count + prevCount.count
                 end
-                totals[prevCount.name] = total
+                totals[key] = total
             end
         end
     end
@@ -90,20 +103,20 @@ local function calculateRates(newCount)
     ITEM_COUNTS = newCounts
 end
 
----@param event am.e.TurtleEmptyEvent
-local function addItems(event)
+---@param items cc.item[]
+local function addItems(items)
     local newCount = {}
-    for _, item in ipairs(event.items) do
+    for _, item in ipairs(items) do
         ---@cast item cc.item
-        local count = newCount[item.name]
+        local key = getItemIdentifer(item)
+        local count = newCount[key]
         if count == nil then
             count = core.copy(item)
         else
             count.count = count.count + item.count
         end
-        newCount[item.name] = count
+        newCount[key] = count
     end
-
     calculateRates(newCount)
 end
 
@@ -159,9 +172,13 @@ local function pullItem(fromName, toName, count, toSlot, fromSlot)
         end
     end
 
+    local log = require("am.log")
+
     local success = false
     if fromSlot ~= nil then
-        success = pcall(function () from.pushItems(toName, fromSlot, count, toSlot) end)
+        local transferCount = 0
+        success, transferCount = pcall(function () return from.pushItems(toName, fromSlot, count, toSlot) end)
+        success = success and transferCount > 0
     end
 
     return success
@@ -221,7 +238,9 @@ local function pushItem(toName, fromName, count, toSlot, fromSlot)
 
     local success = false
     if fromSlot ~= nil then
-        success = pcall(function () to.pullItems(fromName, fromSlot, count, toSlot) end)
+        local transferCount = 0
+        success, transferCount = pcall(function () return to.pullItems(fromName, fromSlot, count, toSlot) end)
+        success = success and transferCount > 0
     end
 
     return success
@@ -273,6 +292,7 @@ local function getInventoryLookup()
     return inventories
 end
 
+pc.getItemIdentifer = getItemIdentifer
 pc.setStartTime = setStartTime
 pc.getRates = getRates
 pc.getLocalName = getLocalName

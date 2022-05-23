@@ -280,7 +280,7 @@ e.ErrorEvent = ErrorEvent
 ---@param msg string
 function ErrorEvent:init(msg)
     v.expect(1, msg, "string")
-    ErrorEvent.super.init(self, e.c.Event.Turtle.error)
+    ErrorEvent.super.init(self, e.c.Event.Common.error)
 
     self.error = msg
     return self
@@ -302,14 +302,17 @@ end
 ---@field rate number
 
 ---@class am.e.CollectProgressEvent:am.e.ProgressEvent
+---@field status string
 ---@field rates am.collect_rate[]
 local CollectProgressEvent = ProgressEvent:extend("am.e.CollectProgressEvent")
 e.CollectProgressEvent = CollectProgressEvent
+---@param status string
 ---@param rates am.collect_rate[]
-function CollectProgressEvent:init(rates)
+function CollectProgressEvent:init(status, rates)
     v.expect(1, rates, "table")
     CollectProgressEvent.super.init(self, e.c.Event.Progress.collect)
 
+    self.status = status
     self.rates = rates
 
     return self
@@ -607,7 +610,7 @@ function TurtleCompletableEvent:init(name, completed)
 end
 
 ---@class am.e.TurtleEmptyEvent:am.e.TurtleCompletableEvent
----@field items cc.item[]|nil
+---@field items table<string, cc.item[]>|nil
 local TurtleEmptyEvent = TurtleCompletableEvent:extend("am.e.TurtleEmptyEvent")
 e.TurtleEmptyEvent = TurtleEmptyEvent
 ---@param completed boolean
@@ -698,9 +701,9 @@ function ColoniesEvent:init(name)
     return self
 end
 
----@class am.e.ColonyStatusPollEvent:am.e.ColoniesEvent
+---@class am.e.ColoniesScanEvent:am.e.ColoniesEvent
 ---@field status cc.colony
-local ColonyStatusPollEvent = ColoniesEvent:extend("am.e.ColonyStatusPollEvent")
+local ColonyStatusPollEvent = ColoniesEvent:extend("am.e.TurtleEmptyEvent")
 e.ColonyStatusPollEvent = ColonyStatusPollEvent
 ---@param status cc.colony
 function ColonyStatusPollEvent:init(status)

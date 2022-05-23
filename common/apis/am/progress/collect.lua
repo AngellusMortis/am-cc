@@ -73,20 +73,13 @@ end
 ---@field label string
 ---@field status string
 
----@return am.progress_status[]
+---@return string
 function CollectWrapper:getStatus()
-    local status = {}
-
-    for id, event in pairs(self.progress) do
-        if event.name == e.c.Event.Progress.tree then
-            ---@cast event am.e.TreeProgressEvent
-            status[#status + 1] = {label = self.src_map[id].label or id, status = event.status}
-        else
-            status[#status + 1] = {label = self.src_map[id].label or id, status = ""}
-        end
+    for _, event in pairs(self.progress) do
+        return event.status
     end
 
-    return status
+    return ""
 end
 
 ---@return string[]
@@ -208,17 +201,33 @@ function CollectWrapper:update(src, event)
     titleText.obj.anchor.y = startY
     titleText:update(self:getTitle())
 
+    local redraw = false
     local rateText = self.frame:get(baseId .. ".rateText", self.output)
     ---@cast rateText am.ui.BoundText
     local statusText = self.frame:get(baseId .. ".statusText", self.output)
     ---@cast statusText am.ui.BoundText
 
     rateText.obj.anchor.y = startY + 2
-    rateText:update(self:getItems())
+    local items = self:getItems()
+    rateText:update(items)
 
-    statusText.obj.anchor.y = startY + 4
-    local status = self:getStatus()
-    statusText:update(status[1].status)
+    local itemCount = #items
+    if itemCount == 0 then
+        itemCount = 1
+    end
+    local itemEndY = startY + itemCount
+    if statusText.obj.anchor.y ~= itemEndY + 3 then
+        redraw = true
+    end
+    statusText.obj.anchor.y = itemEndY + 3
+    statusText:update(self:getStatus())
+
+    local haltButton = self.frame:get(baseId .. ".haltButton", self.output)
+    ---@cast haltButton am.ui.BoundButton
+    local pauseButton = self.frame:get(baseId .. ".pauseButton", self.output)
+    ---@cast pauseButton am.ui.BoundButton
+    haltButton.obj.anchor.y = itemEndY + 4
+    pauseButton.obj.anchor.y = itemEndY + 4
 
     local progressEvent, count = self:getEvent()
     if self:isTree(progressEvent, count) then
@@ -226,6 +235,11 @@ function CollectWrapper:update(src, event)
         self:updatePosition(src, progressEvent.pos)
     else
         self:updatePosition(src, nil)
+    end
+
+    if redraw then
+        self.output.clear()
+        self.frame:render(self.output)
     end
 end
 
