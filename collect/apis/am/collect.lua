@@ -82,6 +82,7 @@ local function runLoop()
     while CURRENT == e.c.RunType.Running or CURRENT == e.c.RunType.Paused do
         setStatus("")
         local sleepTime = 5
+        local pingTime = 10
         if CURRENT == e.c.RunType.Running then
             local items = {}
             ---@cast items cc.item[]
@@ -98,12 +99,18 @@ local function runLoop()
                 pc.addItems(items)
                 sendEvent()
                 sleepTime = job.interval
+                pingTime = 10
             end
         end
 
         local startState = CURRENT
         while sleepTime > 0 and CURRENT == startState do
             sleepTime = sleepTime - 0.5
+            pingTime = pingTime - 0.5
+            if pingTime <= 0 then
+                e.PingEvent():send()
+                pingTime = 10
+            end
             sleep(0.5)
         end
 

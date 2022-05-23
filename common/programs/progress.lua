@@ -225,7 +225,7 @@ local function netEventLoop()
                 output = getDisplay(data.src, false)
             end
             if output ~= nil then
-                if data.event.name == e.c.Event.Pathfind.position then
+                if data.event.name == e.c.Event.Pathfind.position or data.event.name == e.c.Event.Common.ping then
                     resetTimeout(data.src.id)
                 elseif data.event.name == e.c.Event.Turtle.turtle_started then
                     resetTimeout(data.src.id, true)

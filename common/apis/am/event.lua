@@ -117,6 +117,7 @@ e.c.RunType = {
 ---@type table<string, boolean>
 e.broadcastMap = {
     ["am.error"] = false,
+    ["am.ping"] = true,
 
     ["am.progress_quarry"] = true,
     ["am.progress_collect"] = true,
@@ -158,6 +159,7 @@ e.c.Event = {}
 ---@type table<string, string>
 e.c.Event.Common = {
     error = "am.error",
+    ping = "am.ping",
 }
 ---@type table<string, string>
 e.c.Event.Progress = {
@@ -196,6 +198,7 @@ e.c.Event.Colonies = {
 local DistributedEvent = BaseEvent:extend("am.e.DistributedEvent")
 e.DistributedEvent = DistributedEvent
 ---@param name string
+---@return am.e.DistributedEvent
 function DistributedEvent:init(name)
     v.expect(1, name, "string")
     DistributedEvent.super.init(self, name)
@@ -278,6 +281,7 @@ end
 local ErrorEvent = DistributedEvent:extend("am.e.ErrorEvent")
 e.ErrorEvent = ErrorEvent
 ---@param msg string
+---@return am.e.ErrorEvent
 function ErrorEvent:init(msg)
     v.expect(1, msg, "string")
     ErrorEvent.super.init(self, e.c.Event.Common.error)
@@ -286,10 +290,20 @@ function ErrorEvent:init(msg)
     return self
 end
 
+---@class am.e.PingEvent:am.e.ProgressEvent
+local PingEvent = DistributedEvent:extend("am.e.PingEvent")
+e.PingEvent = PingEvent
+---@return am.e.PingEvent
+function PingEvent:init()
+    PingEvent.super.init(self, e.c.Event.Common.ping)
+    return self
+end
+
 ---@class am.e.ProgressEvent:am.e.DistributedEvent
 local ProgressEvent = DistributedEvent:extend("am.e.ProgressEvent")
 e.ProgressEvent = ProgressEvent
 ---@param name string
+---@return am.e.ProgressEvent
 function ProgressEvent:init(name)
     v.expect(1, name, "string")
     ProgressEvent.super.init(self, name)
@@ -308,6 +322,7 @@ local CollectProgressEvent = ProgressEvent:extend("am.e.CollectProgressEvent")
 e.CollectProgressEvent = CollectProgressEvent
 ---@param status string
 ---@param rates am.collect_rate[]
+---@return am.e.CollectProgressEvent
 function CollectProgressEvent:init(status, rates)
     v.expect(1, rates, "table")
     CollectProgressEvent.super.init(self, e.c.Event.Progress.collect)
@@ -317,7 +332,6 @@ function CollectProgressEvent:init(status, rates)
 
     return self
 end
-
 
 ---@class am.e.TreeProgressEvent:am.e.CollectProgressEvent
 ---@field pos am.p.TurtlePosition
@@ -329,6 +343,7 @@ e.TreeProgressEvent = TreeProgressEvent
 ---@param trees am.t.tree_location[]
 ---@param status string
 ---@param rates am.collect_rate[]
+---@return am.e.TreeProgressEvent
 function TreeProgressEvent:init(pos, trees, status, rates)
     v.expect(1, pos, "table")
     v.expect(2, trees, "table")
@@ -353,6 +368,7 @@ e.QuarryProgressEvent = QuarryProgressEvent
 ---@param pos am.p.TurtlePosition
 ---@param job am.q.QuarryJob
 ---@param progress am.q.QuarryProgress
+---@return am.e.QuarryProgressEvent
 function QuarryProgressEvent:init(pos, job, progress)
     v.expect(1, pos, "table")
     v.expect(2, job, "table")
@@ -371,6 +387,7 @@ end
 local PathfindEvent = DistributedEvent:extend("am.e.PathfindEvent")
 e.PathfindEvent = PathfindEvent
 ---@param name string
+---@return am.e.PathfindEvent
 function PathfindEvent:init(name)
     v.expect(1, name, "string")
     PathfindEvent.super.init(self, name)
@@ -383,6 +400,7 @@ end
 local PositionUpdateEvent = PathfindEvent:extend("am.e.PositionUpdateEvent")
 e.PositionUpdateEvent = PositionUpdateEvent
 ---@param position am.p.TurtlePosition
+---@return am.e.PositionUpdateEvent
 function PositionUpdateEvent:init(position)
     v.expect(1, position, "table")
     h.requirePosition(1, position)
@@ -395,6 +413,7 @@ end
 ---@class am.e.ResetPathfindEvent:am.e.PathfindEvent
 local ResetPathfindEvent = PathfindEvent:extend("am.e.ResetPathfindEvent")
 e.ResetPathfindEvent = ResetPathfindEvent
+---@return am.e.ResetPathfindEvent
 function ResetPathfindEvent:init()
     ResetPathfindEvent.super.init(self, e.c.Event.Pathfind.reset)
 
@@ -408,6 +427,7 @@ local NewNodeEvent = PathfindEvent:extend("am.e.NewNodeEvent")
 e.NewNodeEvent = NewNodeEvent
 ---@param position am.p.TurtlePosition
 ---@param isReturn? boolean
+---@return am.e.NewNodeEvent
 function NewNodeEvent:init(position, isReturn)
     v.expect(1, position, "table")
     v.expect(1, isReturn, "boolean", "nil")
@@ -427,6 +447,7 @@ end
 local ResetNodesEvent = PathfindEvent:extend("am.e.ResetNodesEvent")
 ---@param isReturn? boolean
 e.ResetNodesEvent = ResetNodesEvent
+---@return am.e.ResetNodesEvent
 function ResetNodesEvent:init(isReturn)
     v.expect(1, isReturn, "boolean", "nil")
     ResetNodesEvent.super.init(self, e.c.Event.Pathfind.reset_nodes)
@@ -444,6 +465,7 @@ local FailableTurtleEvent = PathfindEvent:extend("am.e.FailableTurtleEvent")
 e.FailableTurtleEvent = FailableTurtleEvent
 ---@param name string
 ---@param success? boolean
+---@return am.e.FailableTurtleEvent
 function FailableTurtleEvent:init(name, success)
     v.expect(1, name, "string")
     v.expect(2, success, "boolean", "nil")
@@ -459,6 +481,7 @@ local PathfindTurnEvent = FailableTurtleEvent:extend("am.e.PathfindTurnEvent")
 e.PathfindTurnEvent = PathfindTurnEvent
 ---@param dir number
 ---@param success? boolean
+---@return am.e.PathfindTurnEvent
 function PathfindTurnEvent:init(dir, success)
     v.expect(1, dir, "number")
     v.expect(2, success, "boolean", "nil")
@@ -478,6 +501,7 @@ e.PathfindGoToEvent = PathfindGoToEvent
 ---@param startPos am.p.TurtlePosition
 ---@param gotoType number
 ---@param success? boolean
+---@return am.e.PathfindGoToEvent
 function PathfindGoToEvent:init(destPos, startPos, gotoType, success)
     v.expect(1, destPos, "table")
     v.expect(2, startPos, "table")
@@ -498,6 +522,7 @@ end
 local TurtleEvent = DistributedEvent:extend("am.e.TurtleEvent")
 e.TurtleEvent = TurtleEvent
 ---@param name string
+---@return am.e.TurtleEvent
 function TurtleEvent:init(name)
     v.expect(1, name, "string")
     TurtleEvent.super.init(self, name)
@@ -508,6 +533,7 @@ end
 ---@class am.e.TurtleStartedEvent:am.e.TurtleEvent
 local TurtleStartedEvent = TurtleEvent:extend("am.e.TurtleStartedEvent")
 e.TurtleStartedEvent = TurtleStartedEvent
+---@return am.e.TurtleStartedEvent
 function TurtleStartedEvent:init()
     TurtleStartedEvent.super.init(self, e.c.Event.Turtle.started)
 
@@ -517,6 +543,7 @@ end
 ---@class am.e.TurtlePausedEvent:am.e.TurtleEvent
 local TurtlePausedEvent = TurtleEvent:extend("am.e.TurtlePausedEvent")
 e.TurtlePausedEvent = TurtlePausedEvent
+---@return am.e.TurtlePausedEvent
 function TurtlePausedEvent:init()
     TurtlePausedEvent.super.init(self, e.c.Event.Turtle.paused)
 
@@ -528,6 +555,7 @@ end
 local TurtleExitEvent = TurtleEvent:extend("am.e.TurtleExitEvent")
 e.TurtleExitEvent = TurtleExitEvent
 ---@param completed boolean
+---@return am.e.TurtleExitEvent
 function TurtleExitEvent:init(completed)
     v.expect(1, completed, "boolean")
     TurtleExitEvent.super.init(self, e.c.Event.Turtle.exited)
@@ -541,6 +569,7 @@ end
 local TurtleRequestHaltEvent = TurtleEvent:extend("am.e.TurtleRequestHaltEvent")
 e.TurtleRequestHaltEvent = TurtleRequestHaltEvent
 ---@param id string
+---@return am.e.TurtleRequestHaltEvent
 function TurtleRequestHaltEvent:init(id)
     TurtleRequestHaltEvent.super.init(self, e.c.Event.Turtle.request_halt)
 
@@ -553,6 +582,7 @@ end
 local TurtleRequestPauseEvent = TurtleEvent:extend("am.e.TurtleRequestPauseEvent")
 e.TurtleRequestPauseEvent = TurtleRequestPauseEvent
 ---@param id string
+---@return am.e.TurtleRequestPauseEvent
 function TurtleRequestPauseEvent:init(id)
     TurtleRequestPauseEvent.super.init(self, e.c.Event.Turtle.request_pause)
 
@@ -565,6 +595,7 @@ end
 local TurtleRequestContinueEvent = TurtleEvent:extend("am.e.TurtleRequestHaltEvent")
 e.TurtleRequestContinueEvent = TurtleRequestContinueEvent
 ---@param id string
+---@return am.e.TurtleRequestContinueEvent
 function TurtleRequestContinueEvent:init(id)
     TurtleRequestContinueEvent.super.init(self, e.c.Event.Turtle.request_continue)
 
@@ -577,6 +608,7 @@ end
 local TurtleErrorEvent = TurtleEvent:extend("am.e.TurtleErrorEvent")
 e.TurtleErrorEvent = TurtleErrorEvent
 ---@param msg string
+---@return am.e.TurtleErrorEvent
 function TurtleErrorEvent:init(msg)
     v.expect(1, msg, "string")
     TurtleErrorEvent.super.init(self, e.c.Event.Turtle.error)
@@ -588,6 +620,7 @@ end
 ---@class am.e.TurtleErrorClearEvent:am.e.TurtleEvent
 local TurtleErrorClearEvent = TurtleEvent:extend("am.e.TurtleErrorClearEvent")
 e.TurtleErrorClearEvent = TurtleErrorClearEvent
+---@return am.e.TurtleErrorClearEvent
 function TurtleErrorClearEvent:init()
     TurtleErrorClearEvent.super.init(self, e.c.Event.Turtle.error_clear)
     return self
@@ -599,6 +632,7 @@ local TurtleCompletableEvent = TurtleEvent:extend("am.e.TurtleCompletableEvent")
 e.TurtleCompletableEvent = TurtleCompletableEvent
 ---@param name string
 ---@param completed boolean
+---@return am.e.TurtleCompletableEvent
 function TurtleCompletableEvent:init(name, completed)
     v.expect(1, name, "string")
     v.expect(2, completed, "boolean")
@@ -614,6 +648,7 @@ local TurtleEmptyEvent = TurtleCompletableEvent:extend("am.e.TurtleEmptyEvent")
 e.TurtleEmptyEvent = TurtleEmptyEvent
 ---@param completed boolean
 ---@param items table<string, cc.item[]>|nil
+---@return am.e.TurtleEmptyEvent
 function TurtleEmptyEvent:init(completed, items)
     v.expect(1, completed, "boolean")
     v.expect(2, items, "table", "nil")
@@ -632,6 +667,7 @@ local TurtleFetchFillEvent = TurtleCompletableEvent:extend("am.e.TurtleFetchFill
 e.TurtleFetchFillEvent = TurtleFetchFillEvent
 ---@param completed boolean
 ---@param item cc.item[]|nil
+---@return am.e.TurtleFetchFillEvent
 function TurtleFetchFillEvent:init(completed, item)
     v.expect(1, completed, "boolean")
     v.expect(2, item, "table", "nil")
@@ -654,6 +690,7 @@ e.TurtleRefuelEvent = TurtleRefuelEvent
 ---@param requested? number
 ---@param oldLevel? number
 ---@param newLevel? number
+---@return am.e.TurtleRefuelEvent
 function TurtleRefuelEvent:init(completed, requested, oldLevel, newLevel)
     v.expect(1, completed, "boolean")
     v.expect(2, requested, "number", "nil")
@@ -677,6 +714,7 @@ e.TurtleDigEvent = TurtleDigEvent
 ---@param completed boolean
 ---@param moveDir number
 ---@param count number
+---@return am.e.TurtleDigEvent
 function TurtleDigEvent:init(completed, moveDir, count)
     v.expect(1, completed, "boolean")
     v.expect(2, moveDir, "number")
@@ -693,6 +731,7 @@ end
 local ColoniesEvent = DistributedEvent:extend("am.e.ColoniesEvent")
 e.ColoniesEvent = ColoniesEvent
 ---@param name string
+---@return am.e.ColoniesEvent
 function ColoniesEvent:init(name)
     v.expect(1, name, "string")
     ColoniesEvent.super.init(self, name)
@@ -705,6 +744,7 @@ end
 local ColonyStatusPollEvent = ColoniesEvent:extend("am.e.ColonyStatusPollEvent")
 e.ColonyStatusPollEvent = ColonyStatusPollEvent
 ---@param status cc.colony
+---@return am.e.ColonyStatusPollEvent
 function ColonyStatusPollEvent:init(status)
     v.expect(1, status, "table")
     ColonyStatusPollEvent.super.init(self, e.c.Event.Colonies.status_poll)
