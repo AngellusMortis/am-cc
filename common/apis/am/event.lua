@@ -610,7 +610,7 @@ function TurtleCompletableEvent:init(name, completed)
 end
 
 ---@class am.e.TurtleEmptyEvent:am.e.TurtleCompletableEvent
----@field items table<string, cc.item[]>|nil
+---@field items cc.item[]|nil
 local TurtleEmptyEvent = TurtleCompletableEvent:extend("am.e.TurtleEmptyEvent")
 e.TurtleEmptyEvent = TurtleEmptyEvent
 ---@param completed boolean
@@ -701,9 +701,9 @@ function ColoniesEvent:init(name)
     return self
 end
 
----@class am.e.ColoniesScanEvent:am.e.ColoniesEvent
+---@class am.e.ColonyStatusPollEvent:am.e.ColoniesEvent
 ---@field status cc.colony
-local ColonyStatusPollEvent = ColoniesEvent:extend("am.e.TurtleEmptyEvent")
+local ColonyStatusPollEvent = ColoniesEvent:extend("am.e.ColonyStatusPollEvent")
 e.ColonyStatusPollEvent = ColonyStatusPollEvent
 ---@param status cc.colony
 function ColonyStatusPollEvent:init(status)
