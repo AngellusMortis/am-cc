@@ -107,7 +107,7 @@ local function getWrapper(src, event, output, tabbed)
                     wrapper = CollectWrapper(src, event, frameOutput, frame)
                     ---@cast wrapper am.progress.ProgressWrapper
                 elseif event.name == e.c.Event.Colonies.status_poll then
-                    ---@cast event am.e.ColoniesScanEvent
+                    ---@cast event am.e.ColonyStatusPollEvent
                     wrapper = ColoniesWrapper(src, event.status.id, frameOutput, frame)
                     ---@cast wrapper am.progress.ColoniesWrapper
                     wrapper.progress.status = event.status

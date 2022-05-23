@@ -525,7 +525,7 @@ function ColoniesWrapper:update(src, event)
     local _, height = self.output.getSize()
 
     if event.name == e.c.Event.Colonies.status_poll then
-        ---@cast event am.e.ColoniesScanEvent
+        ---@cast event am.e.ColonyStatusPollEvent
         self.progress.status = event.status
     end
 
