@@ -247,8 +247,7 @@ function CollectWrapper:update(src, event)
     end
 
     if redraw then
-        self.output.clear()
-        self.frame:render(self.output)
+        self:render()
     end
 end
 
