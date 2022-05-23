@@ -1,0 +1,10 @@
+{
+  "files": {
+    "apis/am/collect.lua": "0d731802775957a4ebdb3875534ad616df131296904797fd07ae1151d5258487",
+    "programs/collect.lua": "b754f937ab4bed773245132f02554106bc2f353ea558cf5b0d2a852361c26b2f",
+    "autorun/resumeCollect.lua": "e5f1e955955543a7c1de1a755fef4679a1d0ec92b37216df54942efaeb4f0c23"
+  },
+  "dependencies": [
+    "AngellusMortis/am-cc:/common"
+  ]
+}
