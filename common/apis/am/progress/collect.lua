@@ -3,6 +3,7 @@ require(settings.get("ghu.base") .. "core/apis/ghu")
 local ui = require("am.ui")
 local e = require("am.event")
 local log = require("am.log")
+local h = require("am.helpers")
 
 local ProgressWrapper = require("am.progress.base")
 
@@ -99,9 +100,17 @@ function CollectWrapper:getItems()
         end
     end
 
-    local rates = {}
+    local itemList = {}
+    ---@cast itemList am.collect_rate[]
     for _, item in pairs(items) do
-        rates[#rates + 1] = string.format("%.1f %s/min", item.rate, item.item.displayName)
+        itemList[#itemList + 1] = item
+    end
+    h.sortItemsByCount(itemList, false)
+
+    local rates = {}
+    for _, item in ipairs(itemList) do
+        local rate = h.metricString(item.rate)
+        rates[#rates + 1] = string.format("%5s %s/min", rate, item.item.displayName)
     end
     return rates
 end
