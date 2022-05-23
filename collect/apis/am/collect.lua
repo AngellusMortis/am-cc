@@ -5,7 +5,6 @@ local BaseObject = require("am.ui.base").BaseObject
 local core = require("am.core")
 local log = require("am.log")
 local e = require("am.event")
-local tc = require("am.turtle")
 local pc = require("am.peripheral")
 
 local c = {}
@@ -81,7 +80,7 @@ local function runLoop()
                 item = from.getItemDetail(slot)
                 ---@cast item cc.item
                 if not pc.pullItem(job.from, job.to, item.count, nil, slot) then
-                    tc.error("Could not pull item")
+                    -- tc.error("Could not pull item")
                     break
                 end
                 items[#items + 1] = item

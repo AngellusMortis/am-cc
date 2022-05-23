@@ -116,6 +116,8 @@ e.c.RunType = {
 
 ---@type table<string, boolean>
 e.broadcastMap = {
+    ["am.error"] = false,
+
     ["am.progress_quarry"] = true,
     ["am.progress_collect"] = true,
     ["am.progress_tree"] = true,
@@ -153,6 +155,10 @@ e.c.Lookup.Progress = {
 }
 
 e.c.Event = {}
+---@type table<string, string>
+e.c.Event.Common = {
+    error = "am.error",
+}
 ---@type table<string, string>
 e.c.Event.Progress = {
     quarry = "am.progress_quarry",
@@ -265,6 +271,19 @@ function DistributedEvent:send()
             }))
         end
     end
+end
+
+---@class am.e.ErrorEvent:am.e.DistributedEvent
+---@field error string
+local ErrorEvent = DistributedEvent:extend("am.e.ErrorEvent")
+e.ErrorEvent = ErrorEvent
+---@param msg string
+function ErrorEvent:init(msg)
+    v.expect(1, msg, "string")
+    ErrorEvent.super.init(self, e.c.Event.Turtle.error)
+
+    self.error = msg
+    return self
 end
 
 ---@class am.e.ProgressEvent:am.e.DistributedEvent
