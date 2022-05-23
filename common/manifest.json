@@ -9,8 +9,8 @@
     "apis/am/progress/collect.lua": "1c642cf3a8e57cc0f7813ba0941f57a673c09477a36b2a7ca4099645be6c6d80",
     "apis/am/progress/quarry.lua": "30b4d1e7ebd99ebce30a2d1f2aefff86f9058cc081f8688de95b0cf991b6830d",
     "apis/am/progress/base.lua": "d6ce38a3273c3845932003f1f5ea413c1595d480a2399fdf8d477999b0adb6cb",
-    "apis/am/progress/colonies.lua": "f95339f68baeab39fe849bb2f2afc102c526cc3186525bb64a892d34efa82543",
-    "apis/am/progress.lua": "b1149d3f9b2f36b2fc907eac27eeeed3fb7632575e56a3253fb1ab7561954ccc",
+    "apis/am/progress/colonies.lua": "e23783cc7cbc03a14ba21764b7e5dc6c4dc37b6f98c1eab6dcbc07c854baecf8",
+    "apis/am/progress.lua": "438405c7c269ef5b720ebfe171f9206f50ef439cc6f307e1d2de5614c4b84938",
     "apis/am/event.lua": "e1536eca3b5257a6e119ce5b6babe067869ebff7036f3abe8313bce8ae1c05ca",
     "programs/progress.lua": "79b6071ac208a04db4e8ce83fc0d635e1769b985b2cabb5b3d9738c48f568319"
   },
