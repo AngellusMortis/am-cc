@@ -23,12 +23,20 @@ s.maxStacks = {
     default = 4,
     type = "number"
 }
+s.importChest = {
+    name = "colonies.importChest",
+    default = "",
+    type = "string"
+}
+s.transferChest = {
+    name = "colonies.transferChest",
+    default = "",
+    type = "string"
+}
 colonies.s = core.makeSettingWrapper(s)
 
 local COLONY = nil
 local BRIDGE = nil
-local IMPORT_CHEST = peripheral.wrap("minecraft:barrel_12")
-local TRANSFER_CHEST = peripheral.wrap("minecraft:barrel_13")
 
 ---@return table
 local function getColony()
@@ -71,47 +79,27 @@ end
 
 ---@return table|nil
 local function getTransferChest()
-    if TRANSFER_CHEST ~= nil then
-        return TRANSFER_CHEST
+    local chestName = colonies.s.transferChest.get()
+    if chestName ~= "" then
+        return peripheral.wrap(chestName)
     end
-    local inventories = getInventories()
-    local notRacks = {}
-    for _, i in ipairs(inventories) do
-        if peripheral.getName(i):sub(1, 18) ~= "minecolonies:rack_" then
-            notRacks[#notRacks + 1] = i
-        end
-    end
-
-    if #notRacks == 0 then
-        return 0
-    end
-    TRANSFER_CHEST = notRacks[1]
-    return TRANSFER_CHEST
+    return nil
 end
 
 ---@return table|nil
 local function getImportChest()
-    if IMPORT_CHEST ~= nil then
-        return IMPORT_CHEST
+    local chestName = colonies.s.importChest.get()
+    if chestName ~= "" then
+        return peripheral.wrap(chestName)
     end
-    local inventories = getInventories()
-    local notRacks = {}
-    for _, i in ipairs(inventories) do
-        if peripheral.getName(i):sub(1, 18) ~= "minecolonies:rack_" then
-            notRacks[#notRacks + 1] = i
-        end
-    end
-
-    if #notRacks == 0 then
-        return 0
-    end
-    IMPORT_CHEST = notRacks[1]
-    return IMPORT_CHEST
+    return nil
 end
 
 ---@param chest table
 ---@return number|nil
 local function getEmptySlot(chest)
+    v.expect(1, chest, "table")
+
     local toSlot = nil
     local items = chest.list()
     for i = 1, chest.size(), 1 do
@@ -376,6 +364,7 @@ local function emptyItem(item, count)
                     importCount = count
                 end
                 emptyCount = emptyCount + importCount
+                log.debug(string.format("%s %s %s %s %s", peripheral.getName(chest), name, slot, importCount, emptySlot))
                 chest.pullItems(name, slot, importCount, emptySlot)
                 if emptyCount >= count then
                     break
@@ -408,8 +397,14 @@ local function emptyWarehouse()
     emptyItems(items)
 end
 
+---@return boolean
+local function canResume()
+    return getImportChest() ~= nil and getTransferChest() ~= nil
+end
+
 colonies.pollColony = pollColony
 colonies.scanItems = scanItems
 colonies.emptyWarehouse = emptyWarehouse
+colonies.canResume = canResume
 
 return colonies

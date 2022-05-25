@@ -522,6 +522,7 @@ end
 ---@param src am.net.src
 ---@param event am.e.ColoniesEvent
 function ColoniesWrapper:update(src, event)
+    local baseId = self:getBaseId()
     local _, height = self.output.getSize()
 
     if event.name == e.c.Event.Colonies.status_poll then
@@ -529,11 +530,11 @@ function ColoniesWrapper:update(src, event)
         self.progress.status = event.status
     end
 
-    local titleText = self.frame:get(self.frame.id .. ".titleText", self.output)
+    local titleText = self.frame:get(baseId .. ".titleText", self.output)
     ---@cast titleText am.ui.BoundText
     titleText:update(self.progress.status.name)
 
-    local tabs = self.frame:get(self.frame.id .. ".tabsBase", self.output)
+    local tabs = self.frame:get(baseId .. ".tabsBase", self.output)
     ---@cast tabs am.ui.BoundTabbedFrame
 
     self:updateMainTab(tabs)
