@@ -269,7 +269,6 @@ local function pollColony()
     end
     ---@cast status cc.colony
 
-    e.ColonyStatusPollEvent(status):send()
     return status
 end
 

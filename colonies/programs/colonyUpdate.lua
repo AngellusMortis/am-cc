@@ -2,26 +2,65 @@ require(settings.get("ghu.base") .. "core/apis/ghu")
 
 local log = require("am.log")
 local colonies = require("am.colonies")
+local p = require("am.progress")
+local e = require("am.event")
+local core = require("am.core")
 
-local RUN = true
+_G.RUN_PROGRESS = true
+_G.PROGRESS_SHOW_CLOSE = true
 
+local RUN_EVENT_LOOP = true
+local STATUS_TEXT = ""
+local STATUS = nil
 
-local function statusLoop()
-    while RUN do
-        log.info("Polling colony status...")
-        colonies.pollColony()
-        log.info("Completed polling colony status")
-        sleep(30)
+---@param msg string
+local function setStatus(msg)
+    STATUS_TEXT = msg
+    if STATUS ~= nil then
+        e.ColonyStatusPollEvent(STATUS, STATUS_TEXT):send()
     end
 end
 
+local function statusLoop()
+    while _G.RUN_PROGRESS do
+        log.info("Polling colony status...")
+        setStatus("Poll Colony")
+        STATUS = colonies.pollColony()
+        e.ColonyStatusPollEvent(STATUS, STATUS_TEXT):send()
+        log.info("Completed polling colony status")
+        setStatus("")
+        sleep(30)
+    end
+
+    setStatus("error:Stopped")
+    sleep(5)
+    RUN_EVENT_LOOP = false
+end
+
 local function warehouseLoop()
-    while RUN do
+    while _G.RUN_PROGRESS do
         sleep(10)
+        setStatus("Scan Warehouse")
         log.info("Emptying warehouse inventory...")
         colonies.emptyWarehouse()
         log.info("Completed empty warehouse")
+        setStatus("")
         sleep(20)
+    end
+end
+
+local function eventLoop()
+    while RUN_EVENT_LOOP do
+        -- timeout timer
+        local timer = os.startTimer(3)
+        local event, args = core.cleanEventArgs(os.pullEvent())
+
+        if event == e.c.Event.Colonies.status_poll then
+            p.print(e.getComputer(), args[1])
+        end
+
+        p.handle(e.getComputer(), event, args)
+        os.cancelTimer(timer)
     end
 end
 
@@ -45,7 +84,10 @@ local function main(transferChest, importChest)
         error("Missing transfer or import chest")
     end
 
-    parallel.waitForAll(statusLoop, warehouseLoop)
+    log.s.print.set(false)
+    parallel.waitForAll(statusLoop, warehouseLoop, eventLoop)
+    log.s.print.set(true)
+    term.clear()
 end
 
 main(arg[1], arg[2])

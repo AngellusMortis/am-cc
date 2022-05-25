@@ -744,12 +744,14 @@ end
 local ColonyStatusPollEvent = ColoniesEvent:extend("am.e.ColonyStatusPollEvent")
 e.ColonyStatusPollEvent = ColonyStatusPollEvent
 ---@param status cc.colony
+---@param text string
 ---@return am.e.ColonyStatusPollEvent
-function ColonyStatusPollEvent:init(status)
+function ColonyStatusPollEvent:init(status, text)
     v.expect(1, status, "table")
     ColonyStatusPollEvent.super.init(self, e.c.Event.Colonies.status_poll)
 
     self.status = status
+    self.text = text
     return self
 end
 

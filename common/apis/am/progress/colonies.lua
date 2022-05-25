@@ -12,12 +12,14 @@ local ProgressWrapper = require("am.progress.base")
 ---@class am.progress.ColonyProgress:am.ui.b.BaseObject
 ---@field id number
 ---@field status cc.colony|nil
+---@field text string
 local ColonyProgress = BaseObject:extend("am.progress.ColonyProgress")
 function ColonyProgress:init(id)
     ColonyProgress.super.init(self)
 
     self.id = id
     self.status = nil
+    self.text = ""
     return self
 end
 
@@ -42,6 +44,7 @@ function ColoniesWrapper:createMainTab(tabs)
     local tab = tabs:getTab("main").obj
     local rightOffset = 3
     local rowOffset = 1
+
     tab:add(ui.Text(ui.a.Left(rowOffset), "Raid"))
     tab:add(ui.Text(ui.a.Right(rowOffset, rightOffset), "", {id=baseId .. ".raid"}))
     rowOffset = rowOffset + 1
@@ -126,6 +129,8 @@ function ColoniesWrapper:createMainTab(tabs)
     end)
     tab:add(playersTabButton)
     tab:add(ui.Text(ui.a.Right(rowOffset, rightOffset), "", {id=baseId .. ".players"}))
+
+    tab:add(ui.Text(ui.a.Bottom(), "", {id=baseId .. ".statusText"}))
 end
 
 ---@param tabs am.ui.BoundTabbedFrame
@@ -303,6 +308,10 @@ function ColoniesWrapper:updateMainTab(tabs)
 
     local tab = tabs:getTab("main")
     ---@cast tab am.ui.BoundFrame
+
+    local statusText = tab:get(baseId .. ".statusText")
+    ---@cast statusText am.ui.BoundText
+    statusText:update(self.progress.text)
 
     local raidStatus = tab:get(baseId .. ".raid")
     ---@cast raidStatus am.ui.BoundText
@@ -528,6 +537,7 @@ function ColoniesWrapper:update(src, event)
     if event.name == e.c.Event.Colonies.status_poll then
         ---@cast event am.e.ColonyStatusPollEvent
         self.progress.status = event.status
+        self.progress.text = event.text
     end
 
     local titleText = self.frame:get(baseId .. ".titleText", self.output)
@@ -543,6 +553,17 @@ function ColoniesWrapper:update(src, event)
     self:updateBuildingsTab(tabs, height)
     self:updateVisitorsTab(tabs, height)
     self:updatePlayersTab(tabs, height)
+end
+
+---@param src am.net.src
+---@param status string
+function ColoniesWrapper:updateStatus(src, status)
+    self.progress.text = status
+    local baseId = self:getBaseId()
+
+    local statusText = self.frame:get(baseId .. ".statusText")
+    ---@cast statusText am.ui.BoundText
+    statusText:update(self.progress.text)
 end
 
 ---@param src am.net.src
