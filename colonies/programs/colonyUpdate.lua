@@ -39,13 +39,13 @@ end
 
 local function warehouseLoop()
     while _G.RUN_PROGRESS do
-        sleep(10)
+        sleep(7)
         setStatus("Scan Warehouse")
         log.info("Emptying warehouse inventory...")
         colonies.emptyWarehouse()
         log.info("Completed empty warehouse")
         setStatus("")
-        sleep(20)
+        sleep(53)
     end
 end
 
