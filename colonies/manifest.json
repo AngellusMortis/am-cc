@@ -1,8 +1,8 @@
 {
   "files": {
-    "apis/am/colonies.lua": "6f60ed669303af239343217e818e6327337c6c5fd786886bad749ece638ccd7f",
-    "programs/colonyUpdate.lua": "0d9916bc8c91c95265ed7f4fdf44585b56f5dd81d0fa342d1bd0947699b13e49",
-    "autorun/startColonyUpdate.lua": "05bc293be1678b1043adf7ee09c0962b5ee454ebb7e382807997565106793eb7"
+    "apis/am/colonies.lua": "1d2b88275885b09cc04d603d4ab0f75ab31589448be0369822cf9a2ec1b63d82",
+    "programs/colonyUpdate.lua": "b5058f208e618c9b21fe016bc604e1c65d9bf0e3b6a328e323e42e3c531f5c66",
+    "autorun/startColonyUpdate.lua": "76a8bc601fa7e5ca9a436fc1295f195fb2370f44268f0210f45b19fddaa6eca5"
   },
   "dependencies": [
     "AngellusMortis/am-cc:/common"

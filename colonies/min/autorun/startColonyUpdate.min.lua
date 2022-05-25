@@ -1,1 +1,1 @@
-shell.run("bg colonyUpdate")multishell.setFocus(2)
+require(settings.get("ghu.base").."core/apis/ghu")local a=require("am.colonies")local function b()local c=0;for d=1,multishell.getCount(),1 do if multishell.getTitle(d)=="colonyUpdate"then c=c+1;if c>0 then return true end end end;return false end;if a.canResume()and not b()then shell.run("bg colonyUpdate")multishell.setFocus(2)end
