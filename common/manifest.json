@@ -9,9 +9,9 @@
     "apis/am/progress/collect.lua": "0a648963c9e685927bf07a73c62aa4dfc75ccf582d08a451740c59f2e33e4e6d",
     "apis/am/progress/quarry.lua": "30b4d1e7ebd99ebce30a2d1f2aefff86f9058cc081f8688de95b0cf991b6830d",
     "apis/am/progress/base.lua": "d6ce38a3273c3845932003f1f5ea413c1595d480a2399fdf8d477999b0adb6cb",
-    "apis/am/progress/colonies.lua": "d7d570e6b1ddf8d1c91d8e5088dcbffa6238d2f01b8af983c86fbc69cb4f1172",
+    "apis/am/progress/colonies.lua": "3d14a13755630b01f8a72de26469fe9dae7949e605e1657a2ee379d05a52c1c0",
     "apis/am/progress.lua": "438405c7c269ef5b720ebfe171f9206f50ef439cc6f307e1d2de5614c4b84938",
-    "apis/am/event.lua": "e1536eca3b5257a6e119ce5b6babe067869ebff7036f3abe8313bce8ae1c05ca",
+    "apis/am/event.lua": "873bbd6f632413bf33f85b50643ca46342234783580f21054049125cef1e0420",
     "programs/progress.lua": "79b6071ac208a04db4e8ce83fc0d635e1769b985b2cabb5b3d9738c48f568319"
   },
   "dependencies": [
