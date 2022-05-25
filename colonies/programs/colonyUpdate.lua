@@ -8,20 +8,20 @@ local RUN = true
 
 local function statusLoop()
     while RUN do
-        sleep(10)
         log.info("Polling colony status...")
         colonies.pollColony()
         log.info("Completed polling colony status")
-        sleep(20)
+        sleep(30)
     end
 end
 
 local function warehouseLoop()
     while RUN do
+        sleep(10)
         log.info("Emptying warehouse inventory...")
         colonies.emptyWarehouse()
         log.info("Completed empty warehouse")
-        sleep(30)
+        sleep(20)
     end
 end
 

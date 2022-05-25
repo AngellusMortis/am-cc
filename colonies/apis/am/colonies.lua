@@ -5,6 +5,7 @@ require(settings.get("ghu.base") .. "core/apis/ghu")
 local core = require("am.core")
 local e = require("am.event")
 local log = require("am.log")
+local pc = require("am.peripheral")
 
 local colonies = {}
 
@@ -60,21 +61,6 @@ local function getBridge()
     end
 
     return BRIDGE
-end
-
----@return table[]
-local function getInventories()
-    local names = peripheral.getNames()
-    local inventories = {}
-    for _, name in ipairs(names) do
-        if name ~= "left" then
-            local p = peripheral.wrap(name)
-            if peripheral.hasType(p, "inventory") then
-                inventories[#inventories + 1] = p
-            end
-        end
-    end
-    return inventories
 end
 
 ---@return table|nil
@@ -290,7 +276,7 @@ end
 ---@return table<string, cc.item.colonies>
 local function scanItems()
     log.info("Scanning Warehouse...")
-    local peripherals = peripheral.getNames()
+    local peripherals = pc.getInventoryNames()
     local items = {}
     for _, name in ipairs(peripherals) do
         if name:sub(1, 18) == "minecolonies:rack_" then
