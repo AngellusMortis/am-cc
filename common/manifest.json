@@ -3,7 +3,7 @@
     "help/progress.txt": "c72732cea9706a32512a52f3595a1e13d16ac4ac33b5e67ed94ffb4bd59a4627",
     "apis/ext/hmac.lua": "4e87d8940e470893e9d885ca84023bc426f901c3877600839d5b43bbe58bb2ce",
     "apis/am/helpers.lua": "da5310e0d8a8d130dd77a37428acf2e858cc222be2ff704c3bd912199251b873",
-    "apis/am/log.lua": "f0da2c32b02b23ace39e90029de869c52a5422350387966ff82031c969a6faae",
+    "apis/am/log.lua": "c779846e10c1c81949231f4ccd73234edea2f54e423e516a3eb967603278e0aa",
     "apis/am/peripheral.lua": "bb167f69fde08feabc2e6190304192dd101fa5b365dce1aa514852b0bb597347",
     "apis/am/progress/helpers.lua": "4d6855856dac8a9bfb05f664e97f89bc76ead7a38243d4db3c2ea31cf329d2fb",
     "apis/am/progress/collect.lua": "ffd69024736e516659a0af1a2b56f8306e413ee8fabd503ced2c25a8fd3392e7",
