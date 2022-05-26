@@ -17,7 +17,7 @@ local p = {}
 local WRAPPERS = {}
 ---@type am.ui.TabbedFrame|nil
 local TABS = nil
-local EVENT_THRESHOLD = 100
+local EVENT_THRESHOLD = 250
 
 ---@param src am.net.src
 ---@param tabbed boolean
