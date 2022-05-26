@@ -159,16 +159,6 @@ function QuarryProgress:deserialize(raw)
 end
 
 local s = {}
-s.job = {
-    name = "quarry.job",
-    default = QuarryJob(16, 16, 1, true),
-    type = "table"
-}
-s.progress = {
-    name = "quarry.progress",
-    default = QuarryProgress(0, 0, 0, 0, true, ""),
-    type = "table"
-}
 s.autoResume = {
     name = "quarry.autoResume",
     default = true,
@@ -179,19 +169,19 @@ s.offsetPos = {
     default = false,
 }
 q.s = core.makeSettingWrapper(s)
-q.s.job.get = function()
-    return QuarryJob.deserialize(nil, settings.get(q.s.job.name))
-end
-q.s.progress.get = function()
-    return QuarryProgress.deserialize(nil, settings.get(q.s.progress.name))
-end
-q.s.offsetPos.get = function()
-    local raw = settings.get(q.s.offsetPos.name)
-    if raw then
-        raw = pf.TurtlePosition.deserialize(nil, settings.get(q.s.offsetPos.name))
-    end
-    return raw
-end
+
+local d = {}
+d.job = {
+    name = "job",
+    default = QuarryJob(16, 16, 1, true),
+    type = "table"
+}
+d.progress = {
+    name = "progress",
+    default = QuarryProgress(0, 0, 0, 0, true, ""),
+    type = "table"
+}
+q.d = core.makeDataWrapper(d, "quarry")
 
 local START_POS = pf.TurtlePosition(vector.new(0, 0, 1), e.c.Turtle.Direction.Front)
 ---@type table<string, number>
@@ -206,6 +196,25 @@ local CURRENT = RunType.Running
 local RUN_EVENT_LOOP = true
 local PREVIOUS_STATUS = nil
 
+---@return am.q.QuarryJob
+local function getJob()
+    return QuarryJob.deserialize(nil, q.d.job.get())
+end
+
+---@return am.q.QuarryProgress
+local function getProgress()
+    return QuarryProgress.deserialize(nil, q.d.progress.get())
+end
+
+---@return am.p.TurtlePosition|nil
+local function getOffsetPos()
+    local raw = q.s.offsetPos.get()
+    if raw then
+        raw = pf.TurtlePosition.deserialize(nil, raw)
+    end
+    return raw
+end
+
 ---@param pos? am.p.TurtlePosition
 local function fireProgressEvent(pos, progress)
     v.expect(1, pos, "table", "nil")
@@ -215,12 +224,12 @@ local function fireProgressEvent(pos, progress)
     end
 
     if pos == nil then
-        pos = pf.s.position.get()
+        pos = pf.getPos()
     end
     if progress == nil then
-        progress = q.s.progress.get()
+        progress = getProgress()
     end
-    e.QuarryProgressEvent(pos, q.s.job.get(), progress):send()
+    e.QuarryProgressEvent(pos, getJob(), progress):send()
 end
 
 ---@param progress am.q.QuarryProgress
@@ -230,7 +239,7 @@ local function setProgress(progress)
         error("Not progress obj")
     end
 
-    q.s.progress.set(progress)
+    q.d.progress.set(progress)
     fireProgressEvent(nil, progress)
 end
 
@@ -238,14 +247,14 @@ end
 local function setStatus(status)
     v.expect(1, status, "string")
 
-    local progress = q.s.progress.get()
+    local progress = getProgress()
     progress.status = status
     setProgress(progress)
 end
 
 ---@param event am.e.TurtleEmptyEvent
 local function addItems(event)
-    local progress = q.s.progress.get()
+    local progress = getProgress()
     for _, item in ipairs(event.items) do
         if progress.items[item.name] == nil then
             progress.items[item.name] = item
@@ -263,8 +272,8 @@ local function startRow(rowNum)
     v.expect(1, rowNum, "number")
     v.range(rowNum, 1)
 
-    local progress = q.s.progress.get()
-    local job = q.s.job.get()
+    local progress = getProgress()
+    local job = getJob()
     ---@cast job am.q.ReadyQuarryJob
 
     progress.completedRows = rowNum - 1
@@ -281,8 +290,8 @@ local function startRow(rowNum)
 end
 
 local function completeRow()
-    local progress = q.s.progress.get()
-    local job = q.s.job.get()
+    local progress = getProgress()
+    local job = getJob()
     ---@cast job am.q.ReadyQuarryJob
 
     progress.completedRows = progress.completedRows + 1
@@ -293,8 +302,8 @@ local function completeRow()
 end
 
 local function startLevel()
-    local progress = q.s.progress.get()
-    local job = q.s.job.get()
+    local progress = getProgress()
+    local job = getJob()
     ---@cast job am.q.ReadyQuarryJob
 
     progress.levelCurrent = 0
@@ -309,8 +318,8 @@ local function startLevel()
 end
 
 local function completeLevel()
-    local progress = q.s.progress.get()
-    local job = q.s.job.get()
+    local progress = getProgress()
+    local job = getJob()
     ---@cast job am.q.ReadyQuarryJob
 
     progress.completedLevels = progress.completedLevels + 1
@@ -322,7 +331,7 @@ local function completeLevel()
 end
 
 local function finishJob()
-    local progress = q.s.progress.get()
+    local progress = getProgress()
     progress.finished = true
     progress.status = "Finishing Job"
     setProgress(progress)
@@ -338,7 +347,7 @@ local function finishJob()
 end
 
 local function goToOffset()
-    local offset = q.s.offsetPos.get()
+    local offset = getOffsetPos()
     if offset then
         setStatus("Going to Offset")
         while not pf.goTo(offset.v.x, offset.v.z, offset.v.y, offset.dir) do
@@ -405,7 +414,7 @@ local function digAndFill(count, walls, fillLeft, fillRight, isLast)
 end
 
 local function resetNodes()
-    local offset = q.s.offsetPos.get()
+    local offset = getOffsetPos()
     pf.resetNodes()
     if offset then
         pf.addNode(offset)
@@ -419,7 +428,7 @@ end
 local function resumeLevel(rowNum, isLast)
     setStatus(string.format("Returning to Row %d", rowNum))
     log.info(string.format("..Resume start: %s", log.format(START_POS)))
-    local job = q.s.job.get()
+    local job = getJob()
     ---@cast job am.q.ReadyQuarryJob
     local rotated = false
     local leftMod = -1
@@ -488,13 +497,13 @@ end
 ---@param lastLevel boolean
 ---@return boolean
 local function digLevel(firstLevel, lastLevel)
-    local job = q.s.job.get()
+    local job = getJob()
     ---@cast job am.q.ReadyQuarryJob
     local walls = not firstLevel and job.walls
     pf.turnTo(START_POS.dir)
 
     startLevel()
-    local pos = pf.s.position.get()
+    local pos = pf.getPos()
     if pos.v.x == 0 and pos.v.z == 0 and pos.v.y == 0 then
         goToOffset()
         if not digAndFill(1, walls, job.left == 1, true) then
@@ -503,11 +512,11 @@ local function digLevel(firstLevel, lastLevel)
         if CURRENT ~= RunType.Running then
             return true
         end
-        pos = pf.s.position.get()
+        pos = pf.getPos()
         START_POS = core.copy(pos)
     end
 
-    local progress = q.s.progress.get()
+    local progress = getProgress()
     local levelsDown = pos.v.y - START_POS.v.y
     if progress.completedLevels > 0 then
         for i = 1, progress.completedLevels + levelsDown, 1 do
@@ -593,7 +602,7 @@ local function digLevel(firstLevel, lastLevel)
         end
     end
 
-    progress = q.s.progress.get()
+    progress = getProgress()
     log.info(string.format(
         "..Return to start (%d%%, %d%%)",
         job.percentPerLevel * 100, progress.current * 100
@@ -626,7 +635,7 @@ end
 
 ---@return boolean
 local function canResume()
-    return q.s.autoResume.get() and not q.s.progress.get().finished
+    return q.s.autoResume.get() and not getProgress().finished
 end
 
 ---@param left? number
@@ -646,9 +655,9 @@ local function setJob(left, forward, levels, walls)
     v.range(levels, 1)
 
     local job = QuarryJob(left, forward, levels, walls)
-    q.s.job.set(job)
+    q.d.job.set(job)
 
-    local progress = core.copy(q.s.progress.default)
+    local progress = core.copy(q.d.progress.default)
     progress.finished = false
     setProgress(progress)
 end
@@ -658,7 +667,7 @@ local function discoverBoundary()
     log.info("Discovering Boundary")
     setStatus("Discovering Boundary")
     tc.refuel(500) -- allow discover of a 64x64 size boundary
-    local startingOffset = q.s.offsetPos.get()
+    local startingOffset = getOffsetPos()
     goToOffset()
     setStatus("Discovering Boundary")
     tc.dig()
@@ -671,7 +680,7 @@ local function discoverBoundary()
         tc.dig()
         pf.turnRight()
         pf.turnRight()
-        local pos = pf.s.position.get()
+        local pos = pf.getPos()
         q.setOffset(pos.v.x, pos.v.z, pos.v.y, pos.dir)
         log.info(string.format("Setting new offset: %s", log.format(pos)))
         setStatus(string.format("Set Offset: (%d, %d)", pos.v.x, pos.v.z))
@@ -687,7 +696,7 @@ local function discoverBoundary()
     pf.turnLeft()
     while pf.forward() do
         left = left + 1
-        local pos = pf.s.position.get()
+        local pos = pf.getPos()
         if pos.v.x == 0 and pos.v.z == 1 then
             break
         end
@@ -704,11 +713,11 @@ local function discoverBoundary()
 end
 
 local function runLoop()
-    local job = q.s.job.get()
+    local job = getJob()
     if job.left == nil or job.forward == nil then
         local left, forward = discoverBoundary()
         setJob(left, forward, job.levels, job.walls)
-        job = q.s.job.get()
+        job = getJob()
         completeLevel()
         pf.resetNodes()
         pf.resetNodes(true)
@@ -716,12 +725,12 @@ local function runLoop()
     ---@cast job am.q.ReadyQuarryJob
 
     e.TurtleStartedEvent():send()
-    local pos = pf.s.position.get()
+    local pos = pf.getPos()
     if pos.v.x == 0 and pos.v.y == 0 and pos.v.z == 0 and pos.dir ==  e.c.Turtle.Direction.Front then
         tc.discoverChests()
     end
     tc.emptyInventory()
-    local progress = q.s.progress.get()
+    local progress = getProgress()
     local hitBedrock = false
     while progress.completedLevels < job.levels and (CURRENT == RunType.Running or CURRENT == RunType.Paused) do
         if CURRENT == RunType.Running then
@@ -732,7 +741,7 @@ local function runLoop()
                 hitBedrock = true
                 break
             end
-            progress = q.s.progress.get()
+            progress = getProgress()
 
             if CURRENT == RunType.Paused then
                 tc.emptyInventory()
@@ -743,10 +752,10 @@ local function runLoop()
         end
     end
     if hitBedrock then
-        progress = q.s.progress.get()
-        q.s.job.set(QuarryJob(job.left, job.forward, progress.completedLevels + 1, job.walls))
+        progress = getProgress()
+        q.d.job.set(QuarryJob(job.left, job.forward, progress.completedLevels + 1, job.walls))
         completeLevel()
-        progress = q.s.progress.get()
+        progress = getProgress()
         progress.hitBedrock = true
         progress.status = "Hit Bedrock"
         setProgress(progress)
@@ -778,8 +787,8 @@ local function eventLoop()
                 if eventObj.success == nil then
                     setStatus("Resuming")
                 else
-                    local progress = q.s.progress.get()
-                    local job = q.s.job.get()
+                    local progress = getProgress()
+                    local job = getJob()
                     ---@cast job am.q.ReadyQuarryJob
                     if progress.completedRows == job.left then
                         setStatus(string.format("Completed Row %d", progress.completedRows))
@@ -820,7 +829,7 @@ local function eventLoop()
         elseif event == e.c.Event.Turtle.refuel then
             setStatus("Refueling")
         elseif event == e.c.Event.Turtle.error then
-            local progress = q.s.progress.get()
+            local progress = getProgress()
             PREVIOUS_STATUS = progress.status
             setStatus(string.format("error:%s", args[1].error))
         elseif event == e.c.Event.Turtle.error_clear then
@@ -869,14 +878,14 @@ local function runJob(resume)
 
     log.s.print.set(false)
     e.initNetwork()
-    local job = q.s.job.get()
+    local job = getJob()
     term.clear()
     term.setCursorPos(1, 1)
     if not log.s.print.get() then
         p.print(e.getComputer(), e.QuarryProgressEvent(
-            pf.s.position.get(),
+            pf.getPos(),
             job,
-            q.s.progress.get()
+            getProgress()
         ))
     end
     local extra = ""
