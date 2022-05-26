@@ -12,7 +12,7 @@
     "apis/am/progress/colonies.lua": "ea12ee7e2afde997cffa58aef7616c327d2ef2ed793330a3be2e771d380a7b86",
     "apis/am/progress.lua": "438405c7c269ef5b720ebfe171f9206f50ef439cc6f307e1d2de5614c4b84938",
     "apis/am/event.lua": "873bbd6f632413bf33f85b50643ca46342234783580f21054049125cef1e0420",
-    "programs/progress.lua": "79b6071ac208a04db4e8ce83fc0d635e1769b985b2cabb5b3d9738c48f568319"
+    "programs/progress.lua": "a416ca17873f07e7c63d9504864ae5739d6610d045a65f0c84faad63693a2a3c"
   },
   "dependencies": [
     "AngellusMortis/cc-render"
