@@ -561,7 +561,7 @@ function ColoniesWrapper:updateStatus(src, status)
     self.progress.text = status
     local baseId = self:getBaseId()
 
-    local statusText = self.frame:get(baseId .. ".statusText")
+    local statusText = self.frame:get(baseId .. ".statusText", self.output)
     ---@cast statusText am.ui.BoundText
     statusText:update(self.progress.text)
 end

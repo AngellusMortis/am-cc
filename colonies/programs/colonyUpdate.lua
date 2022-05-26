@@ -29,7 +29,18 @@ local function statusLoop()
         e.ColonyStatusPollEvent(STATUS, STATUS_TEXT):send()
         log.info("Completed polling colony status")
         setStatus("")
-        sleep(30)
+
+        local sleepTime = 30
+        local pingTime = 10
+        while sleepTime > 0 and _G.RUN_PROGRESS do
+            sleepTime = sleepTime - 0.5
+            pingTime = pingTime - 0.5
+            if pingTime <= 0 then
+                e.PingEvent():send()
+                pingTime = 10
+            end
+            sleep(0.5)
+        end
     end
 
     setStatus("error:Stopped")
