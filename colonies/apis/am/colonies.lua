@@ -3,7 +3,6 @@ local v = require("cc.expect")
 require(settings.get("ghu.base") .. "core/apis/ghu")
 
 local core = require("am.core")
-local e = require("am.event")
 local log = require("am.log")
 local pc = require("am.peripheral")
 
