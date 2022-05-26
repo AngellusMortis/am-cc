@@ -7,6 +7,7 @@ local e = require("am.event")
 local ui = require("am.ui")
 local p = require("am.progress")
 local core = require("am.core")
+local pc = require("am.peripheral")
 
 local s = {}
 s.autoDiscover = {
@@ -286,12 +287,18 @@ local function main(name, outputName)
             _G.PROGRESS_SHOW_CLOSE = true
         end
     else
-        if s.autoDiscover.get() then
-            local monitors = getAllMonitors()
+        local hasSavedOutputs = false
+        for _, _ in pairs(s.outputMap.get()) do
+            hasSavedOutputs = true
+            break
+        end
+        if s.autoDiscover.get() or not hasSavedOutputs then
+            local monitors = pc.getMonitorNames()
             if #monitors == 0 then
                 TABBED = true
                 _G.PROGRESS_SHOW_CLOSE = true
             else
+                s.autoDiscover.set(true)
                 outputMap, computerMap = getOutputMap()
             end
         else
