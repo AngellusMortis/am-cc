@@ -2,7 +2,7 @@
   "files": {
     "help/quarry.txt": "5b87c827ddd89a21bc72f07c0e82d2fac77538d27b8fa5861acd3f751c8c87a3",
     "help/qoffset.txt": "bd8ffe833809d441510887afbfa1b4e1315c72b79d815ae9fbcc63e4133c2b30",
-    "apis/am/quarry.lua": "f40ac5c68b5b3a08a3e7073c2805ccbe0619b5dc9e18dbb0a342eaeab7350d45",
+    "apis/am/quarry.lua": "06a36ee48f820d68b16b9317e96550706eb4426e738af8b622c25bba58031840",
     "programs/turtle/quarry.lua": "687322a633288b1ae3021d118418aa88260496e22dc9ad5fcf2a7f87666894bc",
     "programs/turtle/qoffset.lua": "c1a78aea6227612c419d8129a9e664b55aa994741ea3ddad171cc77748c68574",
     "autorun/completions.lua": "488fa3f61f12e31c3876d6905fc25871d6de29f926b44e5256f0184413033156",
