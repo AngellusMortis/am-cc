@@ -43,6 +43,9 @@ function QuarryWrapper:createProgressFrame(mainFrame)
         id=baseId .. ".itemsButton", fillColor=colors.blue
     })
     itemsButton:addActivateHandler(function()
+        local _, height = wrapper.output.getSize()
+        local startY = height <= 12 and 1 or 2
+        wrapper:updateItemsTab(mainFrame:bind(wrapper.output), height - startY)
         mainFrame:setActive(wrapper.output, "items")
         local haltButton = progressFrame:get(baseId .. ".haltButton", wrapper.output)
         ---@cast haltButton am.ui.Button
@@ -118,6 +121,7 @@ function QuarryWrapper:createItemsFrame(mainFrame, height)
         id=baseId .. ".closeItemsButton", fillColor=colors.red, border=0
     })
     closeItemsButton:addActivateHandler(function()
+        wrapper:updateProgressTab(mainFrame:bind(wrapper.output))
         mainFrame:setActive(wrapper.output, "progress")
     end)
     itemsFrame:add(closeItemsButton)

@@ -100,7 +100,7 @@ local function getWrapper(src, event, output, tabbed)
             ) then
                 local frame = createFrame(src, tabbed)
                 local frameOutput = output
-                if tabbed then
+                if tabbed and TABS ~= nil then
                     frameOutput = TABS:makeScreen(output)
                 end
                 if event.name == e.c.Event.Progress.quarry then
