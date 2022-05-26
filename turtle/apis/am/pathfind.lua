@@ -52,37 +52,23 @@ function TurtlePosition:copy()
     return TurtlePosition(vector.new(self.v.x, self.v.y, self.v.z), self.dir)
 end
 
-local s = {}
-s.position = {
-    name = "pathfind.position",
+local d = {}
+d.position = {
+    name = "position",
     default = TurtlePosition(vector.new(0, 0, 0), e.c.Turtle.Direction.Front),
     type = "table"
 }
-s.nodes = {
-    name = "pathfind.nodes",
+d.nodes = {
+    name = "nodes",
     default = {},
     type = "table"
 }
-s.returnNodes = {
-    name = "pathfind.returnNodes",
+d.returnNodes = {
+    name = "returnNodes",
     default = {},
     type = "table"
 }
-p.s = core.makeSettingWrapper(s)
-p.s.position.get = function()
-    return TurtlePosition.deserialize(nil, settings.get(p.s.position.name))
-end
-p.s.position.set = function(pos)
-    settings.set(p.s.position.name, pos)
-    settings.save()
-    e.PositionUpdateEvent(pos):send()
-end
-p.s.nodes.get = function()
-    return TurtlePosition.deserialize(nil, settings.get(p.s.nodes.name), true)
-end
-p.s.returnNodes.get = function()
-    return TurtlePosition.deserialize(nil, settings.get(p.s.returnNodes.name), true)
-end
+p.d = core.makeDataWrapper(d, "pf")
 
 p.c = {}
 ---@type table<string, number>
@@ -93,6 +79,27 @@ p.c.DirType = {
     Turn = 1,
     Move = 2,
 }
+
+---@return am.p.TurtlePosition
+local function getPos()
+    return TurtlePosition.deserialize(nil, p.d.position.get())
+end
+
+---@param pos am.p.TurtlePosition
+local function setPos(pos)
+    p.d.position.set(pos)
+    e.PositionUpdateEvent(pos):send()
+end
+
+---@return am.p.TurtlePosition
+local function getNodes()
+    return TurtlePosition.deserialize(nil, p.d.nodes.get(), true)
+end
+
+---@return am.p.TurtlePosition
+local function getReturnNodes()
+    return TurtlePosition.deserialize(nil, p.d.returnNodes.get(), true)
+end
 
 ---@param dir? string
 ---@param dirType? number
@@ -140,7 +147,7 @@ local function addNode(pos, isReturn)
     v.expect(1, pos, "table", "nil")
     v.expect(2, isReturn, "boolean", "nil")
     if pos == nil then
-        pos = p.s.position.get():copy()
+        pos = getPos():copy()
     end
     if isReturn == nil then
         isReturn = false
@@ -149,13 +156,13 @@ local function addNode(pos, isReturn)
 
     local nodes
     if isReturn then
-        nodes = p.s.returnNodes.get()
+        nodes = getReturnNodes()
         nodes[#nodes + 1] = pos
-        p.s.returnNodes.set(nodes)
+        p.d.returnNodes.set(nodes)
     else
-        nodes = p.s.nodes.get()
+        nodes = getNodes()
         nodes[#nodes + 1] = pos
-        p.s.nodes.set(nodes)
+        p.d.nodes.set(nodes)
     end
     e.NewNodeEvent(pos, false):send()
     return pos
@@ -169,9 +176,9 @@ local function getLastNode(isReturn)
     end
     local nodes
     if isReturn then
-        nodes = p.s.returnNodes.get()
+        nodes = getReturnNodes()
     else
-        nodes = p.s.nodes.get()
+        nodes = getNodes()
     end
     return nodes[#nodes]
 end
@@ -181,17 +188,16 @@ local function resetNodes(isReturn)
     if isReturn == nil then
         isReturn = false
     end
-    local nodes
     if isReturn then
-        p.s.returnNodes.set({})
+        p.d.returnNodes.set({})
     else
-        p.s.nodes.set({})
+        p.d.nodes.set({})
     end
     e.ResetNodesEvent(isReturn):send()
 end
 
 local function resetPosition()
-    p.s.position.set(p.s.position.default:copy())
+    setPos(p.d.position.default:copy())
     resetNodes(false)
     resetNodes(true)
     e.ResetPathfindEvent():send()
@@ -199,7 +205,7 @@ end
 
 ---@return boolean
 local function forward()
-    local pos = p.s.position.get()
+    local pos = getPos()
     if pos.dir == e.c.Turtle.Direction.Front then
         pos.v.z = pos.v.z + 1
     elseif pos.dir == e.c.Turtle.Direction.Right then
@@ -212,14 +218,14 @@ local function forward()
 
     local success = turtle.forward()
     if success then
-        p.s.position.set(pos)
+        setPos(pos)
     end
     return success
 end
 
 ---@return boolean
 local function back()
-    local pos = p.s.position.get()
+    local pos = getPos()
     if pos.dir == e.c.Turtle.Direction.Front then
         pos.v.z = pos.v.z - 1
     elseif pos.dir == e.c.Turtle.Direction.Right then
@@ -232,38 +238,38 @@ local function back()
 
     local success = turtle.back()
     if success then
-        p.s.position.set(pos)
+        setPos(pos)
     end
     return success
 end
 
 ---@return boolean
 local function up()
-    local pos = p.s.position.get()
+    local pos = getPos()
     pos.v.y = pos.v.y + 1
     local success = turtle.up()
 
     if success then
-        p.s.position.set(pos)
+        setPos(pos)
     end
     return success
 end
 
 ---@return boolean
 local function down()
-    local pos = p.s.position.get()
+    local pos = getPos()
     pos.v.y = pos.v.y - 1
 
     local success = turtle.down()
     if success then
-        p.s.position.set(pos)
+        setPos(pos)
     end
     return success
 end
 
 ---@return boolean
 local function turnLeft()
-    local pos = p.s.position.get()
+    local pos = getPos()
     pos.dir = pos.dir - 1
     if pos.dir < 1 then
         pos.dir = e.c.Turtle.Direction.Left
@@ -271,14 +277,14 @@ local function turnLeft()
 
     local success = turtle.turnLeft()
     if success then
-        p.s.position.set(pos)
+        setPos(pos)
     end
     return success
 end
 
 ---@return boolean
 local function turnRight()
-    local pos = p.s.position.get()
+    local pos = getPos()
     pos.dir = pos.dir + 1
     if pos.dir > 4 then
         pos.dir = e.c.Turtle.Direction.Front
@@ -286,7 +292,7 @@ local function turnRight()
 
     local success = turtle.turnRight()
     if success then
-        p.s.position.set(pos)
+        setPos(pos)
     end
     return success
 end
@@ -308,7 +314,7 @@ local function turnTo(dir)
 
     local event = e.PathfindTurnEvent(dir, nil)
     event:send()
-    local pos = p.s.position.get()
+    local pos = getPos()
     local success = false
     if preferLeft[pos.dir] == dir then
         success = turnLeft()
@@ -318,7 +324,7 @@ local function turnTo(dir)
             if not success then
                 break
             end
-            pos = p.s.position.get()
+            pos = getPos()
         end
     end
     event.success = success
@@ -466,7 +472,7 @@ local function goTo(x, z, y, dir, dig)
         dig = false
     end
 
-    local startPos = p.s.position.get()
+    local startPos = getPos()
     if y == nil then
         y = startPos.v.y
     end
@@ -503,7 +509,7 @@ local function goTo(x, z, y, dir, dig)
     end
 
     if not success then
-        local pos = p.s.position.get()
+        local pos = getPos()
         if startPos.v.x == pos.v.x and startPos.v.y == pos.v.y and startPos.v.z == pos.v.z then
             event.success = false
             event:send()
@@ -530,9 +536,9 @@ local function goToPreviousNode(isReturn)
 
     local nodes
     if isReturn then
-        nodes = p.s.returnNodes.get()
+        nodes = getReturnNodes()
     else
-        nodes = p.s.nodes.get()
+        nodes = getNodes()
     end
     if #nodes == 0 then
         return false, {}
@@ -543,9 +549,9 @@ local function goToPreviousNode(isReturn)
     if success then
         table.remove(nodes, #nodes)
         if isReturn then
-            nodes = p.s.returnNodes.set(nodes)
+            nodes = p.d.returnNodes.set(nodes)
         else
-            nodes = p.s.nodes.set(nodes)
+            nodes = p.d.nodes.set(nodes)
         end
     end
 
@@ -554,8 +560,8 @@ end
 
 ---@return boolean
 local function goToOrigin()
-    local startPos = p.s.position.get()
-    local origin = p.s.position.default:copy()
+    local startPos = getPos()
+    local origin = p.d.position.default:copy()
     local event = e.PathfindGoToEvent(
         startPos, origin, e.c.Turtle.GoTo.Origin, nil
     )
@@ -563,7 +569,7 @@ local function goToOrigin()
     resetNodes(true)
     addNode(nil, true)
 
-    local nodes = p.s.nodes.get()
+    local nodes = getNodes()
     local success = true
     local pos = startPos
     while #nodes > 0 do
@@ -574,7 +580,7 @@ local function goToOrigin()
             return false
         end
         addNode(nil, true)
-        nodes = p.s.nodes.get()
+        nodes = getNodes()
     end
     resetNodes(false)
     success = goTo(origin.v.x, origin.v.z, origin.v.y, origin.dir)
@@ -585,7 +591,7 @@ end
 
 ---@return boolean
 local function goToReturn()
-    local nodes = p.s.returnNodes.get()
+    local nodes = getReturnNodes()
     local destPos = nil
     if #nodes > 0 then
         destPos = nodes[1]
@@ -594,7 +600,7 @@ local function goToReturn()
         return false
     end
 
-    local startPos = p.s.position.get()
+    local startPos = getPos()
     local event = e.PathfindGoToEvent(
         startPos, destPos, e.c.Turtle.GoTo.Return, nil
     )
@@ -612,7 +618,7 @@ local function goToReturn()
             return false
         end
         addNode()
-        nodes = p.s.returnNodes.get()
+        nodes = getReturnNodes()
     end
     resetNodes(true)
     event.success = success
@@ -622,10 +628,14 @@ end
 
 ---@return boolean
 local function atOrigin()
-    local pos = p.s.position.get()
+    local pos = getPos()
     return pos.v.x == 0 and pos.v.y == 0 and pos.v.z == 0
 end
 
+p.getPos = getPos
+p.setPos = setPos
+p.getReturnNodes = getReturnNodes
+p.getNodes = getNodes
 p.dirFromString = dirFromString
 p.addNode = addNode
 p.getLastNode = getLastNode

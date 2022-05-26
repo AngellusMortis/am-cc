@@ -57,7 +57,7 @@ local function main(op, arg1, arg2, arg3, arg4)
 
     if op == "pos" then
         log.debug("pf pos")
-        log.info(pf.s.position.get())
+        log.info(pf.getPos())
     elseif op == "nodes" or op == "save" then
         if arg1 == nil then
             arg1 = false
@@ -72,9 +72,9 @@ local function main(op, arg1, arg2, arg3, arg4)
         end
 
         if isReturn then
-            log.info(pf.s.returnNodes.get())
+            log.info(pf.getReturnNodes())
         else
-            log.info(pf.s.nodes.get())
+            log.info(pf.getNodes())
         end
     elseif op == "reset" then
         log.debug("pf reset")

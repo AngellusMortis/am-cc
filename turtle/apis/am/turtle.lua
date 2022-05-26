@@ -27,9 +27,9 @@ local fuels = {
 local extraOreBlock = {
 }
 
-local s = {}
-s.chestMap = {
-    name = "tc.chestMape",
+local d = {}
+d.chestMap = {
+    name = "chestMap",
     default = {
         fuel = "top",
         fill = "right",
@@ -37,7 +37,7 @@ s.chestMap = {
     },
     type = "table"
 }
-tc.s = core.makeSettingWrapper(s)
+tc.d = core.makeDataWrapper(d, "tc")
 
 ---@param moveDir number
 ---@param count? number
@@ -129,7 +129,7 @@ local function discoverChests()
         end
     end
 
-    tc.s.chestMap.set({
+    tc.d.chestMap.set({
         fuel = fuelChest,
         fill = fillChest,
         dump = dumpChest,
@@ -149,7 +149,7 @@ local function pushItem(chestType, count)
     end
 
     local success = false
-    local chestName = tc.s.chestMap.get()[chestType]
+    local chestName = tc.d.chestMap.get()[chestType]
     if chestName == "top" then
         success = turtle.dropUp(count)
     elseif chestName == "bottom" then
@@ -212,7 +212,7 @@ local function pullItem(chestType, count)
     end
 
     local success = false
-    local chestName = tc.s.chestMap.get()[chestType]
+    local chestName = tc.d.chestMap.get()[chestType]
     if chestName == "top" then
         success = turtle.suckUp(count)
     elseif chestName == "bottom" then
@@ -411,7 +411,7 @@ local function emptyInventory(doReturn, doFill)
     end
 
     emptyInventoryBase(doFill)
-    local pos = pf.s.position.get()
+    local pos = pf.getPos()
     if doReturn and h.isOrigin(pos) then
         log.info("Returning...")
         while not pf.goToReturn() do
@@ -475,7 +475,7 @@ local function refuel(count, empty)
         emptyInventory()
         event:send()
     end
-    local pos = pf.s.position.get()
+    local pos = pf.getPos()
     if not h.isOrigin(pos) then
         log.info("Returning...")
         while not pf.goToOrigin() do

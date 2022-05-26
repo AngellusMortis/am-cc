@@ -13,23 +13,23 @@ local pc = require("am.peripheral")
 
 local tree = {}
 
-local s = {}
-s.trees = {
-    name = "tree.trees",
+local d = {}
+d.trees = {
+    name = "trees",
     default = {},
     type = "table"
 }
-s.status = {
-    name = "tree.status",
+d.status = {
+    name = "status",
     default = "",
     type = "string"
 }
-s.canResume = {
-    name = "tree.canResume",
+d.canResume = {
+    name = "canResume",
     default = false,
     type = "boolean"
 }
-tree.s = core.makeSettingWrapper(s)
+tree.d = core.makeDataWrapper(d, "tree")
 
 local CURRENT = e.c.RunType.Running
 local RUN_EVENT_LOOP = true
@@ -59,20 +59,20 @@ local function fireProgressEvent(pos)
     end
 
     if pos == nil then
-        pos = pf.s.position.get()
+        pos = pf.getPos()
     end
-    e.TreeProgressEvent(pos, tree.s.trees.get(), tree.s.status.get(), pc.getRates()):send()
+    e.TreeProgressEvent(pos, tree.d.trees.get(), tree.d.status.get(), pc.getRates()):send()
 end
 
 ---@param msg string
 local function setStatus(msg)
-    tree.s.status.set(msg)
+    tree.d.status.set(msg)
     fireProgressEvent()
 end
 
 
 local function discoverTrees()
-    tree.s.trees.set({})
+    tree.d.trees.set({})
     log.info("Discovering trees...")
     setStatus("Discover Trees")
 
@@ -88,7 +88,7 @@ local function discoverTrees()
             if current == nil then
                 current = {
                     width = 1,
-                    start = pf.s.position.get()
+                    start = pf.getPos()
                 }
             else
                 current.width = current.width + 1
@@ -116,7 +116,7 @@ local function discoverTrees()
             if current == nil then
                 current = {
                     width = 1,
-                    start = pf.s.position.get()
+                    start = pf.getPos()
                 }
             else
                 current.width = current.width + 1
@@ -137,7 +137,7 @@ local function discoverTrees()
 
     log.info(string.format("Discovered %d trees", #trees))
     setStatus(string.format("Discovered %d Trees", #trees))
-    tree.s.trees.set(trees)
+    tree.d.trees.set(trees)
     pf.goToOrigin()
 end
 
@@ -238,7 +238,7 @@ local function harvestTree(index, loc)
     while harvestLevel(isFirst, loc.width) do
         isFirst = false
     end
-    local pos = pf.s.position.get()
+    local pos = pf.getPos()
     setStatus(string.format("Replant %d: (%d, %d)", index, loc.start.v.x, loc.start.v.z))
     log.info(string.format(".Replant %d: (%d, %d)", index, loc.start.v.x, loc.start.v.z))
     pf.goTo(pos.v.x, pos.v.z, 1)
@@ -261,8 +261,8 @@ local function treeLoop()
         tc.emptyInventory()
     end
 
-    tree.s.canResume.set(true)
-    local trees = tree.s.trees.get()
+    tree.d.canResume.set(true)
+    local trees = tree.d.trees.get()
     log.info(string.format("Harvesting %d trees...", #trees))
     while CURRENT == e.c.RunType.Running or CURRENT == e.c.RunType.Paused do
         if CURRENT == e.c.RunType.Running then
@@ -284,7 +284,7 @@ local function treeLoop()
             sleep(5)
         end
     end
-    tree.s.canResume.set(false)
+    tree.d.canResume.set(false)
 
     pf.goToOrigin()
     tc.emptyInventory()
@@ -345,7 +345,7 @@ local function eventLoop()
         elseif event == e.c.Event.Turtle.refuel then
             setStatus("Refueling")
         elseif event == e.c.Event.Turtle.error then
-            PREVIOUS_STATUS = tree.s.status.get()
+            PREVIOUS_STATUS = tree.d.status.get()
             setStatus(string.format("error:%s", args[1].error))
         elseif event == e.c.Event.Turtle.error_clear then
             if PREVIOUS_STATUS ~= nil then
@@ -394,6 +394,7 @@ local function harvestTrees(resume)
     log.s.print.set(false)
     parallel.waitForAll(treeLoop, eventLoop, netEventLoop)
     log.s.print.set(true)
+    term.clear()
 end
 
 tree.harvestTrees = harvestTrees
