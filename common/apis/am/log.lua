@@ -27,9 +27,11 @@ end
 ---@param msg any
 ---@param pretty? boolean
 ---@param fileOnly? boolean
-local function log(msg, pretty, fileOnly)
+---@param printColor? number
+local function log(msg, pretty, fileOnly, printColor)
     v.expect(2, pretty, "boolean", "nil")
     v.expect(3, fileOnly, "boolean", "nil")
+    v.expect(4, printColor, "number", "nil")
     if pretty == nil then
         if type(msg) == "string" then
             pretty = false
@@ -60,11 +62,31 @@ local function log(msg, pretty, fileOnly)
         return
     end
 
+    local oldColor = nil
+    if printColor ~= nil then
+        oldColor = term.getTextColor()
+        term.setTextColor(printColor)
+    end
     if pretty then
         pp.print(msg)
     else
         print(msg)
     end
+    if printColor ~= nil then
+        term.setTextColor(oldColor)
+    end
+end
+
+---@param msg any
+---@param pretty? boolean
+local function errorLog(msg, pretty)
+    log(msg, pretty, false, colors.red)
+end
+
+---@param msg any
+---@param pretty? boolean
+local function warning(msg, pretty)
+    log(msg, pretty, false, colors.yellow)
 end
 
 ---@param msg any
@@ -81,6 +103,8 @@ end
 
 l.format = format
 l.info = info
+l.warning = warning
+l.error = errorLog
 l.debug = debug
 
 return l
