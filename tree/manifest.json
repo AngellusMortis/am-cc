@@ -1,10 +1,10 @@
 {
   "files": {
     "help/tree.txt": "1722dc3592c1d4de03646d86df5fb2f918cecd8ff82f7a211b66c6bb6552c038",
-    "apis/am/tree.lua": "8aea76de9f6a4d8267de654ae58b794296411db7ee4177610b39e70a130fcc25",
+    "apis/am/tree.lua": "ab6178414c67c875f154618363dd6662ec60e2fe0a1c0c5829f10bcfee720db0",
     "programs/turtle/tree.lua": "99e8a4e698446e467b2d1ff566cd0a59de563850fd461d56734018723d8abafb",
     "autorun/completions.lua": "5be8103fca632e0d91ead34a078b74f449f2db53288d161014235dff40e19fe4",
-    "autorun/resumeTree.lua": "32c5200e109705c750acda4e255d258d962c085f5cddf55e5d549fd12bf32a98"
+    "autorun/resumeTree.lua": "7288cfbe3fa98a09dcdc680b992fc7c3b7e5e19923ce7aad4b92055333b4e5c2"
   },
   "dependencies": [
     "AngellusMortis/am-cc:/turtle"
