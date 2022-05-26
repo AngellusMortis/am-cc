@@ -6,6 +6,7 @@ local ui = require("am.ui")
 local e = require("am.event")
 local core = require("am.core")
 local h = require("am.progress.helpers")
+local log = require("am.log")
 
 local QuarryWrapper = require("am.progress.quarry")
 local CollectWrapper = require("am.progress.collect")
@@ -14,7 +15,9 @@ local ColoniesWrapper = require("am.progress.colonies")
 local p = {}
 ---@type table<string, am.progress.ProgressWrapper>
 local WRAPPERS = {}
+---@type am.ui.TabbedFrame|nil
 local TABS = nil
+local EVENT_THRESHOLD = 100
 
 ---@param src am.net.src
 ---@param tabbed boolean
@@ -212,6 +215,7 @@ end
 ---@param event string Event name
 ---@param args table
 local function handle(src, event, args)
+    local startTime = os.epoch("utc")
     local newSrc = nil
     if ui.c.l.Events.Always[event] then
         handleAll(event, args)
@@ -232,6 +236,16 @@ local function handle(src, event, args)
         return
     end
 
+    if TABS ~= nil and event == ui.c.e.Events.tab_change and args[1].objId == TABS.id then
+        local tab = TABS:getTab(args[1].newTabId)
+        for id, wrapper in pairs(WRAPPERS) do
+            if wrapper.frame.id == tab.id then
+                wrapper:update({id=id}, nil, true)
+                break
+            end
+        end
+    end
+
     if newSrc ~= nil then
         src = newSrc
     end
@@ -242,6 +256,15 @@ local function handle(src, event, args)
         local wrapper, _ = getWrapper(src)
         if wrapper ~= nil then
             wrapper:handle(src, event, args)
+        end
+    end
+
+    local timeTook = os.epoch("utc") - startTime
+    if timeTook > EVENT_THRESHOLD then
+        if ui.c.l.Events.UI[event] then
+            log.warning(string.format("UI Event %s took too long to process (%s): %s", event, timeTook, log.format(args[1])))
+        else
+            log.warning(string.format("Event %s took too long to process (%s)", event, timeTook))
         end
     end
 end

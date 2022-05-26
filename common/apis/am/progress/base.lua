@@ -48,9 +48,12 @@ function ProgressWrapper:createUI()
 end
 
 ---@param src am.net.src
----@param event am.e.ProgressEvent
-function ProgressWrapper:update(src, event)
-    self.progress = event
+---@param event? am.e.ProgressEvent
+---@param force? boolean
+function ProgressWrapper:update(src, event, force)
+    if event ~= nil then
+        self.progress = event
+    end
 end
 
 ---@param src am.net.src

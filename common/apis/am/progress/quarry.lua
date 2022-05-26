@@ -24,6 +24,10 @@ function QuarryWrapper:init(src, progress, output, frame)
     self.completed = false
     self.paused = false
     self.names[progress.name] = true
+    self.needsUpdate = {
+        progress = true,
+        items = true,
+    }
     return self
 end
 
@@ -174,13 +178,81 @@ function QuarryWrapper:createUI()
     QuarryWrapper.super.createUI(self)
 end
 
----@param src am.net.src
----@param event am.e.QuarryProgressEvent
-function QuarryWrapper:update(src, event)
-    local width, height = self.output.getSize()
+---@param tabs am.ui.BoundTabbedFrame
+function QuarryWrapper:updateProgressTab(tabs)
+    if not self.needsUpdate.progress then
+        return
+    end
 
     local baseId = self:getBaseId()
-    self.progress = event
+    local progressFrame = tabs:getTab("progress")
+    ---@cast progressFrame am.ui.BoundFrame
+
+    local totalBar = progressFrame:get(baseId .. ".totalBar")
+    ---@cast totalBar am.ui.BoundProgressBar
+    local levelBar = progressFrame:get(baseId .. ".levelBar")
+    ---@cast levelBar am.ui.BoundProgressBar
+    local statusText = progressFrame:get(baseId .. ".statusText")
+    ---@cast statusText am.ui.BoundText
+
+    totalBar.obj.displayTotal = self.progress.job.levels
+    totalBar:update(self.progress.progress.current * 100)
+    if self.progress.progress.hitBedrock then
+        totalBar:updateLabel("Total (Bedrock)")
+    else
+        totalBar:updateLabel("Total")
+    end
+    if self.progress.job.left ~= nil then
+        levelBar.obj.total = self.progress.job.left
+    end
+    levelBar:update(self.progress.progress.completedRows)
+    statusText:update(self.progress.progress.status)
+    self:updatePosition(self.src, self.progress.pos)
+
+    self.needsUpdate.progress = false
+end
+
+---@param tabs am.ui.BoundTabbedFrame
+---@param minListHeight number
+function QuarryWrapper:updateItemsTab(tabs, minListHeight)
+    if not self.needsUpdate.items then
+        return
+    end
+
+    local baseId = self:getBaseId()
+    local itemsFrame = tabs:getTab("items")
+    ---@cast itemsFrame am.ui.BoundFrame
+
+    local itemsListFrame = itemsFrame:get(baseId .. ".itemsListFrame")
+    ---@cast itemsListFrame am.ui.BoundFrame
+    local listText = itemsFrame:get(baseId .. ".itemListText")
+    ---@cast listText am.ui.BoundText
+
+    local items = h.itemStrings(self.progress.progress.items)
+    itemsListFrame.obj.height = math.max(minListHeight, #items + 2)
+    listText:update(items)
+
+    self.needsUpdate.items = false
+end
+
+---@param src am.net.src
+---@param event? am.e.ColoniesEvent
+---@param force? boolean
+function QuarryWrapper:update(src, event, force)
+    if event ~= nil then
+        self.progress = event
+        self.needsUpdate = {
+            progress = true,
+            items = true,
+        }
+    end
+
+    if not self.frame.visible and not force then
+        return
+    end
+
+    local _, height = self.output.getSize()
+    local baseId = self:getBaseId()
 
     -- top section
     local nameText = self.frame:get(baseId .. ".nameText", self.output)
@@ -212,48 +284,16 @@ function QuarryWrapper:update(src, event)
     titleText:update(string.format("Quarry%s", extra))
 
 
-    local mainFrame = self.frame:get(baseId .. ".mainFrame", self.output)
-    ---@cast mainFrame am.ui.BoundTabbedFrame
-    mainFrame.obj.anchor.y = startY + 1
+    local tabs = self.frame:get(baseId .. ".mainFrame", self.output)
+    ---@cast tabs am.ui.BoundTabbedFrame
+    tabs.obj.anchor.y = startY + 1
 
-    -- progress tab
-    local progressFrame = mainFrame:getTab("progress")
-    ---@cast progressFrame am.ui.BoundFrame
-
-    local totalBar = progressFrame:get(baseId .. ".totalBar")
-    ---@cast totalBar am.ui.BoundProgressBar
-    local levelBar = progressFrame:get(baseId .. ".levelBar")
-    ---@cast levelBar am.ui.BoundProgressBar
-    local statusText = progressFrame:get(baseId .. ".statusText")
-    ---@cast statusText am.ui.BoundText
-
-    totalBar.obj.displayTotal = self.progress.job.levels
-    totalBar:update(self.progress.progress.current * 100)
-    if self.progress.progress.hitBedrock then
-        totalBar:updateLabel("Total (Bedrock)")
-    else
-        totalBar:updateLabel("Total")
+    local activeTabId = tabs.obj.tabIndexIdMap[tabs.obj.active]
+    if activeTabId == "progress" then
+        self:updateProgressTab(tabs)
+    elseif activeTabId == "items" then
+        self:updateItemsTab(tabs, height - startY)
     end
-    if self.progress.job.left ~= nil then
-        levelBar.obj.total = self.progress.job.left
-    end
-    levelBar:update(self.progress.progress.completedRows)
-    statusText:update(self.progress.progress.status)
-    self:updatePosition(self.src, self.progress.pos)
-
-    -- items tab
-    local itemsFrame = mainFrame:getTab("items")
-    ---@cast itemsFrame am.ui.BoundFrame
-
-    local itemsListFrame = itemsFrame:get(baseId .. ".itemsListFrame")
-    ---@cast itemsListFrame am.ui.BoundFrame
-    local listText = itemsFrame:get(baseId .. ".itemListText")
-    ---@cast listText am.ui.BoundText
-
-    local minListHeight = height - startY
-    local items = h.itemStrings(self.progress.progress.items)
-    itemsListFrame.obj.height = math.max(minListHeight, #items + 2)
-    listText:update(items)
 end
 
 ---@param src am.net.src
@@ -278,6 +318,7 @@ end
 ---@param src am.net.src
 ---@param status string
 function QuarryWrapper:updateStatus(src, status)
+    self.progress.progress.status = status
     local baseId = self:getBaseId()
     local statusText = self.frame:get(baseId .. ".statusText", self.output)
     ---@cast statusText am.ui.BoundText

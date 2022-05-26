@@ -177,13 +177,21 @@ function CollectWrapper:createUI()
 end
 
 ---@param src am.net.src
----@param event am.e.CollectProgressEvent
-function CollectWrapper:update(src, event)
+---@param event? am.e.ColoniesEvent
+---@param force? boolean
+function CollectWrapper:update(src, event, force)
+    if event ~= nil then
+        self.progress[src.id] = event
+    end
+
+    if not self.frame.visible and not force then
+        return
+    end
+
     local _, height = self.output.getSize()
 
     local baseId = self:getBaseId()
     self.src_map[src.id] = src
-    self.progress[src.id] = event
 
     -- top section
     local nameText = self.frame:get(baseId .. ".nameText", self.output)
