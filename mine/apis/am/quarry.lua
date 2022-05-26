@@ -257,6 +257,7 @@ local function addItems(event)
     local progress = getProgress()
     for _, item in ipairs(event.items) do
         if progress.items[item.name] == nil then
+            item.tags = nil
             progress.items[item.name] = item
         else
             local curItem = progress.items[item.name]
