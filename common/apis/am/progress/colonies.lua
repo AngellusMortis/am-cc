@@ -420,6 +420,7 @@ function ColoniesWrapper:updateMainTab(tabs)
     local status = self.progress.status
     ---@cast status cc.colony
     local baseId = self:getBaseId()
+    local width, _ = self.output.getSize()
 
     local tab = tabs:getTab("main")
     ---@cast tab am.ui.BoundFrame
@@ -511,7 +512,11 @@ function ColoniesWrapper:updateMainTab(tabs)
         else
             warehouse.obj.textColor = colors.green
         end
-        warehouseText = string.format("%d%% [%s/%s]", percent, self.progress.warehouse.usedSlots,self.progress.warehouse.totalSlots)
+        if width < 30 then
+            warehouseText = string.format("%d%%")
+        else
+            warehouseText = string.format("%d%% [%s/%s]", percent, self.progress.warehouse.usedSlots,self.progress.warehouse.totalSlots)
+        end
     end
     warehouse:update(warehouseText)
 
