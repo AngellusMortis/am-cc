@@ -513,7 +513,7 @@ function ColoniesWrapper:updateMainTab(tabs)
             warehouse.obj.textColor = colors.green
         end
         if width < 30 then
-            warehouseText = string.format("%d%%")
+            warehouseText = string.format("%d%%", percent)
         else
             warehouseText = string.format("%d%% [%s/%s]", percent, self.progress.warehouse.usedSlots,self.progress.warehouse.totalSlots)
         end
