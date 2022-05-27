@@ -1,7 +1,7 @@
 {
   "files": {
-    "apis/am/colonies.lua": "7f02dfc2ab43fd3be5554a0161b03b51ef5b4916121dbb8292a5d361f4532c73",
-    "programs/colonyUpdate.lua": "92f54d894a532eb407e793ad508becd4a1033215725b08ae4db53c39634430d4",
+    "apis/am/colonies.lua": "08b7807387ccb3271fbf565e32625a4038741fd30bee947b2845decffca4d769",
+    "programs/colonyUpdate.lua": "a07111d2572fcb848d38d4781ad89b3c40bcb78421b67b23d4591e9c5ab8eff1",
     "autorun/completions.lua": "9afbdf6bc8f3ed35f218d0168fe241e8f1ccc61c0b2b4cdb0225377fe367baa9",
     "autorun/startColonyUpdate.lua": "76a8bc601fa7e5ca9a436fc1295f195fb2370f44268f0210f45b19fddaa6eca5"
   },
