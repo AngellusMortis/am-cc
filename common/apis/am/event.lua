@@ -143,8 +143,8 @@ e.broadcastMap = {
     ["am.turtle_error"] = false,
     ["am.turtle_error_clear"] = false,
 
-    ["am.colonies_warehouse_poll"] = true,
     ["am.colonies_status_poll"] = true,
+    ["am.colonies_warehouse_poll"] = true,
 }
 
 e.c.Lookup = {}
@@ -153,6 +153,7 @@ e.c.Lookup.Progress = {
     ["am.progress_collect"] = true,
     ["am.progress_tree"] = true,
     ["am.colonies_status_poll"] = true,
+    ["am.colonies_warehouse_poll"] = true,
 }
 
 e.c.Event = {}

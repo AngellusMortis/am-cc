@@ -14,7 +14,12 @@ local STATUS_TEXT = ""
 local STATUS = nil
 
 ---@param msg string
-local function setStatus(msg)
+---@param expected? string
+local function setStatus(msg, expected)
+    if expected ~= nil and STATUS_TEXT ~= expected then
+        return
+    end
+
     STATUS_TEXT = msg
     if STATUS ~= nil then
         e.ColonyStatusPollEvent(STATUS, STATUS_TEXT):send()
@@ -44,11 +49,11 @@ end
 local function statusLoop()
     while _G.RUN_PROGRESS do
         log.info("Polling colony status...")
-        setStatus("Poll Colony")
+        setStatus("Poll Colony", "")
         STATUS = colonies.pollColony()
         e.ColonyStatusPollEvent(STATUS, STATUS_TEXT):send()
         log.info("Completed polling colony status")
-        setStatus("")
+        setStatus("", "Poll Colony")
         incrementalSleep(30, true)
     end
 
@@ -64,7 +69,7 @@ local function warehouseLoop()
         log.info("Emptying warehouse inventory...")
         colonies.emptyWarehouse()
         log.info("Completed empty warehouse")
-        setStatus("")
+        setStatus("", "Scan Warehouse")
         incrementalSleep(60)
     end
 end
@@ -72,11 +77,11 @@ end
 local function requestLoop()
     -- incrementalSleep(10)
     while _G.RUN_PROGRESS do
-        setStatus("Fulfill Requests")
+        setStatus("Fulfill Requests", "")
         log.info("Fulfilling requests...")
         colonies.fulfillRequests()
         log.info("Completed fulfilling requests")
-        setStatus("")
+        setStatus("", "Fulfill Requests")
         incrementalSleep(10)
     end
 end
