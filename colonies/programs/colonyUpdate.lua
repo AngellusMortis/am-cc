@@ -44,7 +44,7 @@ local function statusLoop()
     end
 
     setStatus("error:Stopped")
-    sleep(5)
+    sleep(2)
     RUN_EVENT_LOOP = false
 end
 
@@ -66,7 +66,7 @@ local function eventLoop()
         local timer = os.startTimer(3)
         local event, args = core.cleanEventArgs(os.pullEvent())
 
-        if event == e.c.Event.Colonies.status_poll then
+        if event == e.c.Event.Colonies.status_poll or event == e.c.Event.Colonies.warehouse_poll then
             p.print(e.getComputer(), args[1])
         end
 

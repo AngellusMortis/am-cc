@@ -43,7 +43,7 @@ local function metricString(value)
     return string.format("%.1f%s", value, metricSuffixes[suffixIndex])
 end
 
----@param items table<string, cc.item>
+---@param items table<string, cc.item>|cc.item[]
 ---@param asc? boolean
 ---@param sortCount? boolean
 ---@return string[]
@@ -56,9 +56,15 @@ local function itemStrings(items, asc, sortCount)
     end
 
     local itemList = {}
-    for _, item in pairs(items) do
-        itemList[#itemList + 1] = item
+    if #items > 0 then
+        itemList = items
+    else
+        for _, item in pairs(items) do
+            itemList[#itemList + 1] = item
+        end
     end
+    ---@cast itemList cc.item[]
+
     if sortCount then
         if asc then
             table.sort(itemList, sortItemCountAsc)

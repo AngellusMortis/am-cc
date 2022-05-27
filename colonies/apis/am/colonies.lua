@@ -5,6 +5,7 @@ require(settings.get("ghu.base") .. "core/apis/ghu")
 local core = require("am.core")
 local log = require("am.log")
 local pc = require("am.peripheral")
+local e = require("am.event")
 
 local colonies = {}
 
@@ -271,16 +272,21 @@ local function pollColony()
     return status
 end
 
----@return table<string, cc.item.colonies>
+---@return table<string, cc.item.colonies>, number
 local function scanItems()
     log.info("Scanning Warehouse...")
     local peripherals = pc.getInventoryNames()
     local items = {}
+    local usedSlots = 0
+    local totalSlots = 0
     for _, name in ipairs(peripherals) do
         if name:sub(1, 18) == "minecolonies:rack_" then
             log.debug(string.format(".Scanning %s...", name))
             local rack = peripheral.wrap(name)
+            ---@cast rack cc.inventory
+            totalSlots = totalSlots + rack.size()
             for slot, item in pairs(rack.list()) do
+                usedSlots = usedSlots + 1
                 ---@case item cc.item_simple
                 local key = item.name
                 if item.nbt ~= nil then
@@ -310,8 +316,7 @@ local function scanItems()
         end
     end
 
-    -- e.ColoniesScanEvent(items):send()
-    return items
+    return items, usedSlots, totalSlots
 end
 
 ---@param item cc.item.colonies
@@ -359,9 +364,11 @@ local function emptyItem(item, count)
 end
 
 ---@param items table<string, cc.item.colonies>
+---@return boolean
 local function emptyItems(items)
     log.debug("Emptying Items...")
 
+    local emptied = false
     for _, item in pairs(items) do
         local parts = core.split(item.name, ":")
         if not colonies.s.mods.get()[parts[1]] then
@@ -370,15 +377,38 @@ local function emptyItems(items)
             local stacks = item.count / item.maxCount
             local stacksToEmpty = stacks - colonies.s.maxStacks.get()
             if stacksToEmpty > 0 then
+                emptied = true
                 emptyItem(item, stacksToEmpty * item.maxCount)
             end
         end
     end
+
+    return emptied
 end
 
 local function emptyWarehouse()
-    local items = scanItems()
-    emptyItems(items)
+    if colony == nil or not colony.isValid() then
+        error("Could not find colony info")
+    end
+
+    local emptied = true
+    local items, usedSlots, totalSlots
+    while emptied do
+        items, usedSlots, totalSlots = scanItems()
+        emptied = emptyItems(items)
+
+        if emptied then
+            log.info(".Rescanning warehouse")
+        end
+    end
+
+    local itemsList = {}
+    ---@cast itemsList cc.item.colonies[]
+    for _, item in pairs(items) do
+        itemsList[#itemsList + 1] = item
+    end
+
+    e.ColonyWarehousePollEvent(colony.getInfo().id, itemsList, usedSlots, totalSlots):send()
 end
 
 ---@return boolean

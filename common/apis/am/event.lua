@@ -755,6 +755,31 @@ function ColonyStatusPollEvent:init(status, text)
     return self
 end
 
+---@class am.e.ColonyWarehousePollEvent:am.e.ColoniesEvent
+---@field id number
+---@field items cc.item.colonies[]
+---@field slots number
+local ColonyWarehousePollEvent = ColoniesEvent:extend("am.e.ColonyWarehousePollEvent")
+e.ColonyWarehousePollEvent = ColonyWarehousePollEvent
+---@param id number
+---@param items cc.item.colonies[]
+---@param usedSlots number
+---@param totalSlots number
+---@return am.e.ColonyWarehousePollEvent
+function ColonyWarehousePollEvent:init(id, items, usedSlots, totalSlots)
+    v.expect(1, id, "number")
+    v.expect(2, items, "table")
+    v.expect(3, usedSlots, "number")
+    v.expect(4, totalSlots, "number")
+    ColonyWarehousePollEvent.super.init(self, e.c.Event.Colonies.warehouse_poll)
+
+    self.id = id
+    self.items = items
+    self.usedSlots = usedSlots
+    self.totalSlots = totalSlots
+    return self
+end
+
 e.initNetwork = initNetwork
 e.getComputer = getComputer
 e.receive = receive
