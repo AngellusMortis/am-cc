@@ -11,7 +11,7 @@
     "apis/am/progress/base.lua": "dc3430b614cdd0abf912ead3c65c2eee46922e4edfdfd0657bd1ff2895a2b686",
     "apis/am/progress/colonies.lua": "9faa3214e71b9910a8d416fa4dcb3c97ce82c7701f331738c4ef91096d020ef3",
     "apis/am/progress.lua": "b487c33c21a47c5cd65645c64dfaa7f9d0aad7367907ce90c4adfe91b8b9c85f",
-    "apis/am/event.lua": "8e76cda570d48f29c0160afa3d5635528ed930f93397e3e0ae98121983ca6655",
+    "apis/am/event.lua": "2e7df4a50f8d1df7089afb48eef8c3405905cae12f075b9fd43c4051e86ec361",
     "programs/progress.lua": "a416ca17873f07e7c63d9504864ae5739d6610d045a65f0c84faad63693a2a3c"
   },
   "dependencies": [
