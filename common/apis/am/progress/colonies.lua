@@ -582,7 +582,7 @@ function ColoniesWrapper:updateRequestsTab(tabs)
     ---@cast requestList am.ui.BoundText
     local requestText = {}
     for _, request in pairs(status.requests) do
-        requestText[#requestText + 1] = request.desc
+        requestText[#requestText + 1] = request.name
     end
     table.sort(requestText)
     requestList:update(requestText)

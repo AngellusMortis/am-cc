@@ -21,6 +21,26 @@ local function setStatus(msg)
     end
 end
 
+---@param ping? boolean
+local function incrementalSleep(sleepTime, ping)
+    if ping == nil then
+        ping = false
+    end
+
+    local pingTime = 10
+    while sleepTime > 0 and _G.RUN_PROGRESS do
+        sleepTime = sleepTime - 0.5
+        pingTime = pingTime - 0.5
+        if pingTime <= 0 then
+            if ping then
+                e.PingEvent():send()
+            end
+            pingTime = 10
+        end
+        sleep(0.5)
+    end
+end
+
 local function statusLoop()
     while _G.RUN_PROGRESS do
         log.info("Polling colony status...")
@@ -29,18 +49,7 @@ local function statusLoop()
         e.ColonyStatusPollEvent(STATUS, STATUS_TEXT):send()
         log.info("Completed polling colony status")
         setStatus("")
-
-        local sleepTime = 30
-        local pingTime = 10
-        while sleepTime > 0 and _G.RUN_PROGRESS do
-            sleepTime = sleepTime - 0.5
-            pingTime = pingTime - 0.5
-            if pingTime <= 0 then
-                e.PingEvent():send()
-                pingTime = 10
-            end
-            sleep(0.5)
-        end
+        incrementalSleep(30, true)
     end
 
     setStatus("error:Stopped")
@@ -49,14 +58,26 @@ local function statusLoop()
 end
 
 local function warehouseLoop()
+    incrementalSleep(3)
     while _G.RUN_PROGRESS do
-        sleep(7)
         setStatus("Scan Warehouse")
         log.info("Emptying warehouse inventory...")
         colonies.emptyWarehouse()
         log.info("Completed empty warehouse")
         setStatus("")
-        sleep(53)
+        incrementalSleep(60)
+    end
+end
+
+local function requestLoop()
+    -- incrementalSleep(10)
+    while _G.RUN_PROGRESS do
+        setStatus("Fulfill Requests")
+        log.info("Fulfilling requests...")
+        colonies.fulfillRequests()
+        log.info("Completed fulfilling requests")
+        setStatus("")
+        incrementalSleep(10)
     end
 end
 
@@ -75,15 +96,8 @@ local function eventLoop()
     end
 end
 
----@param transferChest? string
 ---@param importChest? string
-local function main(transferChest, importChest)
-    if transferChest ~= nil then
-        if peripheral.wrap(transferChest) == nil then
-            error("Invalid transfer chest")
-        end
-        colonies.s.transferChest.set(transferChest)
-    end
+local function main(importChest)
     if importChest ~= nil then
         if peripheral.wrap(importChest) == nil then
             error("Invalid import chest")
@@ -96,9 +110,9 @@ local function main(transferChest, importChest)
     end
 
     log.s.print.set(false)
-    parallel.waitForAll(statusLoop, warehouseLoop, eventLoop)
+    parallel.waitForAll(statusLoop, warehouseLoop, eventLoop, requestLoop)
     log.s.print.set(true)
     term.clear()
 end
 
-main(arg[1], arg[2])
+main(arg[1])

@@ -29,15 +29,15 @@ s.importChest = {
     default = "",
     type = "string"
 }
-s.transferChest = {
-    name = "colonies.transferChest",
-    default = "",
-    type = "string"
-}
 colonies.s = core.makeSettingWrapper(s)
 
 local COLONY = nil
 local BRIDGE = nil
+---@type table<string, boolean>
+local RECENT_FULFILLS = {}
+---@type table<number, string>
+local FULFILL_TIMES = {}
+local RECENT_TIME = 300
 
 ---@return table
 local function getColony()
@@ -61,15 +61,6 @@ local function getBridge()
     end
 
     return BRIDGE
-end
-
----@return table|nil
-local function getTransferChest()
-    local chestName = colonies.s.transferChest.get()
-    if chestName ~= "" then
-        return peripheral.wrap(chestName)
-    end
-    return nil
 end
 
 ---@return table|nil
@@ -411,14 +402,112 @@ local function emptyWarehouse()
     e.ColonyWarehousePollEvent(colony.getInfo().id, itemsList, usedSlots, totalSlots):send()
 end
 
+---@return string|nil
+local function getFreeRack()
+    local peripherals = pc.getInventoryNames()
+    for _, name in ipairs(peripherals) do
+        if name:sub(1, 18) == "minecolonies:rack_" then
+            local rack = peripheral.wrap(name)
+            --@cast rack cc.inventory
+            local items = rack.list()
+            if #items < rack.size() then
+                return name
+            end
+        end
+    end
+    return nil
+end
+
+---@param item cc.item
+---@param count number
+---@return number
+local function fulfillItem(item, count)
+    local bridge = getBridge()
+    local meItem = bridge.getItem({name=item.name})
+    if meItem == nil then
+        return 0
+    end
+    if count > meItem.amount then
+        count = meItem.amount
+    end
+
+    local rackName = getFreeRack()
+    if rackName == nil then
+        return 0
+    end
+    local success = false
+    success, count = pcall(function()
+        return bridge.exportItemToPeripheral({name=item.name, count=count}, rackName)
+    end)
+    if success then
+        return count
+    end
+    return 0
+end
+
+---@param request cc.colony.request
+---@return string
+local function getRequestHash(request)
+    local requestHash = request.name .. request.desc
+    if request.target ~= nil then
+        requestHash = requestHash .. request.target
+    end
+    if request.count ~= nil then
+        requestHash = requestHash .. tostring(request.count)
+    end
+
+    return requestHash
+end
+
+local function cleanRecentFulfilled()
+    local now = os.clock()
+    local newFulfillTimes = {}
+    for time, requestHash in pairs(FULFILL_TIMES) do
+        if time + RECENT_TIME > now then
+            newFulfillTimes[time] = requestHash
+        else
+            RECENT_FULFILLS[requestHash] = nil
+        end
+    end
+    FULFILL_TIMES = newFulfillTimes
+end
+
+local function fulfillRequests()
+    local failedItems = {}
+    local requests = colony.getRequests()
+    for _, request in ipairs(requests) do
+        if not failedItems[request.name] then
+            local requestHash = getRequestHash(request)
+            if not RECENT_FULFILLS[requestHash] then
+                local count = 0
+                for _, item in ipairs(request.items) do
+                    count = fulfillItem(item, request.count)
+                    if count > 0 then
+                        break
+                    end
+                end
+                log.debug(string.format(".Fulfil %s..%s", request.name, count))
+                if count == 0 then
+                    failedItems[request.name] = true
+                else
+                    FULFILL_TIMES[os.clock()] = requestHash
+                    RECENT_FULFILLS[requestHash] = true
+                end
+            end
+        end
+    end
+    cleanRecentFulfilled()
+end
+
 ---@return boolean
 local function canResume()
-    return getImportChest() ~= nil and getTransferChest() ~= nil
+    return getImportChest() ~= nil
 end
 
 colonies.pollColony = pollColony
 colonies.scanItems = scanItems
 colonies.emptyWarehouse = emptyWarehouse
 colonies.canResume = canResume
+colonies.fulfillRequests = fulfillRequests
 
 return colonies
