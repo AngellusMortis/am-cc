@@ -43,6 +43,7 @@ local function canDial()
     return _G.CAN_DIAL
 end
 
+
 local function isRunning()
     return _G.RUNNING
 end
@@ -101,6 +102,8 @@ end
 ---@param progress number|nil
 local function setProgress(text, progress)
     local termProgress = terminal:get("termProgress")
+    local requireFullRender = false
+
     if termProgress ~= nil then
         if progress == nil then
             termProgress.obj.baseLabel = ""
@@ -111,6 +114,7 @@ local function setProgress(text, progress)
             termProgress.obj.baseLabel = text
             termProgress.obj.visible = true
             termProgress:update(progress)
+            terminal:render()
         end
     end
 
@@ -125,6 +129,7 @@ local function setProgress(text, progress)
             dialProgress.obj.baseLabel = text
             dialProgress.obj.visible = true
             dialProgress:update(progress)
+            dialer:render()
         end
     end
 end
@@ -429,7 +434,7 @@ local function handleClickEvent(frame, button, row)
     table.sort(addressList, sortAddress)
 
     local address = addressList[row]
-    if address == nil or toDial ~= nil then
+    if address == nil or toDial ~= nil or not canDial() then
         button.obj.fillColor = colors.lightGray
         button.obj.disabled = true
     else
@@ -469,6 +474,10 @@ local function handleEvent(event, args)
         elseif event == "stargate_incoming_wormhole" then
             address = getAddressInfo(args[1])
             setStatus("Incoming: " .. address.name)
+            _G.CAN_DIAL = false
+        elseif event == "stargate_disconnected" then
+            setStatus("Idle")
+            _G.CAN_DIAL = true
         end
     elseif event == "terminate" then
         setRunning(false)
