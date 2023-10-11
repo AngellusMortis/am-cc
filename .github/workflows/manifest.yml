@@ -24,6 +24,7 @@ env:
     mine
     tree
     turtle
+    stargate
 
 jobs:
   manifest:
