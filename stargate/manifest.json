@@ -1,6 +1,6 @@
 {
   "files": {
-    "programs/sgc.lua": "251536f05d2624cb0f351ba69eb3563095de0d428c88d9b4d259bc79fada26b8"
+    "programs/sgc.lua": "f63acdf9fd15f624dce16a917941dec7475d9bf59cab115fabad222a350baa0a"
   },
   "dependencies": [
     "AngellusMortis/am-cc:/common",
