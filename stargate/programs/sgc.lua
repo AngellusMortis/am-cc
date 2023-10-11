@@ -471,11 +471,14 @@ local function handleEvent(event, args)
         elseif event == "stargate_outgoing_wormhole" then
             address = getAddressInfo(args[1])
             setStatus("Outgoing: " .. address.name)
+            setProgress("")
         elseif event == "stargate_incoming_wormhole" then
             address = getAddressInfo(args[1])
             setStatus("Incoming: " .. address.name)
+            setProgress("")
             _G.CAN_DIAL = false
         elseif event == "stargate_disconnected" then
+            setProgress("")
             setStatus("Idle")
             _G.CAN_DIAL = true
         end
