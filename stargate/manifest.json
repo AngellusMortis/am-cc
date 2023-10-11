@@ -1,0 +1,9 @@
+{
+  "files": {
+    "programs/sgc.lua": "8e78aff8325d2e5d1ac8c497cb363f5185b6731e5399ea86e0570654903c68ee"
+  },
+  "dependencies": [
+    "AngellusMortis/am-cc:/common",
+    "AngellusMortis/cc-render"
+  ]
+}
