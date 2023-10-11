@@ -221,6 +221,107 @@ local function dialButtonHandler(button, output, event)
     end
 end
 
+local function showAutoDialer()
+    local dialFrame = terminal:get("dialFrame")
+    if dialFrame ~= nil then
+        dialFrame:setVisible(true)
+    end
+
+    local manualFrame = terminal:get("manualFrame")
+    if manualFrame ~= nil then
+        manualFrame:setVisible(false)
+    end
+    terminal:render()
+end
+
+
+local function showManualDialer()
+    local dialFrame = terminal:get("dialFrame")
+    if dialFrame ~= nil then
+        dialFrame:setVisible(false)
+    end
+
+    local manualFrame = terminal:get("manualFrame")
+    if manualFrame ~= nil then
+        manualFrame:setVisible(true)
+    end
+    terminal:render()
+end
+
+---@param frame am.ui.Frame
+local function setupDialFrame(frame)
+    local width, height = terminal.output.getSize()
+
+    local addressFrame = ui.Frame(ui.a.TopLeft(), {
+        id="termAddress",
+        width=width - 10,
+        height=height - 7,
+        backgroundColor=colors.black,
+        fillColor=colors.lightGray,
+        fillHorizontal=false,
+        scrollBar=true,
+        padLeft=1,
+        padTop=1,
+    })
+    frame:add(addressFrame)
+
+    local dialButton = ui.Button(ui.a.BottomLeft(), "Dial", {
+        id="termDial",
+        disabled=true,
+        fillColor=colors.lightGray,
+        width=width - 10,
+        backgroundColor=colors.black,
+    })
+    dialButton:addActivateHandler(dialButtonHandler)
+    frame:add(dialButton)
+
+    local exitButton = ui.Button(ui.a.BottomRight(), "Exit", {
+        fillColor=colors.red,
+        backgroundColor=colors.black,
+    })
+    exitButton:addActivateHandler(function()
+        setRunning(false)
+    end)
+    frame:add(exitButton)
+
+    local resetButton = ui.Button(ui.a.Right(height-9), "Reset", {
+        fillColor=colors.yellow,
+        backgroundColor=colors.black,
+        textColor=colors.black,
+    })
+    resetButton:addActivateHandler(function()
+        resetStargate()
+    end)
+    frame:add(resetButton)
+
+    local manualButton = ui.Button(ui.a.Right(height-12), "Manual", {
+        id="manualButton",
+        fillColor=colors.blue,
+        backgroundColor=colors.black,
+        textColor=colors.black,
+    })
+    manualButton:addActivateHandler(function()
+        showManualDialer()
+    end)
+    frame:add(manualButton)
+end
+
+---@param frame am.ui.Frame
+local function setupManualDialFrame(frame)
+    local width, height = terminal.output.getSize()
+
+    local autoButton = ui.Button(ui.a.BottomRight(), "Auto", {
+        id="autoButton",
+        fillColor=colors.blue,
+        backgroundColor=colors.black,
+        textColor=colors.black,
+    })
+    autoButton:addActivateHandler(function()
+        showAutoDialer()
+    end)
+    frame:add(autoButton)
+end
+
 ---@param screen am.ui.Screen
 local function setupTerminal(screen)
     local width, height = screen.output.getSize()
@@ -239,47 +340,36 @@ local function setupTerminal(screen)
     progressBar.visible = false
     screen:add(progressBar)
 
-    local addressFrame = ui.Frame(ui.a.Left(5), {
-        id="termAddress",
-        width=width - 9,
-        height=height - 7,
+    local dialFrame = ui.Frame(ui.a.Left(5), {
+        id="dialFrame",
+        width=width,
+        height=height - 4,
         backgroundColor=colors.black,
-        fillColor=colors.lightGray,
-        fillHorizontal=false,
-        scrollBar=true,
-        padLeft=1,
-        padTop=1,
+        fillColor=colors.black,
+        border=0,
+        fillHorizontal=true,
+        scrollBar=false,
+        padLeft=0,
+        padTop=0,
     })
-    screen:add(addressFrame)
+    screen:add(dialFrame)
+    setupDialFrame(dialFrame)
 
-    local dialButton = ui.Button(ui.a.BottomLeft(), "Dial", {
-        id="termDial",
-        disabled=true,
-        fillColor=colors.lightGray,
-        width=width - 9,
+    local manualFrame = ui.Frame(ui.a.Left(5), {
+        id="manualFrame",
+        width=width,
+        height=height - 4,
         backgroundColor=colors.black,
+        fillColor=colors.black,
+        border=0,
+        fillHorizontal=true,
+        scrollBar=false,
+        padLeft=0,
+        padTop=0,
     })
-    dialButton:addActivateHandler(dialButtonHandler)
-    screen:add(dialButton)
-
-    local exitButton = ui.Button(ui.a.BottomRight(), "Exit", {
-        fillColor=colors.red,
-        backgroundColor=colors.black,
-    })
-    exitButton:addActivateHandler(function()
-        setRunning(false)
-    end)
-    screen:add(exitButton)
-
-    local resetButton = ui.Button(ui.a.Right(height-5), "Reset", {
-        fillColor=colors.yellow,
-        backgroundColor=colors.black,
-        textColor=colors.black,
-    })
-    resetButton:addActivateHandler(function()
-        resetStargate()
-    end)
-    screen:add(resetButton)
+    screen:add(manualFrame)
+    setupManualDialFrame(manualFrame)
+    manualFrame:setVisible(false)
 end
 
 ---@param screen am.ui.Screen
