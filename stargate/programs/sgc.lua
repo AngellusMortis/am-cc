@@ -488,7 +488,6 @@ local function setAddress(id, name, address)
         address=address
     }
     s.allGates.set(addresses)
-    updateAddresses()
 end
 
 ---@param id string
@@ -611,6 +610,25 @@ local function main()
 
     log.s.print.set(false)
     setupUI()
+    -- setAddress("nether", "Nether", {27, 23, 4, 34, 12, 28})
+    -- setAddress("end", "End", {13, 24, 2, 19, 3, 30})
+
+    -- setAddress("abydos", "Abydos", {26, 6, 14, 31, 11, 29})
+    -- setAddress("chulak", "Chulak", {8, 1, 22, 14, 36, 19})
+    -- setAddress("lantea", "Lantea", {18, 20, 1, 15, 14, 7, 19})
+
+    -- setAddress("manalore", "Manalore", {33, 21, 22, 20, 35, 16})
+    -- setAddress("endor", "Endor", {6, 31, 26, 17, 12, 27})
+    -- setAddress("musafar", "Musafar", {21, 36, 4, 16, 13, 2})
+    -- setAddress("hoth", "Hoth", {13, 5, 33, 26, 4, 25})
+
+    -- setAddress("aether", "Aether", {27, 1, 18, 24, 14, 17})
+    -- setAddress("everdawn", "Everdawn", {20, 30, 29, 36, 32, 2})
+    -- setAddress("undergarden", "Undergarden", {28, 13, 19, 12, 26, 5})
+    -- setAddress("atlantis", "Atlantis", {4, 28, 22, 31, 30, 2})
+    -- setAddress("tropics", "Tropics", {2, 24, 1, 30, 25, 15})
+    -- setAddress("bumblezone", "Bumblezone", {10, 29, 30, 21, 19, 34})
+
     updateAddresses()
     parallel.waitForAll(eventLoop, dialLoop)
     resetStargate(0)
