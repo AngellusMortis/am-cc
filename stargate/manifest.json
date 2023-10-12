@@ -1,6 +1,7 @@
 {
   "files": {
-    "programs/sgc.lua": "2a37a4168ba6d4c857220d687b856e8ffa1bdc5cfec75866a932feee1a5bb07b"
+    "autorun/stargate.lua": "8d1773121086e7e3bfc1a87f4d789a706b014d9e9b6369bee24e5417bb14fd76",
+    "programs/sgc.lua": "231db4f85833d5c3de9c1e4f6c213e57c2aa91be44b17310d841311b49d210d1"
   },
   "dependencies": [
     "AngellusMortis/am-cc:/common",
