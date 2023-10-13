@@ -5,8 +5,9 @@ if [[ -f deps.json ]]; then
     DEPS=$(jq -c < deps.json)
 fi
 
-LUA_FILES=$(find . -iname "*.lua" ! -iname '*.min.lua' | sed 's/.\///')
-MANFIEST_FILES="$(find . -iwholename './help/*.txt' | sed 's/.\///')
+LUA_FILES=$(find . -iname "*.lua" ! -iname '*.min.lua' -type f | sed 's/.\///')
+MANFIEST_FILES="$(find . -iwholename './help/*.txt' -type f | sed 's/.\///')
+$(find . -iwholename './data/*' -type f | sed 's/.\///')
 $LUA_FILES"
 echo "All manfiest files:"
 echo "$MANFIEST_FILES"

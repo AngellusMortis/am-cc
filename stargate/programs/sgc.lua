@@ -4,9 +4,12 @@ require(settings.get("ghu.base") .. "core/apis/ghu")
 
 local core = require("am.core")
 local ui = require("am.ui")
+local log = require("am.log")
+local dfpwm = require("cc.audio.dfpwm")
+
 local stargate = peripheral.find("basic_interface")
 local monitor = peripheral.find("monitor")
-local log = require("am.log")
+local speaker = peripheral.find("speaker")
 
 if stargate == nil then
     error("Could not find Stargate Basic Interface")
@@ -17,6 +20,7 @@ end
 
 _G.RUNNING = false
 _G.CAN_DIAL = false
+_G.PLAY_ALERT = false
 
 ---@class sg.address
 ---@field id string
@@ -46,6 +50,27 @@ end
 
 local function isRunning()
     return _G.RUNNING
+end
+
+local function triggerAlert()
+    if not _G.PLAY_ALERT then
+        _G.PLAY_ALERT = true
+    end
+end
+
+local function playAlert()
+    if speaker == nil then
+        return
+    end
+
+    local decoder = dfpwm.make_decoder()
+    for chunk in io.lines(settings.get("ghu.base") .. "ext/AngellusMortis/am-cc/stargate/data/alert.dfpwm", 16 * 1024) do
+        local buffer = decoder(chunk)
+
+        while not speaker.playAudio(buffer) do
+            os.pullEvent("speaker_audio_empty")
+        end
+    end
 end
 
 ---@param address_num number[]
@@ -558,14 +583,15 @@ local function handleEvent(event, args)
         if event == "stargate_chevron_engaged" then
             setStatus("Chevron " .. args[1] .. " Engaged: " .. args[2])
         elseif event == "stargate_outgoing_wormhole" then
-            address = getAddressInfo(args[1])
+            local address = getAddressInfo(args[1])
             setStatus("Outgoing: " .. address.name)
             setProgress("")
         elseif event == "stargate_incoming_wormhole" then
-            address = getAddressInfo(args[1])
+            local address = getAddressInfo(args[1])
             setStatus("Incoming: " .. address.name)
             setProgress("")
             _G.CAN_DIAL = false
+            triggerAlert()
         elseif event == "stargate_disconnected" then
             setProgress("")
             setStatus("Idle")
@@ -601,7 +627,21 @@ local function dialLoop()
             dialAddress(toDial)
             toDial = nil
         end
-        sleep(1)
+        sleep(0.05)
+    end
+end
+
+local function alertLoop()
+    if speaker == nil then
+        return
+    end
+
+    while isRunning() do
+        if _G.PLAY_ALERT then
+            playAlert()
+            _G.PLAY_ALERT = false
+        end
+        sleep(0.05)
     end
 end
 
@@ -628,9 +668,10 @@ local function main()
     -- setAddress("atlantis", "Atlantis", {4, 28, 22, 31, 30, 2})
     -- setAddress("tropics", "Tropics", {2, 24, 1, 30, 25, 15})
     -- setAddress("bumblezone", "Bumblezone", {10, 29, 30, 21, 19, 34})
+    -- setAddress("lostcities", "Lost Cities", {6, 11, 8, 27, 16, 26})
 
     updateAddresses()
-    parallel.waitForAll(eventLoop, dialLoop)
+    parallel.waitForAll(eventLoop, dialLoop, alertLoop)
     resetStargate(0)
     term.clear()
     term.setCursorPos(1, 1)
