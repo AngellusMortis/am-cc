@@ -1,7 +1,8 @@
 {
   "files": {
+    "data/alert.dfpwm": "662217f43030c1a227ef9b7f48244b24792844abe476ca5b43eee589850197f4",
     "autorun/stargate.lua": "8d1773121086e7e3bfc1a87f4d789a706b014d9e9b6369bee24e5417bb14fd76",
-    "programs/sgc.lua": "231db4f85833d5c3de9c1e4f6c213e57c2aa91be44b17310d841311b49d210d1"
+    "programs/sgc.lua": "68d29711880a709203d5e7c85c4b6bb147f8049f0377c344d8149b5e13a14791"
   },
   "dependencies": [
     "AngellusMortis/am-cc:/common",
